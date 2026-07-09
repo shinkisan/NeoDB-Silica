@@ -1,0 +1,45 @@
+{
+  "sections": [
+    {
+      "id": "neodb-most-marked",
+      "title": "NeoDB标记最多",
+      "collections": [
+        {
+          "uuid": "7jO1XpuOSfRXbmUKDHKDRP",
+          "title": "2025年标记最多的图书",
+          "url": "https://neodb.social/collection/7jO1XpuOSfRXbmUKDHKDRP"
+        },
+        {
+          "uuid": "0sgRnz9xRz9vvdMcp72jDl",
+          "title": "2025年标记最多的电影",
+          "url": "https://neodb.social/collection/0sgRnz9xRz9vvdMcp72jDl"
+        },
+        {
+          "uuid": "4JNbhPyi2wSPekCVIAmjL7",
+          "title": "2025年标记最多的剧集",
+          "url": "https://neodb.social/collection/4JNbhPyi2wSPekCVIAmjL7"
+        },
+        {
+          "uuid": "3wxipY4ytWLESOqgk53DOQ",
+          "title": "2025年标记最多的游戏",
+          "url": "https://neodb.social/collection/3wxipY4ytWLESOqgk53DOQ"
+        },
+        {
+          "uuid": "5zFMurZijhI8pfZkNr4zbr",
+          "title": "2025年标记最多的播客",
+          "url": "https://neodb.social/collection/5zFMurZijhI8pfZkNr4zbr"
+        },
+        {
+          "uuid": "0WvrKdXizzXyrs7NqahFF0",
+          "title": "2025年标记最多的音乐",
+          "url": "https://neodb.social/collection/0WvrKdXizzXyrs7NqahFF0"
+        },
+        {
+          "uuid": "7MV9czCuD6iGHAUamTW613",
+          "title": "2025年标记最多的演出",
+          "url": "https://neodb.social/collection/7MV9czCuD6iGHAUamTW613"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# These paths are intentionally different between the `opensource` template
+# branch and the private branches (main/dev/preview), and should never be
+# silently overwritten by a `git merge dev` (or main/preview) into
+# `opensource`: the "opensource" side always wins, and dev's own edits to
+# these paths are simply not applied when merging into opensource.
+#
+# One-time setup required in any clone that will perform that merge
+# (this is local git config, not stored in the repo):
+#   git config merge.ours.driver true
+src/app/about/about-page.tsx merge=ours
+public/release.json merge=ours
+README.md merge=ours
