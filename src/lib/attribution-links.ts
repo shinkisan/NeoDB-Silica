@@ -5,5 +5,4 @@
  * are not meant to be edited per deployment.
  */
 export const NEODB_GITHUB_URL = "https://github.com/neodb-social/neodb";
-// TODO: replace with the real repo URL once it's public.
-export const SILICA_GITHUB_URL = "#";
+export const SILICA_GITHUB_URL = "https://github.com/shinkisan/NeoDB-Silica";

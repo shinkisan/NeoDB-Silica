@@ -10,3 +10,4 @@
 src/app/about/about-page.tsx merge=ours
 public/release.json merge=ours
 README.md merge=ours
+AGENTS.md merge=ours
