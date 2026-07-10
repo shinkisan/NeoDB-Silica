@@ -336,7 +336,9 @@ async function fetchCommunityPostPage({
       return { count: 0, hasMore: false, posts: [] };
     }
 
-    const payload = (await response.json()) as CommunityResponse;
+    const payload = parseNeodbJsonSafely<CommunityResponse>(
+      await response.text(),
+    );
     const pages = payload.pages || 1;
 
     return {
@@ -434,14 +436,18 @@ async function fetchCurrentUser(session: NeodbSessionCookie | null) {
   }
 }
 
-// NeoDB's own /api/me/shelf and /api/me/review endpoints (unlike its
-// Mastodon-compatible /api/v1/* surface, which correctly quotes large IDs)
-// return `post_id` as a bare JSON number. Those IDs routinely exceed
-// Number.MAX_SAFE_INTEGER, so plain JSON.parse silently rounds them to a
-// different number — every later lookup by that corrupted ID then 404s.
-// Quote the field before parsing so it round-trips as a string instead.
-function parsePostIdSafeJson<T>(text: string): T {
-  return JSON.parse(text.replace(/"post_id":\s*(-?\d+)/, '"post_id":"$1"')) as T;
+// NeoDB's own API surface (unlike its Mastodon-compatible /api/v1/* surface,
+// which correctly quotes large IDs) returns entity ids as bare JSON numbers —
+// /api/me/shelf and /api/me/review as `post_id`, /api/item/{uuid}/posts/ as
+// `id` (both the post's own id and, nested, its author's account id). Those
+// routinely exceed Number.MAX_SAFE_INTEGER, so plain JSON.parse silently
+// rounds them to a different number — every later lookup by that corrupted
+// id then fails. Quote the known id-bearing fields before parsing so they
+// round-trip as strings instead.
+function parseNeodbJsonSafely<T>(text: string): T {
+  return JSON.parse(
+    text.replace(/"(id|post_id)":\s*(-?\d+)/g, '"$1":"$2"'),
+  ) as T;
 }
 
 async function fetchOwnMark(itemUuid: string, session: NeodbSessionCookie) {
@@ -462,7 +468,7 @@ async function fetchOwnMark(itemUuid: string, session: NeodbSessionCookie) {
       return null;
     }
 
-    return parsePostIdSafeJson<OwnMarkResponse>(await response.text());
+    return parseNeodbJsonSafely<OwnMarkResponse>(await response.text());
   } catch {
     return null;
   }
@@ -486,7 +492,7 @@ async function fetchOwnReview(itemUuid: string, session: NeodbSessionCookie) {
       return null;
     }
 
-    return parsePostIdSafeJson<OwnReviewResponse>(await response.text());
+    return parseNeodbJsonSafely<OwnReviewResponse>(await response.text());
   } catch {
     return null;
   }

@@ -12,11 +12,16 @@ import {
   me,
   MOCK_PORT,
   myMastodonAccount,
+  otherAccount,
   otherCommentStatus,
   ownCommentStatus,
   timelineStatuses,
   TINY_PNG,
 } from "./fixtures.mjs";
+
+const accountsById = new Map(
+  [myMastodonAccount, otherAccount].map((account) => [account.id, account]),
+);
 
 const itemList = Object.values(items);
 const itemsByUuid = new Map(itemList.map((item) => [item.uuid, item]));
@@ -39,14 +44,14 @@ function json(res, payload, status = 200) {
   res.end(JSON.stringify(payload));
 }
 
-// NeoDB's /api/me/shelf and /api/me/review endpoints emit post_id as a bare
-// (unquoted) JSON number even when it exceeds Number.MAX_SAFE_INTEGER.
-// Reproduce that faithfully so the suite locks in the app's safe parsing.
-function jsonWithRawPostId(res, payload, status = 200) {
-  const text = JSON.stringify(payload).replace(
-    /"post_id":"(-?\d+)"/g,
-    '"post_id":$1',
-  );
+// NeoDB's own (non-Mastodon-compatible) endpoints — /api/me/shelf,
+// /api/me/review, /api/item/{uuid}/posts/ — emit id-bearing fields as bare
+// (unquoted) JSON numbers even when they exceed Number.MAX_SAFE_INTEGER.
+// Reproduce that faithfully, for the given field names, so the suite locks
+// in the app's safe parsing.
+function jsonWithRawIds(res, payload, fieldNames, status = 200) {
+  const pattern = new RegExp(`"(${fieldNames.join("|")})":"(-?\\d+)"`, "g");
+  const text = JSON.stringify(payload).replace(pattern, '"$1":$2');
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(text);
 }
@@ -120,7 +125,10 @@ const server = http.createServer(async (req, res) => {
   if (posts && method === "GET") {
     const type = url.searchParams.get("type") || "comment";
     const entries = itemPosts.get(posts[1])?.[type] || [];
-    json(res, { count: entries.length, data: entries, pages: 1 });
+    // Like real NeoDB: this endpoint emits post id and account id (both keyed
+    // "id" at their respective nesting level) as bare numbers, unlike the
+    // Mastodon-compatible /api/v1/* surface.
+    jsonWithRawIds(res, { count: entries.length, data: entries, pages: 1 }, ["id"]);
     return;
   }
 
@@ -151,6 +159,16 @@ const server = http.createServer(async (req, res) => {
     json(res, myMastodonAccount);
     return;
   }
+  const accountById = path.match(/^\/api\/v1\/accounts\/([^/]+)$/);
+  if (accountById && method === "GET") {
+    const account = accountsById.get(accountById[1]);
+    if (account) {
+      json(res, account);
+    } else {
+      notFound(res);
+    }
+    return;
+  }
 
   // --- Own shelf mark for one item (the raw-post_id endpoint) ---
   const shelfItem = path.match(/^\/api\/me\/shelf\/item\/([^/]+)$/);
@@ -161,7 +179,7 @@ const server = http.createServer(async (req, res) => {
       if (!mark) {
         notFound(res);
       } else {
-        jsonWithRawPostId(res, toMarkResponse(mark));
+        jsonWithRawIds(res, toMarkResponse(mark), ["post_id"]);
       }
       return;
     }

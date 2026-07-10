@@ -6,12 +6,13 @@ export const MOCK_PORT = 3199;
 export const MOCK_ORIGIN = `http://127.0.0.1:${MOCK_PORT}`;
 
 // Deliberately NOT representable as a JS double (> Number.MAX_SAFE_INTEGER,
-// odd). NeoDB's /api/me/shelf and /api/me/review endpoints emit post_id as a
-// bare JSON number; if the app ever regresses to plain JSON.parse on those
-// responses, this id corrupts, the /api/v1/statuses/{id} lookup 404s, and the
-// own-comment reply spec fails.
+// odd). NeoDB's own (non-Mastodon-compatible) endpoints — /api/me/shelf,
+// /api/me/review, /api/item/{uuid}/posts/ — emit ids as bare JSON numbers; if
+// the app ever regresses to plain JSON.parse on those responses, these ids
+// corrupt and every later lookup by them fails.
 export const OWN_COMMENT_POST_ID = "597971872949586301";
 export const OTHER_COMMENT_POST_ID = "700000000000000001";
+export const OTHER_ACCOUNT_ID = "600000000000000002";
 
 export const me = {
   avatar: `${MOCK_ORIGIN}/m/avatars/me.png`,
@@ -147,12 +148,12 @@ function status({
   };
 }
 
-const otherAccount = {
+export const otherAccount = {
   acct: "otheruser",
   avatar: `${MOCK_ORIGIN}/m/avatars/other.png`,
   display_name: "另一位用户",
   emojis: [],
-  id: "10002",
+  id: OTHER_ACCOUNT_ID,
   url: `${MOCK_ORIGIN}/users/otheruser/`,
   username: "otheruser",
 };
