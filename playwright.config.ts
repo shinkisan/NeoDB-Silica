@@ -2,7 +2,10 @@ import { defineConfig, devices } from "@playwright/test";
 import { APP_ORIGIN, APP_PORT, MOCK_ORIGIN, TEST_SESSION_SECRET } from "./e2e/helpers/env";
 
 export default defineConfig({
-  expect: { timeout: 15_000 },
+  // Generous: `next dev` compiles each route on first visit, and that
+  // first-compile latency (not app behavior) is what a tight timeout here
+  // would otherwise flake on.
+  expect: { timeout: 30_000 },
   fullyParallel: false,
   projects: [
     {

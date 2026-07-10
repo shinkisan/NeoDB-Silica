@@ -528,7 +528,10 @@ function getRatingFromRatingRow(event: React.PointerEvent<HTMLDivElement>) {
     Math.max(0, (event.clientX - bounds.left) / bounds.width),
   );
 
-  return Math.min(10, Math.max(1, Math.ceil(ratio * 10)));
+  // Unlike a direct tap on a star (getRatingFromPointer, floored at 1 = half
+  // a star), dragging across the row can reach 0 — that's how you clear a
+  // rating you've already set without leaving the dialog.
+  return Math.min(10, Math.ceil(ratio * 10));
 }
 
 function getStarFill(rating: number, starIndex: number): 0 | 0.5 | 1 {

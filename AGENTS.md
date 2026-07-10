@@ -18,6 +18,27 @@ not inside `src/components/navigation-history.tsx`.
 
 NEVER commit or push to `preview` or `main` branches without explicit permission from the user. You may freely push to `dev` branch.
 
+## Regression Tests
+
+`npm run test:e2e` runs the Playwright smoke suite (`e2e/`). It needs no
+network or credentials: `playwright.config.ts` boots a dependency-free mock
+NeoDB instance (`e2e/mock-neodb/server.mjs`) plus a `next dev` server wired to
+it, and authenticated specs mint the app's sealed session cookie directly
+(`e2e/helpers/session.ts`) instead of driving OAuth.
+
+- Don't run it proactively — not after every commit, not before porting or
+  publishing. It's slow (`next dev` compiles each route on first visit) and
+  the user would rather run it themselves at whatever point they choose. Only
+  run it when the user explicitly asks.
+- `e2e/specs/runtime-ids.spec.ts` pins this branch's persistent identifier
+  values — if it fails, you are about to sign deployment users out or wipe
+  their local state; fix the code, don't update the expectation.
+- The mock intentionally reproduces NeoDB quirks the app must survive, e.g.
+  `/api/me/shelf/item/{uuid}` emitting `post_id` as a bare JSON number larger
+  than `Number.MAX_SAFE_INTEGER`. Keep such quirks when extending fixtures.
+- When adding a user-visible feature, extend the suite (or fixtures) in the
+  same change when practical; keep specs thin and behavior-level.
+
 ## UI Design Guidelines
 
 The product UI should feel like a quiet, modern PWA client: dense enough for
