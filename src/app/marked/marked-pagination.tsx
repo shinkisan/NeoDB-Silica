@@ -67,11 +67,10 @@ function getMarkedHref({
   page?: number;
   shelf: ShelfType;
 }) {
-  const params = new URLSearchParams({ shelf });
-
-  if (category !== "all") {
-    params.set("category", category);
-  }
+  // Always set explicitly, even for "all": which category is the default
+  // depends on the user's saved tag order, so omitting it here can't safely
+  // be read as "the default" by whatever later reads the URL.
+  const params = new URLSearchParams({ category, shelf });
 
   if (page && page > 1) {
     params.set("page", String(page));

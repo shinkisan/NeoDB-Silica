@@ -28,14 +28,15 @@ type MarkedFrameProps = {
   isDataLoading: boolean;
   isRefreshing: boolean;
   onRefresh: () => void;
+  orderedCategories: Array<{ id: string; label: string }>;
   shelf: ShelfFilter;
 };
 
 const MARKED_RESTORE_KEY = `${STORAGE_PREFIX}v1:marked:restore`;
 const MARKED_LEAVING_KEY = `${STORAGE_PREFIX}v1:marked:leaving`;
 const MARKED_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:marked:scroll:`;
-const MARKED_CATEGORY_ORDER_EVENT = "app:marked-category-order";
-const MARKED_CATEGORY_ORDER_KEY = `${STORAGE_PREFIX}v1:marked-category-order`;
+export const MARKED_CATEGORY_ORDER_EVENT = "app:marked-category-order";
+export const MARKED_CATEGORY_ORDER_KEY = `${STORAGE_PREFIX}v1:marked-category-order`;
 const MARKED_SWIPE_EXIT_MS = 160;
 export const MARKED_LIST_PENDING_EVENT = "app:marked-list-pending";
 
@@ -51,6 +52,7 @@ export function MarkedFrame({
   isDataLoading,
   isRefreshing,
   onRefresh,
+  orderedCategories,
   shelf,
 }: MarkedFrameProps) {
   const t = useT();
@@ -77,7 +79,6 @@ export function MarkedFrame({
   } | null>(null);
   const [isExternalPending, setIsExternalPending] = useState(false);
   const [isCategoryOrderOpen, setIsCategoryOrderOpen] = useState(false);
-  const [orderedCategories, setOrderedCategories] = useState(categories);
   const [swipeTransition, setSwipeTransition] = useState<SwipeTransition | null>(null);
   const [isPending, startTransition] = useTransition();
   const isWaitingForRoute =
@@ -93,33 +94,6 @@ export function MarkedFrame({
   const showSkeleton =
     isDataLoading || isPending || isWaitingForRoute || isExternalPending;
   const contentAnimationClass = getMarkedSwipeClass(swipeTransition);
-
-  useEffect(() => {
-    function syncCategoryOrder(event?: Event) {
-      let order: unknown = null;
-
-      if (event instanceof CustomEvent) {
-        order = event.detail;
-      } else {
-        try {
-          order = JSON.parse(
-            window.localStorage.getItem(MARKED_CATEGORY_ORDER_KEY) || "[]",
-          );
-        } catch {
-          order = [];
-        }
-      }
-
-      setOrderedCategories(sortCategories(categories, order));
-    }
-
-    syncCategoryOrder();
-    window.addEventListener(MARKED_CATEGORY_ORDER_EVENT, syncCategoryOrder);
-
-    return () => {
-      window.removeEventListener(MARKED_CATEGORY_ORDER_EVENT, syncCategoryOrder);
-    };
-  }, [categories]);
 
   useEffect(() => {
     return () => {
@@ -573,7 +547,7 @@ function RefreshIcon() {
   );
 }
 
-function sortCategories(
+export function sortCategories(
   categories: Array<{ id: string; label: string }>,
   value: unknown,
 ) {
@@ -600,11 +574,10 @@ function getMarkedHref({
   category: string;
   shelf: ShelfFilter;
 }) {
-  const params = new URLSearchParams({ shelf });
-
-  if (category !== "all") {
-    params.set("category", category);
-  }
+  // Always set explicitly, even for "all": which category is the default
+  // depends on the user's saved tag order, so omitting it here can't safely
+  // be read as "the default" by whatever later reads the URL.
+  const params = new URLSearchParams({ category, shelf });
 
   return `/marked?${params.toString()}`;
 }

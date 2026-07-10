@@ -13,7 +13,12 @@ import {
 } from "@/lib/marked-list-cache";
 import { isNeodbCategory } from "@/lib/neodb";
 import { MarkedCard } from "./marked-card";
-import { MarkedFrame } from "./marked-frame";
+import {
+  MARKED_CATEGORY_ORDER_EVENT,
+  MARKED_CATEGORY_ORDER_KEY,
+  MarkedFrame,
+  sortCategories,
+} from "./marked-frame";
 import { MarkedPagination } from "./marked-pagination";
 
 type MarkedContentProps = {
@@ -25,11 +30,44 @@ export function MarkedContent({ cacheScope, categories }: MarkedContentProps) {
   const t = useT();
   const searchParams = useSearchParams();
   const shelf = parseShelf(searchParams.get("shelf"));
-  const categoryValue = searchParams.get("category") || "all";
+  const [orderedCategories, setOrderedCategories] = useState(categories);
+
+  useEffect(() => {
+    function syncCategoryOrder(event?: Event) {
+      let order: unknown = null;
+
+      if (event instanceof CustomEvent) {
+        order = event.detail;
+      } else {
+        try {
+          order = JSON.parse(
+            window.localStorage.getItem(MARKED_CATEGORY_ORDER_KEY) || "[]",
+          );
+        } catch {
+          order = [];
+        }
+      }
+
+      setOrderedCategories(sortCategories(categories, order));
+    }
+
+    syncCategoryOrder();
+    window.addEventListener(MARKED_CATEGORY_ORDER_EVENT, syncCategoryOrder);
+
+    return () => {
+      window.removeEventListener(MARKED_CATEGORY_ORDER_EVENT, syncCategoryOrder);
+    };
+  }, [categories]);
+
+  // "All" is only the right fallback when it's actually first in the user's
+  // saved tag order — otherwise arriving without an explicit ?category=
+  // (e.g. from the bottom nav) should land on whichever tag they put first.
+  const defaultCategory = orderedCategories[0]?.id || "all";
+  const categoryValue = searchParams.get("category") || defaultCategory;
   const category =
     categoryValue === "all" || isNeodbCategory(categoryValue)
       ? categoryValue
-      : "all";
+      : defaultCategory;
   const parsedPage = Number(searchParams.get("page") || 1);
   const page = Number.isFinite(parsedPage) ? Math.max(1, parsedPage) : 1;
   const [payload, setPayload] = useState<MarkedListPayload | null>(null);
@@ -129,6 +167,7 @@ export function MarkedContent({ cacheScope, categories }: MarkedContentProps) {
           isDataLoading={isLoading}
           isRefreshing={isRefreshing}
           onRefresh={refreshAll}
+          orderedCategories={orderedCategories}
           shelf={shelf}
         >
           {error ? <EmptyState text={error} /> : null}
