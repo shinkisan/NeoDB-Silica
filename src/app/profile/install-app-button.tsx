@@ -32,7 +32,7 @@ export function InstallAppButton() {
     }
 
     function syncInstallPrompt() {
-      setInstallPrompt(window.__bieluInstallPrompt || null);
+      setInstallPrompt(window.__appInstallPrompt || null);
     }
 
     function handleInstalled() {
@@ -69,7 +69,7 @@ export function InstallAppButton() {
     const choice = await installPrompt.userChoice;
 
     if (choice.outcome === "accepted") {
-      window.__bieluInstallPrompt = null;
+      window.__appInstallPrompt = null;
       setInstallPrompt(null);
     }
   }

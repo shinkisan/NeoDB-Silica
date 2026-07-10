@@ -94,7 +94,7 @@ function toTimelineStatus(
   const collection = related.find(
     (entity) => entity.type === "Shelf" || entity.type === "Collection",
   );
-  const collectionHref = collection ? toBieluCollectionHref(collection.href || "") : null;
+  const collectionHref = collection ? toAppCollectionHref(collection.href || "") : null;
   const content = stripHtml(subject.content || subject.text || "");
   const rating = getRating(related) ?? parseTimelineRenderedRating(content);
   const isReblog = Boolean(status.reblog);
@@ -133,7 +133,7 @@ function toTimelineStatus(
     item: item
       ? {
           cover: toAbsoluteUrl(item.image || "", item.href),
-          href: toBieluItemHref(item.href || ""),
+          href: toAppItemHref(item.href || ""),
           title: item.name || "",
           type: item.type || "",
         }
@@ -228,7 +228,7 @@ function getActivityType(entities: RelatedEntity[]) {
   return "post";
 }
 
-function toBieluItemHref(value: string) {
+function toAppItemHref(value: string) {
   try {
     const url = new URL(value);
     const segments = url.pathname.split("/").filter(Boolean);
@@ -254,7 +254,7 @@ function toBieluItemHref(value: string) {
   }
 }
 
-function toBieluCollectionHref(value: string) {
+function toAppCollectionHref(value: string) {
   const match = /\/collection\/([^/?#]+)/.exec(value);
   return match ? `/collection/${encodeURIComponent(match[1])}` : null;
 }

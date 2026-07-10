@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 
-export const COLLECTION_PAGE_PENDING_EVENT = "bielu:collection-page-pending";
+export const COLLECTION_PAGE_PENDING_EVENT = "app:collection-page-pending";
 
 type CollectionPagePendingEvent = CustomEvent<{
   page: number;

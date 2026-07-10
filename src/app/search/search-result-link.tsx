@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const SEARCH_RESTORE_KEY = "bielu:v1:search:restore";
-const SEARCH_LEAVING_KEY = "bielu:v1:search:leaving";
-const SEARCH_SCROLL_PREFIX = "bielu:v1:search:scroll:";
+const SEARCH_RESTORE_KEY = `${STORAGE_PREFIX}v1:search:restore`;
+const SEARCH_LEAVING_KEY = `${STORAGE_PREFIX}v1:search:leaving`;
+const SEARCH_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:search:scroll:`;
 
 type SearchResultLinkProps = {
   children: React.ReactNode;

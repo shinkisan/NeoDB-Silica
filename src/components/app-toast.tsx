@@ -9,7 +9,7 @@ type ToastPayload = {
   tone?: ToastTone;
 };
 
-const TOAST_EVENT_NAME = "bielu:toast";
+const TOAST_EVENT_NAME = "app:toast";
 
 export function showToast(message: string, tone: ToastTone = "success") {
   window.dispatchEvent(

@@ -7,9 +7,9 @@ import {
   hasConfiguredFeaturedCollections,
 } from "@/lib/featured-collections";
 import {
-  BIELU_PRODUCT_DESCRIPTION,
-  BIELU_PRODUCT_TITLE,
-  BIELU_SITE_NAME,
+  SITE_NAME,
+  SITE_PRODUCT_DESCRIPTION,
+  SITE_PRODUCT_TITLE,
   getIndexableRobots,
 } from "@/lib/seo";
 import HomeContentRoot from "../home-content";
@@ -17,20 +17,20 @@ import { HomeShellSkeleton } from "./home-shell-skeleton";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
-  description: BIELU_PRODUCT_DESCRIPTION,
+  description: SITE_PRODUCT_DESCRIPTION,
   openGraph: {
-    description: BIELU_PRODUCT_DESCRIPTION,
-    siteName: BIELU_SITE_NAME,
-    title: BIELU_PRODUCT_TITLE,
+    description: SITE_PRODUCT_DESCRIPTION,
+    siteName: SITE_NAME,
+    title: SITE_PRODUCT_TITLE,
     type: "website",
     url: "/",
   },
   robots: getIndexableRobots(),
-  title: BIELU_PRODUCT_TITLE,
+  title: SITE_PRODUCT_TITLE,
   twitter: {
     card: "summary",
-    description: BIELU_PRODUCT_DESCRIPTION,
-    title: BIELU_PRODUCT_TITLE,
+    description: SITE_PRODUCT_DESCRIPTION,
+    title: SITE_PRODUCT_TITLE,
   },
 };
 

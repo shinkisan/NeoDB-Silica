@@ -53,6 +53,7 @@ import {
 } from "@/lib/tmdb-regions";
 import { HomeTagRailSkeleton } from "./(home)/home-shell-skeleton";
 import { TmdbMovieRail } from "./(home)/tmdb-movie-rail";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 const LazyCategoryOrderDialog = lazy(() =>
   import("@/components/category-order-dialog").then((module) => ({
@@ -61,14 +62,14 @@ const LazyCategoryOrderDialog = lazy(() =>
 );
 
 const CACHE_TTL = 60 * 60 * 1000;
-const HOME_CATEGORY_KEY = "bielu:v1:home:category";
-const HOME_MOVIE_SUBTAB_KEY = "bielu:v1:home-movie-subtab";
-const HOME_COLLECTION_SUBTAB_KEY = "bielu:v1:home-collection-subtab";
-const HOME_LEAVING_KEY = "bielu:v1:home:leaving";
-const HOME_RESTORE_KEY = "bielu:v1:home:restore";
-const HOME_SCROLL_PREFIX = "bielu:v1:home:scroll:";
-const COLLECTION_SCROLL_TOP_PREFIX = "bielu:v1:collection-scroll-top:";
-const LAST_NON_SEARCH_PATH_KEY = "bielu:v1:last-non-search-path";
+const HOME_CATEGORY_KEY = `${STORAGE_PREFIX}v1:home:category`;
+const HOME_MOVIE_SUBTAB_KEY = `${STORAGE_PREFIX}v1:home-movie-subtab`;
+const HOME_COLLECTION_SUBTAB_KEY = `${STORAGE_PREFIX}v1:home-collection-subtab`;
+const HOME_LEAVING_KEY = `${STORAGE_PREFIX}v1:home:leaving`;
+const HOME_RESTORE_KEY = `${STORAGE_PREFIX}v1:home:restore`;
+const HOME_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:home:scroll:`;
+const COLLECTION_SCROLL_TOP_PREFIX = `${STORAGE_PREFIX}v1:collection-scroll-top:`;
+const LAST_NON_SEARCH_PATH_KEY = `${STORAGE_PREFIX}v1:last-non-search-path`;
 const INITIAL_RENDER_COUNT = 18;
 const RENDER_BATCH_SIZE = 12;
 const HOME_SWIPE_EXIT_MS = 160;
@@ -100,7 +101,7 @@ type FeaturedCollectionsResponse = {
 
 declare global {
   interface Window {
-    __bieluHomeTrendingBootstrap?: {
+    __appHomeTrendingBootstrap?: {
       category: string;
       promise: Promise<TrendingResponse>;
     };
@@ -409,7 +410,7 @@ function HomeContent({
 
     const cacheKey = getCacheKey(activeFilter);
     const shouldRefresh = refreshRequest?.category === activeFilter;
-    const bootstrap = window.__bieluHomeTrendingBootstrap;
+    const bootstrap = window.__appHomeTrendingBootstrap;
 
     const cached = shouldRefresh ? null : readCache(cacheKey, { allowStale: true });
 
@@ -953,7 +954,7 @@ function HomeContent({
               autoComplete="off"
               autoCorrect="off"
               className="min-w-0 flex-1 bg-transparent px-4 text-base outline-none placeholder:text-[#75777d]"
-              name="bielu-home-search-query"
+              name="app-home-search-query"
               placeholder={t("home.searchPlaceholder")}
               ref={searchInputRef}
               spellCheck={false}
@@ -1739,7 +1740,7 @@ function getHomeSwipeClass(transition: SwipeTransition | null) {
 }
 
 function getCacheKey(category: string) {
-  return `bielu:v1:neodb:trending:${category}`;
+  return `${STORAGE_PREFIX}v1:neodb:trending:${category}`;
 }
 
 function getHomeHref(category: string) {
@@ -1756,7 +1757,7 @@ function clearOtherTrendingCaches(activeCategory: string) {
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
     const key = window.localStorage.key(index);
 
-    if (key?.startsWith("bielu:v1:neodb:trending:") && key !== activeKey) {
+    if (key?.startsWith(`${STORAGE_PREFIX}v1:neodb:trending:`) && key !== activeKey) {
       window.localStorage.removeItem(key);
     }
   }

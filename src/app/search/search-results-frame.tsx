@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export const SEARCH_RESULTS_PENDING_EVENT = "bielu:search-results-pending";
+export const SEARCH_RESULTS_PENDING_EVENT = "app:search-results-pending";
 
 export function SearchResultsFrame({ children }: { children: React.ReactNode }) {
   const [isPending, setIsPending] = useState(false);

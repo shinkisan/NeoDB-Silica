@@ -2,9 +2,10 @@
 
 import type { ShelfType } from "@/components/mark-badges";
 import type { HomeItem } from "@/lib/neodb";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-export const MARKED_LIST_CACHE_PREFIX = "bielu:v1:marked-list:";
-export const MARKED_LIST_ACTIVE_SCOPE_KEY = "bielu:v1:marked-list:active-scope";
+export const MARKED_LIST_CACHE_PREFIX = `${STORAGE_PREFIX}v1:marked-list:`;
+export const MARKED_LIST_ACTIVE_SCOPE_KEY = `${STORAGE_PREFIX}v1:marked-list:active-scope`;
 const MARKED_LIST_CACHE_TTL_MS = 10 * 60 * 1000;
 const MARKED_LIST_CACHE_LIMIT = 48;
 

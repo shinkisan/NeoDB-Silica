@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const SEARCH_HISTORY_KEY = "bielu:v1:search-history";
+const SEARCH_HISTORY_KEY = `${STORAGE_PREFIX}v1:search-history`;
 const SEARCH_HISTORY_LIMIT = 5;
 
 export function readSearchHistory() {

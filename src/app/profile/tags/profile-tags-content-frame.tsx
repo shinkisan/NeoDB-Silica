@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 
-export const PROFILE_TAGS_PAGE_PENDING_EVENT = "bielu:profile-tags-page-pending";
+export const PROFILE_TAGS_PAGE_PENDING_EVENT = "app:profile-tags-page-pending";
 
 export function ProfileTagsContentFrame({
   children,

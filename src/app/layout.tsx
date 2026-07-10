@@ -68,7 +68,7 @@ export default async function RootLayout({
 }>) {
   const locale = resolveLocale(
     await cookies(),
-    (await headers()).get("x-bielu-about-locale"),
+    (await headers()).get("x-app-about-locale"),
   );
   const messages = await loadMessages(locale);
   const featureFlags = getServerFeatureFlags();

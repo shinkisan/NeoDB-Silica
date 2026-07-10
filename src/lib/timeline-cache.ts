@@ -1,7 +1,8 @@
 "use client";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const TIMELINE_CACHE_PREFIX = "bielu:v9:timeline:";
-const TIMELINE_ACTIVE_SCOPE_KEY = "bielu:v9:timeline:active-scope";
+const TIMELINE_CACHE_PREFIX = `${STORAGE_PREFIX}v9:timeline:`;
+const TIMELINE_ACTIVE_SCOPE_KEY = `${STORAGE_PREFIX}v9:timeline:active-scope`;
 const TIMELINE_CACHE_TTL_MS = 10 * 60 * 1000;
 const PUBLIC_TIMELINE_CACHE_TTL_MS = 30 * 60 * 1000;
 const FOLLOWING_TIMELINE_CACHE_TTL_MS = 10 * 60 * 1000;

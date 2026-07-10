@@ -24,10 +24,11 @@ import type {
   TimelineStatus,
   TimelineView,
 } from "./timeline-types";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 const views: TimelineView[] = ["public", "following", "mine"];
-const TIMELINE_RESTORE_KEY = "bielu:v1:timeline:restore";
-const TIMELINE_SCROLL_KEY = "bielu:v1:timeline:scroll";
+const TIMELINE_RESTORE_KEY = `${STORAGE_PREFIX}v1:timeline:restore`;
+const TIMELINE_SCROLL_KEY = `${STORAGE_PREFIX}v1:timeline:scroll`;
 
 // `performance.navigation` reflects how the current document was loaded and is
 // constant for its lifetime, so reload detection must run once per document —

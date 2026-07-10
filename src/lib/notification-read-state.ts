@@ -1,4 +1,5 @@
-const NOTIFICATION_LAST_SEEN_KEY = "bielu:v1:notifications:last-seen-id";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
+const NOTIFICATION_LAST_SEEN_KEY = `${STORAGE_PREFIX}v1:notifications:last-seen-id`;
 
 export function readLastSeenNotificationId() {
   if (typeof window === "undefined") return "";

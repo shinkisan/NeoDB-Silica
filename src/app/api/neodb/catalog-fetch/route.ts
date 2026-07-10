@@ -21,7 +21,7 @@ type CatalogFetchMockFixture = {
   status: number;
 };
 
-const MOCK_HOST = "mock.bielu.local";
+const MOCK_HOST = "mock.app.local";
 const MOCK_SCENARIOS = new Set([
   "accepted",
   "error",
@@ -120,7 +120,7 @@ export async function GET(request: Request) {
 }
 
 function shouldUseMock(mockScenario?: string) {
-  if (!mockScenario && process.env.BIELU_MOCK_CATALOG_FETCH !== "1") {
+  if (!mockScenario && process.env.MOCK_CATALOG_FETCH !== "1") {
     return false;
   }
 

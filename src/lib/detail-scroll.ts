@@ -1,4 +1,5 @@
-export const DETAIL_SCROLL_TOP_PREFIX = "bielu:v1:detail-scroll-top:";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
+export const DETAIL_SCROLL_TOP_PREFIX = `${STORAGE_PREFIX}v1:detail-scroll-top:`;
 
 export function requestDetailScrollTopForHref(href: string) {
   if (typeof window === "undefined") {

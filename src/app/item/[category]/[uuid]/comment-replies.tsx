@@ -14,6 +14,7 @@ import {
   useCommentTranslation,
 } from "./comment-translation";
 import { CommunityTime } from "./community-time";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 type Reply = {
   acct: string;
@@ -34,7 +35,7 @@ type Reply = {
   username: string;
 };
 
-const AUTO_NOTE_WARNING_DISMISSED_KEY = "bielu:v1:auto-note-reply-warning-dismissed";
+const AUTO_NOTE_WARNING_DISMISSED_KEY = `${STORAGE_PREFIX}v1:auto-note-reply-warning-dismissed`;
 
 // `performance.navigation` reflects how the current document was loaded and
 // never changes for its lifetime, so reload detection must run once per
@@ -53,7 +54,7 @@ function handleReplyThreadReload() {
     | undefined;
 
   if (navEntry?.type === "reload") {
-    window.sessionStorage.removeItem("belu:replies-open");
+    window.sessionStorage.removeItem(`${STORAGE_PREFIX}v1:replies-open`);
   }
 }
 
@@ -152,7 +153,7 @@ export function CommentReplies({
     const wasOpen =
       persistOpenState &&
       !disabled &&
-      sessionStorage.getItem("belu:replies-open") === postId;
+      sessionStorage.getItem(`${STORAGE_PREFIX}v1:replies-open`) === postId;
     if (!defaultExpanded && !wasOpen) return;
     if (disabled) return;
     setIsExpanded(true);
@@ -164,9 +165,9 @@ export function CommentReplies({
     if (!persistOpenState) return;
 
     if (isExpanded) {
-      sessionStorage.setItem("belu:replies-open", postId);
-    } else if (sessionStorage.getItem("belu:replies-open") === postId) {
-      sessionStorage.removeItem("belu:replies-open");
+      sessionStorage.setItem(`${STORAGE_PREFIX}v1:replies-open`, postId);
+    } else if (sessionStorage.getItem(`${STORAGE_PREFIX}v1:replies-open`) === postId) {
+      sessionStorage.removeItem(`${STORAGE_PREFIX}v1:replies-open`);
     }
   }, [isExpanded, persistOpenState, postId]);
 

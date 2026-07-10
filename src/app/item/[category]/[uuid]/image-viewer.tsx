@@ -67,7 +67,7 @@ export function ImageViewer({ alt, src, stills }: ImageViewerProps) {
 export function setImageViewerState(isOpen: boolean) {
   document.documentElement.dataset.imageViewerOpen = isOpen ? "true" : "false";
   window.dispatchEvent(
-    new CustomEvent("bielu:image-viewer", { detail: isOpen }),
+    new CustomEvent("app:image-viewer", { detail: isOpen }),
   );
 }
 

@@ -17,6 +17,7 @@ import type { TimelineResponse, TimelineStatus } from "@/app/timeline/timeline-t
 import { renderTextWithEmoji, type MastodonEmoji } from "@/lib/mastodon-emoji";
 import { shareContent } from "@/lib/clipboard";
 import { siteConfig } from "@/site.config";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 const LazyRelatedLinksDialog = lazy(() =>
   import("@/components/related-links-dialog").then((module) => ({
@@ -50,9 +51,9 @@ type AccountProfile = {
 type AccountState = "loading" | "ready" | "guest" | "error";
 type ActivityState = "loading" | "ready" | "error";
 
-const USER_PROFILE_SCROLL_PREFIX = "bielu:v1:user-profile:scroll:";
-const USER_PROFILE_RESTORE_PREFIX = "bielu:v1:user-profile:restore:";
-const USER_PROFILE_CACHE_PREFIX = "bielu:v12:user-profile-cache:";
+const USER_PROFILE_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:user-profile:scroll:`;
+const USER_PROFILE_RESTORE_PREFIX = `${STORAGE_PREFIX}v1:user-profile:restore:`;
+const USER_PROFILE_CACHE_PREFIX = `${STORAGE_PREFIX}v12:user-profile-cache:`;
 const USER_PROFILE_ACTIVITY_ID = "recent-activity";
 const USER_PROFILE_ACTIVITY_TOP_OFFSET = 80;
 const USER_PROFILE_ACTIVITY_VISIBILITY_EPSILON = 2;

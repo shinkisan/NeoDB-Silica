@@ -1533,12 +1533,12 @@ function useImageViewerState() {
     }
 
     syncFromDocument();
-    window.addEventListener("bielu:image-viewer", syncViewerState);
+    window.addEventListener("app:image-viewer", syncViewerState);
     window.addEventListener("pageshow", syncFromDocument);
     window.addEventListener("focus", syncFromDocument);
 
     return () => {
-      window.removeEventListener("bielu:image-viewer", syncViewerState);
+      window.removeEventListener("app:image-viewer", syncViewerState);
       window.removeEventListener("pageshow", syncFromDocument);
       window.removeEventListener("focus", syncFromDocument);
     };

@@ -6,9 +6,10 @@ import { useT } from "@/components/use-t";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { clearMarkedListCache } from "@/lib/marked-list-cache";
 import { clearTimelineCache } from "@/lib/timeline-cache";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 const PROFILE_CACHE_PREFIXES = [
-  "bielu:v1:profile:",
+  `${STORAGE_PREFIX}v1:profile:`,
 ];
 
 export function LogoutButton() {

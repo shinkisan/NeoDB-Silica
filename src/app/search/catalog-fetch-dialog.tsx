@@ -70,7 +70,7 @@ const SUPPORTED_LINK_HOSTS = [
 ];
 
 if (process.env.NODE_ENV !== "production") {
-  SUPPORTED_LINK_HOSTS.push("mock.bielu.local");
+  SUPPORTED_LINK_HOSTS.push("mock.app.local");
 }
 
 export function isSupportedCatalogLink(value: string) {
@@ -471,7 +471,7 @@ function isValidCatalogUrl(value: string) {
 function getPollInterval(targetUrl: string) {
   const parsed = parseUrl(targetUrl);
 
-  if (parsed?.hostname !== "mock.bielu.local") {
+  if (parsed?.hostname !== "mock.app.local") {
     return POLL_INTERVAL_MS;
   }
 

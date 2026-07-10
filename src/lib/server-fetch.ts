@@ -1,7 +1,7 @@
 import { ProxyAgent, setGlobalDispatcher } from "undici";
 import { cookies } from "next/headers";
 
-const proxyDispatcherFlag = Symbol.for("bielu.neodb.proxyDispatcher");
+const proxyDispatcherFlag = Symbol.for("app.neodb.proxyDispatcher");
 const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
 
 export type ServerFetchInit = RequestInit & {

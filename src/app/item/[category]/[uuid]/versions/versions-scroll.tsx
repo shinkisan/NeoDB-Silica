@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const VERSIONS_RESTORE_PREFIX = "bielu:v1:versions-restore:";
-const VERSIONS_SCROLL_PREFIX = "bielu:v1:versions-scroll:";
+const VERSIONS_RESTORE_PREFIX = `${STORAGE_PREFIX}v1:versions-restore:`;
+const VERSIONS_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:versions-scroll:`;
 
 export function VersionsScrollManager({ itemUuid }: { itemUuid: string }) {
   const searchParams = useSearchParams();

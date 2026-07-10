@@ -45,3 +45,7 @@ next-env.d.ts
 
 # reference
 /ref
+
+# playwright
+/playwright-report
+/test-results

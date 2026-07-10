@@ -5,8 +5,9 @@ import { useT } from "@/components/use-t";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { showToast } from "@/components/app-toast";
 import { APP_RESET_EVENT } from "@/lib/app-reset";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const APP_STORAGE_PREFIX = "bielu:";
+const APP_STORAGE_PREFIX = STORAGE_PREFIX;
 
 export function CacheControlButton() {
   const t = useT();

@@ -1,1 +1,1 @@
-export const APP_RESET_EVENT = "bielu:app-reset";
+export const APP_RESET_EVENT = "app:app-reset";

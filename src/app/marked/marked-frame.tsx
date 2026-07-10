@@ -11,6 +11,7 @@ import {
   MARKED_REFRESH_ITEM_KEY,
 } from "./marked-refresh";
 import { MarkedCardsSkeleton } from "./marked-skeleton";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 const LazyCategoryOrderDialog = lazy(() =>
   import("@/components/category-order-dialog").then((module) => ({
@@ -30,13 +31,13 @@ type MarkedFrameProps = {
   shelf: ShelfFilter;
 };
 
-const MARKED_RESTORE_KEY = "bielu:v1:marked:restore";
-const MARKED_LEAVING_KEY = "bielu:v1:marked:leaving";
-const MARKED_SCROLL_PREFIX = "bielu:v1:marked:scroll:";
-const MARKED_CATEGORY_ORDER_EVENT = "bielu:marked-category-order";
-const MARKED_CATEGORY_ORDER_KEY = "bielu:v1:marked-category-order";
+const MARKED_RESTORE_KEY = `${STORAGE_PREFIX}v1:marked:restore`;
+const MARKED_LEAVING_KEY = `${STORAGE_PREFIX}v1:marked:leaving`;
+const MARKED_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:marked:scroll:`;
+const MARKED_CATEGORY_ORDER_EVENT = "app:marked-category-order";
+const MARKED_CATEGORY_ORDER_KEY = `${STORAGE_PREFIX}v1:marked-category-order`;
 const MARKED_SWIPE_EXIT_MS = 160;
-export const MARKED_LIST_PENDING_EVENT = "bielu:marked-list-pending";
+export const MARKED_LIST_PENDING_EVENT = "app:marked-list-pending";
 
 type SwipeTransition = {
   direction: "left" | "right";

@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
 import { MARKED_REFRESH_ITEM_KEY } from "./marked-refresh";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const MARKED_RESTORE_KEY = "bielu:v1:marked:restore";
-const MARKED_LEAVING_KEY = "bielu:v1:marked:leaving";
-const MARKED_SCROLL_PREFIX = "bielu:v1:marked:scroll:";
+const MARKED_RESTORE_KEY = `${STORAGE_PREFIX}v1:marked:restore`;
+const MARKED_LEAVING_KEY = `${STORAGE_PREFIX}v1:marked:leaving`;
+const MARKED_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:marked:scroll:`;
 
 type MarkedCardBodyProps = {
   children: React.ReactNode;

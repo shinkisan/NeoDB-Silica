@@ -1,6 +1,7 @@
-export const REVIEW_STATE_EVENT = "bielu:review-state";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
+export const REVIEW_STATE_EVENT = "app:review-state";
 
-const REVIEW_STATE_PREFIX = "bielu:v1:review-state:";
+const REVIEW_STATE_PREFIX = `${STORAGE_PREFIX}v1:review-state:`;
 const REVIEW_STATE_TTL_MS = 10 * 60 * 1000;
 
 export type ReviewStateSnapshot = {

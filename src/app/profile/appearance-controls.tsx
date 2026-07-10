@@ -14,10 +14,11 @@ import {
   THEME_MODE_KEY,
   themeColors,
 } from "@/lib/theme";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 const MODE_KEY = THEME_MODE_KEY;
 const COLOR_KEY = THEME_COLOR_KEY;
-const LANG_KEY = "bielu:v1:lang";
+const LANG_KEY = `${STORAGE_PREFIX}v1:lang`;
 
 const defaultThemeColorId = getDefaultThemeColor().id;
 
@@ -133,8 +134,8 @@ function useStoredOption(key: string, fallback: string) {
 
 function clearItemCaches() {
   const itemPrefixes = [
-    "bielu:v1:neodb:trending:",
-    "bielu:v1:profile:calendar:",
+    `${STORAGE_PREFIX}v1:neodb:trending:`,
+    `${STORAGE_PREFIX}v1:profile:calendar:`,
   ];
 
   for (let i = window.localStorage.length - 1; i >= 0; i--) {
@@ -145,7 +146,7 @@ function clearItemCaches() {
     }
   }
 
-  window.sessionStorage.removeItem("bielu:v1:home:category");
-  window.sessionStorage.removeItem("bielu:v1:home:restore");
-  window.sessionStorage.removeItem("bielu:v1:home:leaving");
+  window.sessionStorage.removeItem(`${STORAGE_PREFIX}v1:home:category`);
+  window.sessionStorage.removeItem(`${STORAGE_PREFIX}v1:home:restore`);
+  window.sessionStorage.removeItem(`${STORAGE_PREFIX}v1:home:leaving`);
 }

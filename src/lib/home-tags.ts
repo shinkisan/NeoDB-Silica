@@ -1,10 +1,11 @@
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 export type HomeTag = {
   id: string;
   label: string;
 };
 
-export const HOME_TAG_ORDER_EVENT = "bielu:home-tag-order";
-export const HOME_TAG_ORDER_KEY = "bielu:v1:home-tag-order";
+export const HOME_TAG_ORDER_EVENT = "app:home-tag-order";
+export const HOME_TAG_ORDER_KEY = `${STORAGE_PREFIX}v1:home-tag-order`;
 
 export const homeTags: HomeTag[] = [
   { id: "book", label: "图书" },

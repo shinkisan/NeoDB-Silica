@@ -1,6 +1,7 @@
 "use client";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const CACHE_PREFIX = "bielu:v2:comment-translation:";
+const CACHE_PREFIX = `${STORAGE_PREFIX}v2:comment-translation:`;
 const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const CACHE_LIMIT = 100;
 

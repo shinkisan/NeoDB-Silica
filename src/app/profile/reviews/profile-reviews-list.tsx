@@ -8,6 +8,7 @@ import { ReviewReaderTrigger } from "@/components/review-reader-trigger";
 import { showToast } from "@/components/app-toast";
 import { useT } from "@/components/use-t";
 import { dispatchReviewStateChange } from "@/lib/review-state";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 export type ProfileReviewItem = {
   body: string;
@@ -95,7 +96,7 @@ function ProfileReviewCard({
 
   function preserveReviewReturn() {
     window.sessionStorage.setItem(
-      `bielu:v1:detail-editor-return:${item.itemUuid}`,
+      `${STORAGE_PREFIX}v1:detail-editor-return:${item.itemUuid}`,
       "/profile/reviews",
     );
   }

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const PROFILE_ABOUT_RESTORE_KEY = "bielu:v1:profile:about-restore";
-const PROFILE_SCROLL_KEY = "bielu:v1:profile:scroll";
+const PROFILE_ABOUT_RESTORE_KEY = `${STORAGE_PREFIX}v1:profile:about-restore`;
+const PROFILE_SCROLL_KEY = `${STORAGE_PREFIX}v1:profile:scroll`;
 
 export function AboutProfileLink({
   href,

@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
+import { COOKIE_PREFIX } from "@/lib/runtime-ids";
 
-export const OAUTH_COOKIE = "bielu_neodb_oauth";
-export const SESSION_COOKIE = "bielu_neodb_session";
+export const OAUTH_COOKIE = `${COOKIE_PREFIX}neodb_oauth`;
+export const SESSION_COOKIE = `${COOKIE_PREFIX}neodb_session`;
 
 export type NeodbOauthCookie = {
   clientId: string;

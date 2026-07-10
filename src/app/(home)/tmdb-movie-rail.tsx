@@ -12,10 +12,11 @@ import { type Locale } from "@/i18n/config";
 import { parseCatalogDetailPath } from "@/lib/catalog-link";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
 import { type TmdbRegion } from "@/lib/tmdb-regions";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const MAP_STORAGE_KEY = "bielu:v1:tmdb-neodb-map";
+const MAP_STORAGE_KEY = `${STORAGE_PREFIX}v1:tmdb-neodb-map`;
 const MAP_MAX_ENTRIES = 200;
-const SESSION_CACHE_PREFIX = "bielu:v1:tmdb:now-playing:";
+const SESSION_CACHE_PREFIX = `${STORAGE_PREFIX}v1:tmdb:now-playing:`;
 
 type TmdbMovieItem = {
   originalTitle: string;

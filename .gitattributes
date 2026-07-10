@@ -11,3 +11,5 @@ src/app/about/about-page.tsx merge=ours
 public/release.json merge=ours
 README.md merge=ours
 AGENTS.md merge=ours
+src/lib/runtime-ids.ts merge=ours
+e2e/specs/runtime-ids.spec.ts merge=ours

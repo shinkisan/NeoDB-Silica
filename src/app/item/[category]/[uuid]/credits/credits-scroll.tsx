@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const CREDITS_RESTORE_PREFIX = "bielu:v1:credits-restore:";
-const CREDITS_SCROLL_PREFIX = "bielu:v1:credits-scroll:";
+const CREDITS_RESTORE_PREFIX = `${STORAGE_PREFIX}v1:credits-restore:`;
+const CREDITS_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:credits-scroll:`;
 
 export function CreditsScrollManager({
   category,

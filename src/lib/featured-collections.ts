@@ -1,3 +1,4 @@
+import { COOKIE_PREFIX } from "@/lib/runtime-ids";
 import featuredCollections from "@/data/featured-collections.json";
 
 /**
@@ -7,7 +8,7 @@ import featuredCollections from "@/data/featured-collections.json";
  * flash of the "lists" subtab and a hydration mismatch that a client-only
  * (e.g. localStorage-based) check would cause.
  */
-export const FEATURED_COLLECTIONS_EMPTY_COOKIE = "bielu_featured_collections_empty";
+export const FEATURED_COLLECTIONS_EMPTY_COOKIE = `${COOKIE_PREFIX}featured_collections_empty`;
 
 /**
  * Whether this deployment has curated any featured collections. When false,

@@ -2,9 +2,10 @@ import {
   normalizeNeodbVisibility,
   type NeodbVisibility,
 } from "@/lib/neodb-visibility";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-export const PUBLISH_PREFERENCES_EVENT = "bielu:publish-preferences";
-const PUBLISH_PREFERENCES_KEY = "bielu:v1:publish-preferences";
+export const PUBLISH_PREFERENCES_EVENT = "app:publish-preferences";
+const PUBLISH_PREFERENCES_KEY = `${STORAGE_PREFIX}v1:publish-preferences`;
 
 export type PublishVisibilityTarget = "mark" | "review";
 export type PublishFediverseTarget = "mark" | "comment" | "review";

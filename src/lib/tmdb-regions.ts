@@ -1,7 +1,8 @@
 import { type Locale } from "@/i18n/config";
+import { COOKIE_PREFIX, STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-export const TMDB_REGION_COOKIE = "bielu_tmdb_region";
-export const TMDB_REGION_STORAGE_KEY = "bielu:v1:tmdb-region";
+export const TMDB_REGION_COOKIE = `${COOKIE_PREFIX}tmdb_region`;
+export const TMDB_REGION_STORAGE_KEY = `${STORAGE_PREFIX}v1:tmdb-region`;
 
 export const TMDB_REGIONS = [
   "CN",

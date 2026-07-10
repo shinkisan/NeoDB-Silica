@@ -2,8 +2,9 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const navigationStackKey = "bielu:v1:navigation-stack";
+const navigationStackKey = `${STORAGE_PREFIX}v1:navigation-stack`;
 
 type NavigationRouter = {
   back: () => void;

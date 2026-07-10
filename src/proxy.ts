@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const ABOUT_LOCALE_HEADER = "x-bielu-about-locale";
+const ABOUT_LOCALE_HEADER = "x-app-about-locale";
 
 export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);

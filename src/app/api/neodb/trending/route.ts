@@ -125,7 +125,7 @@ export async function GET(request: Request) {
     }
 
     if (firstCover) {
-      responseHeaders.set("X-Bielu-First-Cover", encodeURIComponent(firstCover));
+      responseHeaders.set("X-App-First-Cover", encodeURIComponent(firstCover));
     }
 
     return NextResponse.json(

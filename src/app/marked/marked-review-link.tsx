@@ -12,6 +12,7 @@ import {
   REVIEW_STATE_EVENT,
   type ReviewStateEvent,
 } from "@/lib/review-state";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 type ReviewSummary = {
   title?: string;
@@ -22,7 +23,7 @@ type ReviewSummaryState = {
   title: string;
 };
 
-const REVIEW_SUMMARY_CACHE_PREFIX = "bielu:v1:marked:review-summary:";
+const REVIEW_SUMMARY_CACHE_PREFIX = `${STORAGE_PREFIX}v1:marked:review-summary:`;
 const reviewSummaryCache = new Map<string, ReviewSummaryState>();
 
 export function MarkedReviewLink({ itemUuid }: { itemUuid: string }) {

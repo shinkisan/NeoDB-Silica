@@ -1,6 +1,7 @@
-export const MARKED_REFRESH_ITEM_EVENT = "bielu:marked-refresh-item";
-export const MARKED_REFRESH_ITEM_KEY = "bielu:v1:marked:refresh-item";
-export const MARKED_ITEM_SNAPSHOT_PREFIX = "bielu:v1:marked:item-snapshot:";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
+export const MARKED_REFRESH_ITEM_EVENT = "app:marked-refresh-item";
+export const MARKED_REFRESH_ITEM_KEY = `${STORAGE_PREFIX}v1:marked:refresh-item`;
+export const MARKED_ITEM_SNAPSHOT_PREFIX = `${STORAGE_PREFIX}v1:marked:item-snapshot:`;
 const MARKED_ITEM_SNAPSHOT_TTL_MS = 10 * 60 * 1000;
 
 export type MarkedRefreshItemEvent = CustomEvent<{ itemUuid: string }>;

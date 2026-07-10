@@ -13,6 +13,7 @@ import {
 } from "@/lib/home-tags";
 import { resetNavigationStackRoot } from "@/components/navigation-history";
 import { siteConfig } from "@/site.config";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 type BottomTab = {
   href?: string;
@@ -21,10 +22,10 @@ type BottomTab = {
   match?: (path: string) => boolean;
 };
 
-const HOME_CATEGORY_KEY = "bielu:v1:home:category";
-const HOME_LEAVING_KEY = "bielu:v1:home:leaving";
-const HOME_RESTORE_KEY = "bielu:v1:home:restore";
-const HOME_SCROLL_PREFIX = "bielu:v1:home:scroll:";
+const HOME_CATEGORY_KEY = `${STORAGE_PREFIX}v1:home:category`;
+const HOME_LEAVING_KEY = `${STORAGE_PREFIX}v1:home:leaving`;
+const HOME_RESTORE_KEY = `${STORAGE_PREFIX}v1:home:restore`;
+const HOME_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:home:scroll:`;
 const homeCategories = new Set(homeTags.map((tag) => tag.id));
 
 let hasClearedHomeMemoryForPageLoad = false;

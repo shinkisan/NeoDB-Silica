@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/site.config";
 
-export const BIELU_SITE_NAME = siteConfig.name;
+export const SITE_NAME = siteConfig.name;
 
 const configuredPublicOrigin =
   process.env.SITE_PUBLIC_ORIGIN?.trim() || siteConfig.publicOrigin;
@@ -20,13 +20,13 @@ if (process.env.NODE_ENV === "production" && !configuredPublicOrigin) {
 export const SITE_PUBLIC_ORIGIN = normalizeOrigin(
   configuredPublicOrigin || "http://localhost:3000",
 );
-export const BIELU_PRODUCT_TITLE = siteConfig.productTitle;
-export const BIELU_PRODUCT_DESCRIPTION = siteConfig.productDescription;
+export const SITE_PRODUCT_TITLE = siteConfig.productTitle;
+export const SITE_PRODUCT_DESCRIPTION = siteConfig.productDescription;
 
 export function isSearchIndexingEnabled() {
   return (
     process.env.VERCEL_ENV === "production" ||
-    process.env.BIELU_ALLOW_INDEXING === "1"
+    process.env.SITE_ALLOW_INDEXING === "1"
   );
 }
 

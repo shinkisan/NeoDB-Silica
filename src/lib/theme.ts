@@ -1,9 +1,10 @@
 import { siteConfig } from "@/site.config";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-export const THEME_COLOR_KEY = "bielu:v1:appearance:color";
-export const THEME_COLOR_EVENT = "bielu:theme-color";
-export const THEME_MODE_KEY = "bielu:v1:appearance:mode";
-export const THEME_MODE_EVENT = "bielu:theme-mode";
+export const THEME_COLOR_KEY = `${STORAGE_PREFIX}v1:appearance:color`;
+export const THEME_COLOR_EVENT = "app:theme-color";
+export const THEME_MODE_KEY = `${STORAGE_PREFIX}v1:appearance:mode`;
+export const THEME_MODE_EVENT = "app:theme-mode";
 
 export type ThemeColorId = "amber" | "indigo" | "rose" | "sage" | "slate";
 export type ThemeMode = "dark" | "light" | "system";

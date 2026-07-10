@@ -9,22 +9,22 @@ type BeforeInstallPromptEvent = Event & {
 
 declare global {
   interface Window {
-    __bieluInstallPrompt?: BeforeInstallPromptEvent | null;
+    __appInstallPrompt?: BeforeInstallPromptEvent | null;
   }
 }
 
-export const INSTALL_PROMPT_EVENT = "bielu:install-prompt";
+export const INSTALL_PROMPT_EVENT = "app:install-prompt";
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
     function handleBeforeInstallPrompt(event: Event) {
       event.preventDefault();
-      window.__bieluInstallPrompt = event as BeforeInstallPromptEvent;
+      window.__appInstallPrompt = event as BeforeInstallPromptEvent;
       window.dispatchEvent(new Event(INSTALL_PROMPT_EVENT));
     }
 
     function handleInstalled() {
-      window.__bieluInstallPrompt = null;
+      window.__appInstallPrompt = null;
       window.dispatchEvent(new Event(INSTALL_PROMPT_EVENT));
     }
 
@@ -47,12 +47,12 @@ export function ServiceWorkerRegister() {
           registration.unregister();
         });
       });
+      // Dev mode runs without the service worker; drop every cache it may
+      // have left behind (current and legacy names alike).
       window.caches?.keys().then((keys) => {
-        keys
-          .filter((key) => key.startsWith("bielu-"))
-          .forEach((key) => {
-            window.caches.delete(key);
-          });
+        keys.forEach((key) => {
+          window.caches.delete(key);
+        });
       });
       return () => {
         window.removeEventListener(

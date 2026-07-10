@@ -13,7 +13,7 @@ import { PaginationPill } from "@/components/pagination-pill";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
 import { preserveVersionsScroll } from "./versions-scroll";
 
-export const VERSIONS_PAGE_PENDING_EVENT = "bielu:versions-page-pending";
+export const VERSIONS_PAGE_PENDING_EVENT = "app:versions-page-pending";
 
 type VersionsPagePendingEvent = CustomEvent<{
   page: number;

@@ -155,9 +155,9 @@ function getNotificationReturnHref(value: string | null) {
   }
 
   try {
-    const url = new URL(value, "https://bielu.local");
+    const url = new URL(value, "https://app.local");
 
-    if (url.origin === "https://bielu.local" && url.pathname === "/timeline") {
+    if (url.origin === "https://app.local" && url.pathname === "/timeline") {
       return `${url.pathname}${url.search}`;
     }
   } catch {

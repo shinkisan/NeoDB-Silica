@@ -21,6 +21,7 @@ import {
   DETAIL_REVIEW_LOCAL_PREFIX,
   type DetailReviewLocalSnapshot,
 } from "../detail-state";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 type ReviewEditorProps = {
   category: string;
@@ -79,7 +80,7 @@ export function ReviewEditor({
   const pendingSelectionRef = useRef<BodySelection | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const draftKey = `bielu:v1:${editorType}-draft:${noteUuid || itemUuid}`;
+  const draftKey = `${STORAGE_PREFIX}v1:${editorType}-draft:${noteUuid || itemUuid}`;
   const isNoteEditor = editorType === "note";
   const initialProgressTypeValue = normalizeNoteProgressType(initialProgressType);
   const initialBodyValue = initialBody;

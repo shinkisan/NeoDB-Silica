@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { useT } from "@/components/use-t";
 import { renderTextWithEmoji, type MastodonEmoji } from "@/lib/mastodon-emoji";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 type NeodbUser = {
   avatar: string;
@@ -21,8 +22,8 @@ type NeodbUser = {
   username: string;
 };
 
-const PROFILE_CACHE_KEY = "bielu:v1:profile:user";
-const PROFILE_AVATAR_CACHE_PREFIX = "bielu:v1:profile:avatar:";
+const PROFILE_CACHE_KEY = `${STORAGE_PREFIX}v1:profile:user`;
+const PROFILE_AVATAR_CACHE_PREFIX = `${STORAGE_PREFIX}v1:profile:avatar:`;
 
 export function ProfileHeader({
   hasSession,

@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const PERSON_WORKS_RESTORE_PREFIX = "bielu:v1:person-works-restore:";
-const PERSON_WORKS_SCROLL_PREFIX = "bielu:v1:person-works-scroll:";
+const PERSON_WORKS_RESTORE_PREFIX = `${STORAGE_PREFIX}v1:person-works-restore:`;
+const PERSON_WORKS_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:person-works-scroll:`;
 
 export function PersonWorksScrollManager({ personId }: { personId: string }) {
   const searchParams = useSearchParams();

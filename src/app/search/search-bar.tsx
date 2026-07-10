@@ -116,7 +116,7 @@ export function SearchBar({
         autoComplete="off"
         autoCorrect="off"
         className="min-w-0 flex-1 bg-transparent px-4 text-base outline-none placeholder:text-[#75777d]"
-        name="bielu-search-query"
+        name="app-search-query"
         onChange={(event) => {
           const nextQuery = event.target.value;
           setCurrentQuery(nextQuery);

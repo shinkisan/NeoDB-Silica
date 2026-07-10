@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 type NeodbUser = {
   avatar: string;
@@ -23,8 +24,8 @@ type HeatmapCell = {
   level: number;
 };
 
-const PROFILE_CACHE_KEY = "bielu:v1:profile:user";
-const CALENDAR_CACHE_PREFIX = "bielu:v1:profile:calendar:";
+const PROFILE_CACHE_KEY = `${STORAGE_PREFIX}v1:profile:user`;
+const CALENDAR_CACHE_PREFIX = `${STORAGE_PREFIX}v1:profile:calendar:`;
 const CALENDAR_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 export function ProfileHeatmapBackdrop({

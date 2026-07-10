@@ -11,10 +11,11 @@ import {
 import { useT } from "@/components/use-t";
 import { shareContent } from "@/lib/clipboard";
 import { siteConfig } from "@/site.config";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
-const COLLECTION_SCROLL_TOP_PREFIX = "bielu:v1:collection-scroll-top:";
-export const COLLECTION_RESTORE_PREFIX = "bielu:v1:collection-restore:";
-export const COLLECTION_SCROLL_PREFIX = "bielu:v1:collection-scroll:";
+const COLLECTION_SCROLL_TOP_PREFIX = `${STORAGE_PREFIX}v1:collection-scroll-top:`;
+export const COLLECTION_RESTORE_PREFIX = `${STORAGE_PREFIX}v1:collection-restore:`;
+export const COLLECTION_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:collection-scroll:`;
 
 export function CollectionTopBar({
   neodbUrl,

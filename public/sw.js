@@ -1,4 +1,6 @@
-const STATIC_CACHE = "bielu-static-v2";
+// Plain literal: service workers can't import app modules. Renaming this is
+// safe — the activate handler below deletes every cache whose name differs.
+const STATIC_CACHE = "app-static-v1";
 const PRECACHE_URLS = [
   "/icons/icon-192.png",
   "/icons/icon-512.png",
