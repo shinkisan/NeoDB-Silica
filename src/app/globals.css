@@ -243,6 +243,16 @@ select:disabled {
   background-color: #333e50;
 }
 
+/* Trims a text element's line box down to its cap-height/baseline, so
+   CJK glyphs (whose default ascent/descent metrics aren't centered around
+   their visual ink) sit truly centered in small badges/pills instead of
+   floating slightly above center. Unsupported browsers (Firefox) silently
+   ignore this and keep today's default line-height box - safe fallback. */
+.badge-text-trim {
+  text-box-edge: cap alphabetic;
+  text-box-trim: trim-both;
+}
+
 .rating-badge-half-dot {
   border-color: #333e50;
 }

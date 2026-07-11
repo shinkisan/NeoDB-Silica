@@ -1413,12 +1413,14 @@ function VisibilityBadge({ value }: { value: number }) {
   const t = useT();
 
   return (
-    <span className="visibility-badge inline-flex items-center rounded-full border border-[#d9d9de]/80 bg-[#ececef]/75 px-2.5 py-1 text-xs font-bold text-[#75777d] dark:border-[#52525b]/60 dark:bg-[#3f3f46]/80 dark:text-white">
-      {value === 0
-        ? t("shortReview.visibility.publicFull")
-        : value === 1
-          ? t("shortReview.visibility.followersFull")
-          : t("shortReview.visibility.privateFull")}
+    <span className="visibility-badge inline-flex items-center rounded-full border border-[#d9d9de]/80 bg-[#ececef]/75 px-2.5 py-[7.2px] text-xs font-bold text-[#75777d] dark:border-[#52525b]/60 dark:bg-[#3f3f46]/80 dark:text-white">
+      <span className="badge-text-trim">
+        {value === 0
+          ? t("shortReview.visibility.publicFull")
+          : value === 1
+            ? t("shortReview.visibility.followersFull")
+            : t("shortReview.visibility.privateFull")}
+      </span>
     </span>
   );
 }

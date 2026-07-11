@@ -15,7 +15,7 @@ export function StatusBadge({
   const tone = getStatusTone(status);
 
   return (
-    <span className={`status-badge status-badge-${status} rounded-full border px-3 py-1 text-xs font-bold ${tone}`}>
+    <span className={`status-badge status-badge-${status} badge-text-trim rounded-full border px-3 py-[7.2px] text-xs font-bold ${tone}`}>
       {t(getStatusKey(category, status))}
     </span>
   );
@@ -28,9 +28,9 @@ export function RatingBadge({ value }: { value: number | null }) {
     return (
       <span
         aria-label={t("mark.noRating")}
-        className="flex items-center gap-1 rounded-full border border-[#bcc7dd]/80 bg-[#dde3eb]/70 px-2.5 py-1"
+        className="flex items-center gap-1 rounded-full border border-[#bcc7dd]/80 bg-[#dde3eb]/70 px-2.5 py-[7.2px]"
       >
-        <span className="text-xs font-bold text-[#333e50]">{t("mark.noRating")}</span>
+        <span className="badge-text-trim text-xs font-bold text-[#333e50]">{t("mark.noRating")}</span>
       </span>
     );
   }
@@ -42,7 +42,7 @@ export function RatingBadge({ value }: { value: number | null }) {
   return (
     <span
       aria-label={t("mark.ratingAria").replace("{value}", String(value))}
-      className="flex items-center gap-1 rounded-full border border-[#bcc7dd]/80 bg-[#dde3eb]/70 px-2.5 py-1"
+      className="flex items-center gap-1 rounded-full border border-[#bcc7dd]/80 bg-[#dde3eb]/70 px-2.5 py-[7.2px]"
     >
       {Array.from({ length: activeStars }, (_, index) => (
         <span
@@ -55,7 +55,7 @@ export function RatingBadge({ value }: { value: number | null }) {
           <span className="rating-badge-dot absolute inset-y-0 left-0 w-1/2 bg-[#333e50]" />
         </span>
       ) : null}
-      <span className="ml-1 text-xs font-bold text-[#333e50]">
+      <span className="badge-text-trim ml-1 text-xs font-bold text-[#333e50]">
         {value.toFixed(1)}
       </span>
     </span>
