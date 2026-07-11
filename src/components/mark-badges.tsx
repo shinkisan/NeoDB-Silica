@@ -30,7 +30,7 @@ export function RatingBadge({ value }: { value: number | null }) {
         aria-label={t("mark.noRating")}
         className="flex items-center gap-1 rounded-full border border-[#bcc7dd]/80 bg-[#dde3eb]/70 px-2.5 py-1"
       >
-        <span className="ml-1 text-xs font-bold text-[#333e50]">{t("mark.noRating")}</span>
+        <span className="text-xs font-bold text-[#333e50]">{t("mark.noRating")}</span>
       </span>
     );
   }

@@ -87,7 +87,12 @@ export const ActivityCard = memo(function ActivityCard({
   const translation = useCommentTranslation(displayContent);
   const category = getActivityItemCategory(status.item?.href);
   const activityLabel = t(`timeline.activity.${status.activityType}`);
-  const isContentVisible = !status.sensitive || isSensitiveRevealed;
+  // NeoDB sets spoiler_text unconditionally on review posts as a generic
+  // "a review of {title}" AP teaser, not a real spoiler warning - the actual
+  // review body never appears inline anyway (ReviewReaderTrigger owns that),
+  // so only comment-style posts should be gated by it.
+  const hasContentWarning = status.sensitive || (!status.review && status.spoilerText);
+  const isContentVisible = !hasContentWarning || isSensitiveRevealed;
   const reblogAccountLabel = status.reblogAccount
     ? t("timeline.activity.reblogWithAccount").replace("{account}", "")
     : "";
@@ -183,7 +188,7 @@ export const ActivityCard = memo(function ActivityCard({
           <ActivityVisibilityIcon visibility={status.visibility} />
         </div>
 
-        {status.spoilerText ? (
+        {status.spoilerText && !status.review ? (
           <button
             className="mt-3 flex w-full items-center justify-between gap-3 rounded-lg border border-white/60 bg-white/45 px-3 py-2 text-left text-sm font-semibold text-[#44474c] transition hover:bg-white/55"
             onClick={() => setIsSensitiveRevealed((current) => !current)}
@@ -379,15 +384,8 @@ function ActivityCollectionLink({
 }) {
   const t = useT();
 
-  return (
-    <Link
-      className="mt-3 flex min-w-0 items-center gap-3 rounded-xl border border-white/60 bg-white/45 p-2.5 shadow-sm transition hover:bg-white/70"
-      href={collection.href}
-      onClick={() => {
-        onNavigate?.(collection.href);
-        pushNavigationFrame("detail", collection.href);
-      }}
-    >
+  const content = (
+    <>
       <div className="grid h-[4.5rem] w-[3.25rem] shrink-0 place-items-center rounded-lg bg-[#dde3eb] text-[#75777d]">
         <ActivityCollectionIcon />
       </div>
@@ -400,7 +398,27 @@ function ActivityCollectionLink({
         </div>
       </div>
       <ActivityChevronIcon />
+    </>
+  );
+
+  const className =
+    "mt-3 flex min-w-0 items-center gap-3 rounded-xl border border-white/60 bg-white/45 p-2.5 shadow-sm transition hover:bg-white/70";
+
+  return collection.href.startsWith("/") ? (
+    <Link
+      className={className}
+      href={collection.href}
+      onClick={() => {
+        onNavigate?.(collection.href);
+        pushNavigationFrame("detail", collection.href);
+      }}
+    >
+      {content}
     </Link>
+  ) : (
+    <a className={className} href={collection.href} rel="noreferrer" target="_blank">
+      {content}
+    </a>
   );
 }
 

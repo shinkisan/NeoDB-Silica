@@ -94,7 +94,9 @@ function toTimelineStatus(
   const collection = related.find(
     (entity) => entity.type === "Shelf" || entity.type === "Collection",
   );
-  const collectionHref = collection ? toAppCollectionHref(collection.href || "") : null;
+  const collectionHref = collection
+    ? toAppCollectionHref(collection.href || "", instanceHost)
+    : null;
   const content = stripHtml(subject.content || subject.text || "");
   const rating = getRating(related) ?? parseTimelineRenderedRating(content);
   const isReblog = Boolean(status.reblog);
@@ -133,7 +135,7 @@ function toTimelineStatus(
     item: item
       ? {
           cover: toAbsoluteUrl(item.image || "", item.href),
-          href: toAppItemHref(item.href || ""),
+          href: toAppItemHref(item.href || "", instanceHost),
           title: item.name || "",
           type: item.type || "",
         }
@@ -228,7 +230,15 @@ function getActivityType(entities: RelatedEntity[]) {
   return "post";
 }
 
-function toAppItemHref(value: string) {
+function toAppItemHref(value: string, instanceHost: string) {
+  // NeoDB federation only syncs activity data, not catalog UUIDs - a movie
+  // tagged from a remote instance has that instance's own local uuid, which
+  // our connected instance has never heard of. Only rewrite to an internal
+  // route when the href is actually ours to resolve.
+  if (isRemoteAccount(value, instanceHost)) {
+    return value;
+  }
+
   try {
     const url = new URL(value);
     const segments = url.pathname.split("/").filter(Boolean);
@@ -254,7 +264,11 @@ function toAppItemHref(value: string) {
   }
 }
 
-function toAppCollectionHref(value: string) {
+function toAppCollectionHref(value: string, instanceHost: string) {
+  if (isRemoteAccount(value, instanceHost)) {
+    return value;
+  }
+
   const match = /\/collection\/([^/?#]+)/.exec(value);
   return match ? `/collection/${encodeURIComponent(match[1])}` : null;
 }

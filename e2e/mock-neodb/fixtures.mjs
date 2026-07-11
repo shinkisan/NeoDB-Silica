@@ -13,6 +13,15 @@ export const MOCK_ORIGIN = `http://127.0.0.1:${MOCK_PORT}`;
 export const OWN_COMMENT_POST_ID = "597971872949586301";
 export const OTHER_COMMENT_POST_ID = "700000000000000001";
 export const OTHER_ACCOUNT_ID = "600000000000000002";
+export const REMOTE_SPOILER_ACCOUNT_ID = "800000000000000003";
+export const REMOTE_SPOILER_POST_ID = "800000000000000004";
+export const REMOTE_SPOILER_CONTENT = "揭晓结局，主角最后其实是卧底";
+export const REMOTE_SPOILER_WARNING = "可能包含剧透";
+export const REVIEW_POST_ID = "800000000000000005";
+export const REVIEW_TITLE = "测试长评标题";
+export const REVIEW_TEASER_TEXT = "a review of 测试电影";
+export const REMOTE_ITEM_URL = "https://eggplant.place/movie/6SnxLxSAl1VwqLV0HlebTs";
+export const REMOTE_ITEM_NAME = "远端电影条目";
 
 export const me = {
   avatar: `${MOCK_ORIGIN}/m/avatars/me.png`,
@@ -121,6 +130,7 @@ function status({
   account,
   content,
   relatedWith,
+  tag = null,
   createdAt = "2026-07-01T12:00:00.000Z",
   extra = {},
 }) {
@@ -129,7 +139,7 @@ function status({
     content,
     created_at: createdAt,
     emojis: [],
-    ext_neodb: { relatedWith },
+    ext_neodb: { relatedWith, tag },
     favourited: false,
     favourites_count: 0,
     id,
@@ -196,7 +206,71 @@ export const initialShelfMarks = {
   },
 };
 
-export const timelineStatuses = [ownCommentStatus, otherCommentStatus];
+// Real Mastodon/ActivityPub instances treat spoiler_text (CW) and sensitive
+// (media-blur flag) as independent - a remote post can carry CW text with
+// sensitive:false when it has no media to blur. Regression fixture for the
+// bug where the app only gated visible content on `sensitive`, so a CW
+// button rendered but the text underneath showed anyway.
+export const remoteSpoilerAccount = {
+  acct: "reader@eggplant.place",
+  avatar: `${MOCK_ORIGIN}/m/avatars/remote.png`,
+  display_name: "外站读者",
+  emojis: [],
+  id: REMOTE_SPOILER_ACCOUNT_ID,
+  url: "https://eggplant.place/users/reader/",
+  username: "reader",
+};
+
+// The tag points at eggplant.place's own local item uuid - NeoDB federation
+// only syncs activity data, not catalog uuids, so this uuid does not exist on
+// our connected instance. Regression fixture for the bug where such links got
+// rewritten into a broken internal /item/... route instead of staying an
+// external link.
+export const remoteSpoilerStatus = status({
+  id: REMOTE_SPOILER_POST_ID,
+  account: remoteSpoilerAccount,
+  content: `<p>${REMOTE_SPOILER_CONTENT}</p>`,
+  relatedWith: [],
+  tag: {
+    href: REMOTE_ITEM_URL,
+    name: REMOTE_ITEM_NAME,
+    type: "Movie",
+    image: `${MOCK_ORIGIN}/m/covers/remote.png`,
+  },
+  createdAt: "2026-07-02T08:00:00.000Z",
+  extra: {
+    sensitive: false,
+    spoiler_text: REMOTE_SPOILER_WARNING,
+  },
+});
+
+// NeoDB sets spoiler_text unconditionally on review crossposts to a generic
+// "a review of {title}" AP teaser (see journal/models/review.py
+// display_summary) - it is not a real spoiler warning unless NeoDB itself
+// appends "(may contain spoilers)". Regression fixture for the bug where
+// review posts got wrongly gated behind a CW button because the app treated
+// any spoiler_text as a real warning.
+export const reviewStatus = status({
+  id: REVIEW_POST_ID,
+  account: otherAccount,
+  content: "🌕🌕🌕🌕🌑\n#测试标签",
+  relatedWith: [
+    { content: "<p>这是一篇很长的测试长评正文。</p>", name: REVIEW_TITLE, type: "Review" },
+    { type: "Rating", value: 8 },
+  ],
+  createdAt: "2026-07-03T08:00:00.000Z",
+  extra: {
+    sensitive: false,
+    spoiler_text: REVIEW_TEASER_TEXT,
+  },
+});
+
+export const timelineStatuses = [
+  ownCommentStatus,
+  otherCommentStatus,
+  remoteSpoilerStatus,
+  reviewStatus,
+];
 
 // 1x1 transparent PNG.
 export const TINY_PNG = Buffer.from(
