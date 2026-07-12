@@ -11,7 +11,7 @@ type NeodbUser = {
   avatar: string;
   display_name: string;
   emojis?: MastodonEmoji[];
-  external_accounts?: Array<{ acct?: string; url?: string }>;
+  external_accounts?: Array<{ acct?: string; handle?: string; url?: string }>;
   external_acct?: string | null;
   followers_count?: number;
   following_count?: number;
@@ -174,6 +174,8 @@ function LoggedOutHeader() {
 function LoggedInHeader({ user }: { user: NeodbUser }) {
   const t = useT();
   const externalAccount =
+    user.external_accounts?.find((account) => account.handle || account.acct)
+      ?.handle ||
     user.external_accounts?.find((account) => account.acct)?.acct ||
     user.external_acct ||
     "";

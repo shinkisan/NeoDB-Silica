@@ -22,11 +22,16 @@ export const REVIEW_TITLE = "测试长评标题";
 export const REVIEW_TEASER_TEXT = "a review of 测试电影";
 export const REMOTE_ITEM_URL = "https://eggplant.place/movie/6SnxLxSAl1VwqLV0HlebTs";
 export const REMOTE_ITEM_NAME = "远端电影条目";
+export const MY_BRIDGE_HANDLE = "testuser@fedi.example";
+export const OTHER_REBLOG_NOTIFICATION_ID = "900000000000000001";
+export const SELF_BRIDGE_REBLOG_NOTIFICATION_ID = "900000000000000002";
 
 export const me = {
   avatar: `${MOCK_ORIGIN}/m/avatars/me.png`,
   display_name: "测试用户",
-  external_accounts: [],
+  external_accounts: [
+    { platform: "mastodon", handle: MY_BRIDGE_HANDLE, url: "https://fedi.example/@testuser" },
+  ],
   roles: [],
   url: "/users/testuser/",
   username: "testuser",
@@ -270,6 +275,40 @@ export const timelineStatuses = [
   otherCommentStatus,
   remoteSpoilerStatus,
   reviewStatus,
+];
+
+// The user's own NeoDB account bridged to a fediverse account they've linked
+// via OAuth (a mastodon.models.SocialAccount, surfaced by NeoDB's own API as
+// /api/me.external_accounts). When that bridged account boosts one of the
+// user's own posts, the Mastodon-compatible /api/v1/notifications feed
+// reports it as an ordinary reblog from a "different" actor. Regression
+// fixture for the bug where that notification wasn't recognized as the
+// user's own action and stayed unfiltered noise in the bell.
+export const myBridgedFediverseAccount = {
+  acct: MY_BRIDGE_HANDLE,
+  avatar: `${MOCK_ORIGIN}/m/avatars/me-bridge.png`,
+  display_name: "测试用户（跨站桥接）",
+  emojis: [],
+  id: "900000000000000006",
+  url: "https://fedi.example/@testuser",
+  username: "testuser_bridge",
+};
+
+export const notifications = [
+  {
+    account: otherAccount,
+    created_at: "2026-07-04T08:00:00.000Z",
+    id: OTHER_REBLOG_NOTIFICATION_ID,
+    status: ownCommentStatus,
+    type: "reblog",
+  },
+  {
+    account: myBridgedFediverseAccount,
+    created_at: "2026-07-04T09:00:00.000Z",
+    id: SELF_BRIDGE_REBLOG_NOTIFICATION_ID,
+    status: ownCommentStatus,
+    type: "reblog",
+  },
 ];
 
 // 1x1 transparent PNG.

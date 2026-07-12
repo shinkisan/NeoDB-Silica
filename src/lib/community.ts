@@ -239,7 +239,7 @@ function buildMappingContext({
   };
 }
 
-function buildOwnAccounts(currentUser: CurrentUserResponse | null) {
+export function buildOwnAccounts(currentUser: CurrentUserResponse | null) {
   return new Set<string>(
     currentUser
       ? [
@@ -408,7 +408,7 @@ async function hydrateFavouriteStates(
   );
 }
 
-async function fetchCurrentUser(session: NeodbSessionCookie | null) {
+export async function fetchCurrentUser(session: NeodbSessionCookie | null) {
   if (!session?.accessToken) {
     return null;
   }

@@ -11,7 +11,9 @@ import {
   items,
   me,
   MOCK_PORT,
+  myBridgedFediverseAccount,
   myMastodonAccount,
+  notifications,
   otherAccount,
   otherCommentStatus,
   ownCommentStatus,
@@ -20,7 +22,10 @@ import {
 } from "./fixtures.mjs";
 
 const accountsById = new Map(
-  [myMastodonAccount, otherAccount].map((account) => [account.id, account]),
+  [myMastodonAccount, otherAccount, myBridgedFediverseAccount].map((account) => [
+    account.id,
+    account,
+  ]),
 );
 
 const itemList = Object.values(items);
@@ -309,7 +314,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (path === "/api/v1/notifications" && method === "GET") {
-    json(res, []);
+    json(res, notifications);
     return;
   }
   if (path === "/api/v1/trends/statuses" && method === "GET") {

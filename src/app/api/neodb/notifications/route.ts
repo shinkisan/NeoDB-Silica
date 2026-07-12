@@ -14,6 +14,7 @@ import {
 import { isRemoteAccount } from "@/lib/account-link";
 import { mapMastodonEmojis } from "@/lib/mastodon-emoji";
 import { toFullAccountHandle } from "@/lib/account-handle";
+import { buildOwnAccounts, fetchCurrentUser } from "@/lib/community";
 
 type MastodonNotification = {
   account?: MastodonAccount;
@@ -48,13 +49,14 @@ export async function GET(request: Request) {
   configureServerFetchProxy();
 
   try {
-    const [response, myId] = await Promise.all([
+    const [response, myId, currentUser] = await Promise.all([
       fetchWithTimeout(
         `${session.instance}/api/v1/notifications?${params.toString()}`,
         { cache: "no-store", headers },
         8_000,
       ),
       fetchMyAccountId(session, headers),
+      fetchCurrentUser(session),
     ]);
 
     if (!response.ok) {
@@ -66,12 +68,14 @@ export async function GET(request: Request) {
 
     const payload = (await response.json()) as MastodonNotification[];
     const instanceHost = getInstanceHost(session.instance);
+    const ownAccounts = buildOwnAccounts(currentUser);
 
     return Response.json({
       hasMore: Boolean(getNextMaxId(response.headers.get("link"))),
       nextMaxId: getNextMaxId(response.headers.get("link")),
       notifications: payload
         .filter((notification) => notification.id)
+        .filter((notification) => !isSelfReblog(notification, ownAccounts))
         .map((notification) => ({
           account: toNotificationActor(notification.account, instanceHost),
           createdAt: notification.created_at || "",
@@ -121,6 +125,23 @@ function toNotificationActor(
     isRemote: isRemoteAccount(account?.url, instanceHost),
     url: account?.url || "",
   };
+}
+
+// A boost fanned out through a bridged fediverse account (e.g. Mastodon)
+// that the user has linked to this NeoDB account re-notifies them about
+// their own action. Suppress it the same way isOwnPost() in community.ts
+// recognizes a comment as the user's own.
+function isSelfReblog(
+  notification: MastodonNotification,
+  ownAccounts: Set<string>,
+): boolean {
+  if (notification.type !== "reblog") return false;
+
+  const account = notification.account;
+  return Boolean(
+    (account?.username && ownAccounts.has(account.username)) ||
+      (account?.acct && ownAccounts.has(account.acct)),
+  );
 }
 
 function normalizeNotificationType(value: string | undefined) {

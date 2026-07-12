@@ -24,3 +24,5 @@ export const REMOTE_SPOILER_WARNING = "可能包含剧透";
 export const REVIEW_TEASER_TEXT = "a review of 测试电影";
 export const REMOTE_ITEM_URL = "https://eggplant.place/movie/6SnxLxSAl1VwqLV0HlebTs";
 export const REMOTE_ITEM_NAME = "远端电影条目";
+export const OTHER_DISPLAY_NAME = "另一位用户";
+export const MY_BRIDGE_DISPLAY_NAME = "测试用户（跨站桥接）";
