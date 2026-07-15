@@ -52,7 +52,7 @@ export function RelatedLinksDialog({
         <div className="mt-2 max-h-[min(24rem,calc(100dvh_-_10rem_-_env(safe-area-inset-bottom)))] overflow-y-auto overscroll-contain rounded-2xl border border-white/60 bg-white/45">
           {links.map((link) => (
             <a
-              className="flex min-w-0 cursor-pointer items-center justify-between gap-4 border-b-2 border-[#c5c6cd]/30 p-4 text-left transition last:border-0 hover:bg-white/45"
+              className="flex min-w-0 cursor-pointer items-center justify-between gap-4 border-b border-[#c5c6cd]/30 p-4 text-left transition last:border-0 hover:bg-white/45"
               href={link.href}
               key={link.href}
               rel="noreferrer"

@@ -86,7 +86,7 @@ export default async function ProfilePage() {
         <div className="space-y-8">
           <SettingsGroup title={t("profile.mine")}>
             <Link
-              className="flex w-full items-center justify-between border-b-2 border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
+              className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
               href="/profile/collections"
             >
               <div className="flex min-w-0 items-center gap-4">
@@ -100,7 +100,7 @@ export default async function ProfilePage() {
               <ChevronRightIcon />
             </Link>
             <Link
-              className="flex w-full items-center justify-between border-b-2 border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
+              className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
               href="/profile/reviews"
             >
               <div className="flex min-w-0 items-center gap-4">
@@ -114,7 +114,7 @@ export default async function ProfilePage() {
               <ChevronRightIcon />
             </Link>
             <Link
-              className="flex w-full items-center justify-between border-b-2 border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
+              className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
               href="/profile/tags"
             >
               <div className="flex min-w-0 items-center gap-4">
@@ -182,7 +182,7 @@ export default async function ProfilePage() {
             <ChangelogButton />
             {siteConfig.contactEmail ? (
               <Link
-                className="flex w-full items-center justify-between border-b-2 border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
+                className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
                 href={`mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent(t("profile.feedbackSubject"))}`}
               >
                 <div className="flex min-w-0 items-center gap-4">
@@ -348,7 +348,7 @@ function SettingsRow({
   tone: IconTone;
 }) {
   return (
-    <div className="group flex w-full items-center justify-between gap-4 border-b-2 border-[#c5c6cd]/30 p-4 text-left transition last:border-0 hover:bg-white/30">
+    <div className="group flex w-full items-center justify-between gap-4 border-b border-[#c5c6cd]/30 p-4 text-left transition last:border-0 hover:bg-white/30">
       <div className="flex min-w-0 items-center gap-4">
         <IconBubble tone={tone}>{icon}</IconBubble>
         <span className="truncate text-base font-semibold text-[var(--foreground)]">

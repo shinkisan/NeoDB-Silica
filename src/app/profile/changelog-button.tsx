@@ -76,7 +76,7 @@ export function ChangelogButton() {
   return (
     <>
       <button
-        className="flex w-full items-center justify-between border-b-2 border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
+        className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
         onClick={open}
         type="button"
       >

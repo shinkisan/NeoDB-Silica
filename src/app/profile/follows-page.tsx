@@ -276,7 +276,7 @@ const FollowAccountCard = memo(function FollowAccountCard({
   }
 
   return (
-    <article className="flex min-w-0 items-center gap-3 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0">
+    <article className="flex min-w-0 items-center gap-3 border-b border-[#c5c6cd]/30 p-4 last:border-0">
       <Link
         className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-white bg-[#dde3eb] text-sm font-bold text-[#333e50]"
         href={userHref}
@@ -335,7 +335,7 @@ function ProfileFollowsSkeleton() {
     <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/60 shadow-xl shadow-slate-900/5 backdrop-blur-2xl">
       {Array.from({ length: 8 }, (_, index) => (
         <div
-          className="flex items-center gap-3 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0"
+          className="flex items-center gap-3 border-b border-[#c5c6cd]/30 p-4 last:border-0"
           key={index}
         >
           <div className="size-12 shrink-0 animate-pulse rounded-full bg-[#e2e2e5]" />
