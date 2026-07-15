@@ -228,7 +228,7 @@ export const ActivityCard = memo(function ActivityCard({
               shareUrl={status.review.href || null}
               title={status.review.title}
             >
-              <p className="line-clamp-4 whitespace-pre-line break-words text-[15px] leading-6 text-[#44474c] [overflow-wrap:anywhere]">
+              <p className="line-clamp-6 whitespace-pre-line break-words text-[15px] leading-6 text-[#44474c] [overflow-wrap:anywhere]">
                 {inlineBoldTitle(displayContent, status.review.title, status.contentEmojis, status.contentMentions, onNavigate)}
               </p>
               <span className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#75777d] transition group-hover:text-[var(--foreground)]">
@@ -604,7 +604,7 @@ function ActivityCollapsibleText({
     <div className={className}>
       <p
         className={`whitespace-pre-line break-words [overflow-wrap:anywhere] ${pClassName} ${
-          isExpanded ? "" : "line-clamp-4"
+          isExpanded ? "" : "line-clamp-6"
         }`}
         ref={textRef}
       >
