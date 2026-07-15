@@ -15,7 +15,7 @@ export function ProfileFollowsLoading({ title }: { title: string }) {
         <section className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-white/60 bg-white/60 shadow-xl shadow-slate-900/5 backdrop-blur-2xl">
           {Array.from({ length: 8 }, (_, index) => (
             <div
-              className="flex items-center gap-3 border-b border-[#c5c6cd]/30 p-4 last:border-0"
+              className="flex items-center gap-3 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0"
               key={index}
             >
               <div className="size-12 shrink-0 animate-pulse rounded-full bg-[#e2e2e5]" />

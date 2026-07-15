@@ -23,7 +23,7 @@ export function TimelineListSkeleton() {
     <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/55 shadow-lg shadow-slate-900/5 backdrop-blur-2xl">
       {Array.from({ length: 5 }, (_, index) => (
         <article
-          className="flex gap-3 border-b border-[#c5c6cd]/30 p-4 last:border-0 sm:gap-4 sm:p-5"
+          className="flex gap-3 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0 sm:gap-4 sm:p-5"
           key={index}
         >
           <Skeleton className="size-11 shrink-0 rounded-full" />

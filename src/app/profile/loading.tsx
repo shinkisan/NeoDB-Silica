@@ -45,7 +45,7 @@ function SkeletonGroup({
       <div className="overflow-hidden rounded-[2rem] border border-white/60 bg-white/50 shadow-xl shadow-slate-900/5 backdrop-blur-2xl">
         {Array.from({ length: rows }, (_, index) => (
           <div
-            className="flex items-center justify-between gap-4 border-b border-[#c5c6cd]/30 p-4 last:border-0"
+            className="flex items-center justify-between gap-4 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0"
             key={index}
           >
             <div className="flex min-w-0 items-center gap-4">

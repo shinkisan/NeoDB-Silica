@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useT } from "@/components/use-t";
 import { useFeatureFlags } from "@/components/feature-flags";
 import { RatingBadge, StatusBadge } from "@/components/mark-badges";
@@ -15,7 +15,7 @@ import { useCommentTranslation } from "@/app/item/[category]/[uuid]/comment-tran
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { ProfileLink } from "@/components/profile-link";
-import { renderTextWithEmoji } from "@/lib/mastodon-emoji";
+import { renderTextWithEmoji, type MastodonEmoji, type MastodonMention } from "@/lib/mastodon-emoji";
 import { showToast } from "@/components/app-toast";
 import { ActionMenu } from "@/components/action-menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -130,7 +130,7 @@ export const ActivityCard = memo(function ActivityCard({
 
   return (
     <article
-      className={`flex min-w-0 border-b border-[#c5c6cd]/30 p-4 last:border-0 sm:p-5 ${hideAuthor ? "" : "gap-3 sm:gap-4"}`}
+      className={`flex min-w-0 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0 sm:p-5 ${hideAuthor ? "" : "gap-3 sm:gap-4"}`}
     >
       {hideAuthor ? null : (
         <ProfileLink
@@ -228,7 +228,7 @@ export const ActivityCard = memo(function ActivityCard({
               shareUrl={status.review.href || null}
               title={status.review.title}
             >
-              <p className="whitespace-pre-line break-words text-[15px] leading-6 text-[#44474c] [overflow-wrap:anywhere]">
+              <p className="line-clamp-4 whitespace-pre-line break-words text-[15px] leading-6 text-[#44474c] [overflow-wrap:anywhere]">
                 {inlineBoldTitle(displayContent, status.review.title, status.contentEmojis, status.contentMentions, onNavigate)}
               </p>
               <span className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#75777d] transition group-hover:text-[var(--foreground)]">
@@ -237,16 +237,26 @@ export const ActivityCard = memo(function ActivityCard({
               </span>
             </ReviewReaderTrigger>
           ) : (
-            <p className="mt-3 whitespace-pre-line break-words text-[15px] leading-6 text-[#44474c] [overflow-wrap:anywhere]">
-              <SpoilerText emojis={status.contentEmojis} mentions={status.contentMentions} onNavigate={onNavigate} text={displayContent} />
-            </p>
+            <ActivityCollapsibleText
+              className="mt-3"
+              emojis={status.contentEmojis}
+              mentions={status.contentMentions}
+              onNavigate={onNavigate}
+              pClassName="text-[15px] leading-6 text-[#44474c]"
+              text={displayContent}
+            />
           )
         ) : null}
 
         {isContentVisible && translation.isExpanded && translation.translatedText ? (
-          <p className="mt-2 whitespace-pre-line break-words border-l-2 border-[#c5c6cd]/30 pl-3 text-[15px] leading-6 text-[#44474c] [overflow-wrap:anywhere]">
-            <SpoilerText emojis={status.contentEmojis} mentions={status.contentMentions} onNavigate={onNavigate} text={translation.translatedText} />
-          </p>
+          <ActivityCollapsibleText
+            className="mt-2"
+            emojis={status.contentEmojis}
+            mentions={status.contentMentions}
+            onNavigate={onNavigate}
+            pClassName="border-l-2 border-[#c5c6cd]/30 pl-3 text-[15px] leading-6 text-[#44474c]"
+            text={translation.translatedText}
+          />
         ) : null}
 
         {isContentVisible && status.item ? (
@@ -508,7 +518,7 @@ function ActivityMoreMenu({
   return (
     <>
       <ActionMenu
-        buttonClassName="size-8"
+        buttonClassName="size-8 text-[#75777d] hover:text-[#333e50]"
         items={[
           canTranslate
             ? {
@@ -544,6 +554,90 @@ function ActivityMoreMenu({
         />
       ) : null}
     </>
+  );
+}
+
+function ActivityCollapsibleText({
+  className,
+  emojis,
+  mentions,
+  onNavigate,
+  pClassName,
+  text,
+}: {
+  className?: string;
+  emojis?: MastodonEmoji[] | null;
+  mentions?: MastodonMention[] | null;
+  onNavigate?: (href: string) => void;
+  pClassName: string;
+  text: string;
+}) {
+  const t = useT();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [canExpand, setCanExpand] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const element = textRef.current;
+
+    if (!element || isExpanded) {
+      return;
+    }
+
+    function measure() {
+      if (!element) {
+        return;
+      }
+
+      setCanExpand(element.scrollHeight - element.clientHeight > 1);
+    }
+
+    measure();
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(element);
+
+    return () => resizeObserver.disconnect();
+  }, [isExpanded, text]);
+
+  return (
+    <div className={className}>
+      <p
+        className={`whitespace-pre-line break-words [overflow-wrap:anywhere] ${pClassName} ${
+          isExpanded ? "" : "line-clamp-4"
+        }`}
+        ref={textRef}
+      >
+        <SpoilerText emojis={emojis} mentions={mentions} onNavigate={onNavigate} text={text} />
+      </p>
+      {canExpand ? (
+        <button
+          className="mt-1 flex cursor-pointer items-center gap-1 text-xs font-bold text-[#75777d] transition hover:text-[var(--foreground)] active:scale-[0.99]"
+          onClick={() => setIsExpanded((value) => !value)}
+          type="button"
+        >
+          {isExpanded ? t("timeline.content.collapse") : t("timeline.content.expand")}
+          <ActivityCollapseChevronIcon direction={isExpanded ? "up" : "down"} />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function ActivityCollapseChevronIcon({ direction }: { direction: "down" | "up" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={`size-3.5 transition ${direction === "up" ? "rotate-180" : ""}`}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }
 

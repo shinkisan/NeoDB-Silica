@@ -56,6 +56,10 @@
       "show": "Show",
       "hide": "Hide"
     },
+    "content": {
+      "expand": "Expand",
+      "collapse": "Collapse"
+    },
     "reblog": {
       "button": "Boost",
       "undo": "Undo boost",

@@ -52,7 +52,7 @@ export function TrackListDialog({
         <ol className="mt-3 max-h-[min(24rem,calc(100dvh_-_13rem_-_env(safe-area-inset-bottom)))] overflow-y-auto overscroll-contain rounded-2xl border border-white/60 bg-white/45">
           {tracks.map((track, index) => (
             <li
-              className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-start gap-3 border-b border-[#c5c6cd]/30 px-4 py-3 last:border-0"
+              className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-start gap-3 border-b-2 border-[#c5c6cd]/30 px-4 py-3 last:border-0"
               key={`${track}-${index}`}
             >
               <span className="pt-0.5 text-right text-xs font-bold tabular-nums text-[#75777d]">

@@ -176,6 +176,12 @@ export function BottomNav() {
                   key={tab.label}
                   onClick={(event) => {
                     event.preventDefault();
+
+                    if (isActive) {
+                      window.scrollTo({ behavior: "smooth", top: 0 });
+                      return;
+                    }
+
                     const targetHref =
                       href === "/"
                         ? getStoredHomeHref()

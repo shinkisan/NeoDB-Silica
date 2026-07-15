@@ -56,6 +56,10 @@
       "show": "顯示",
       "hide": "收起"
     },
+    "content": {
+      "expand": "展開",
+      "collapse": "收起"
+    },
     "reblog": {
       "button": "轉發",
       "undo": "取消轉發",

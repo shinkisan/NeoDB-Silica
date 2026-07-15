@@ -11,7 +11,7 @@ export function NotificationsLoading() {
         <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/70 shadow-lg shadow-slate-900/5">
           {Array.from({ length: 6 }, (_, index) => (
             <div
-              className="flex gap-3 border-b border-[#c5c6cd]/30 p-4 last:border-0 sm:p-5"
+              className="flex gap-3 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0 sm:p-5"
               key={index}
             >
               <div className="size-11 shrink-0 animate-pulse rounded-full bg-[#e2e2e5]" />
