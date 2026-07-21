@@ -2,6 +2,7 @@
 
 import type { ShelfType } from "@/components/mark-badges";
 import type { HomeItem } from "@/lib/neodb";
+import type { ReadingProgress } from "@/lib/reading-progress";
 import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 export const MARKED_LIST_CACHE_PREFIX = `${STORAGE_PREFIX}v1:marked-list:`;
@@ -19,6 +20,7 @@ export type MarkedListItem = {
       uuid: string;
     };
     rating_grade?: number | null;
+    reading_progress?: ReadingProgress | null;
     shelf_type: ShelfType;
   };
 };
@@ -129,6 +131,71 @@ export function clearMarkedListCategoryCache(
     removeMarkedListKeys((key) => key.startsWith(prefix));
   } catch {
     // Local storage is an optional acceleration layer.
+  }
+}
+
+export function updateMarkedListProgress(
+  itemUuid: string,
+  progress: ReadingProgress | null,
+) {
+  let scope: string | null = null;
+
+  try {
+    scope = window.localStorage.getItem(MARKED_LIST_ACTIVE_SCOPE_KEY);
+  } catch {
+    return;
+  }
+
+  if (!scope) {
+    return;
+  }
+
+  const prefix = `${MARKED_LIST_CACHE_PREFIX}${scope}:`;
+
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+
+    if (!key?.startsWith(prefix)) {
+      continue;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(key);
+      const entry = raw ? (JSON.parse(raw) as CacheEntry) : null;
+
+      if (!entry?.payload?.items) {
+        continue;
+      }
+
+      let changed = false;
+      const items = entry.payload.items.map((listItem) => {
+        if (listItem.mark.item.uuid !== itemUuid) {
+          return listItem;
+        }
+
+        changed = true;
+        return {
+          ...listItem,
+          mark: {
+            ...listItem.mark,
+            reading_progress: progress,
+          },
+        };
+      });
+
+      if (changed) {
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            ...entry,
+            payload: { ...entry.payload, items },
+            savedAt: Date.now(),
+          } satisfies CacheEntry),
+        );
+      }
+    } catch {
+      // Leave unrelated cached pages intact if one entry is malformed.
+    }
   }
 }
 

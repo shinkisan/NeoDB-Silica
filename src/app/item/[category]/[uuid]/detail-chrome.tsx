@@ -9,8 +9,10 @@ import { showToast } from "@/components/app-toast";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { getStatusKey, getStatusTone, type ShelfType } from "@/components/mark-badges";
 import type { RelatedLink } from "@/components/related-links-dialog";
+import { LazyReadingProgressDialog } from "@/components/lazy-reading-progress-dialog";
 import {
   MARKED_REFRESH_ITEM_EVENT,
+  syncMarkedReadingProgress,
   writeMarkedItemSnapshot,
 } from "@/app/marked/marked-refresh";
 import { copyText, shareContent } from "@/lib/clipboard";
@@ -21,6 +23,14 @@ import {
 } from "@/lib/neodb-visibility";
 import { invalidateTimelineCache } from "@/lib/timeline-cache";
 import { readPublishPreferences } from "@/lib/publish-preferences";
+import { type ReadingProgress } from "@/lib/reading-progress";
+import {
+  fetchReadingProgress,
+  publishReadingProgressUpdate,
+  READING_PROGRESS_UPDATED_EVENT,
+  submitReadingProgress,
+  type ReadingProgressUpdatedEvent,
+} from "@/lib/reading-progress-client";
 import { siteConfig } from "@/site.config";
 import {
   readReviewStateSnapshot,
@@ -106,7 +116,6 @@ const LazyMarkDateDialog = lazy(() =>
     default: module.MarkDateDialog,
   })),
 );
-
 export function DetailTopBar({
   category,
   closeOnly = false,
@@ -263,7 +272,10 @@ function MarkMenu({
   const [isDeleteMarkOpen, setIsDeleteMarkOpen] = useState(false);
   const [isMarkDateOpen, setIsMarkDateOpen] = useState(false);
   const [isMarkDateSaving, setIsMarkDateSaving] = useState(false);
+  const [isReadingProgressOpen, setIsReadingProgressOpen] = useState(false);
   const [markDate, setMarkDate] = useState("");
+  const [readingProgress, setReadingProgress] =
+    useState<ReadingProgress | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -355,6 +367,52 @@ function MarkMenu({
     };
   }, [category, itemUuid, t]);
 
+  useEffect(() => {
+    if (category !== "book" || selectedShelfType !== "progress") {
+      queueMicrotask(() => setReadingProgress(null));
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchReadingProgress(itemUuid)
+      .then((progress) => {
+        if (!cancelled) {
+          setReadingProgress(progress);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setReadingProgress(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [category, itemUuid, selectedShelfType]);
+
+  useEffect(() => {
+    function syncReadingProgress(event: Event) {
+      const detail = (event as ReadingProgressUpdatedEvent).detail;
+
+      if (detail.itemUuid === itemUuid) {
+        setReadingProgress(detail.progress);
+      }
+    }
+
+    window.addEventListener(
+      READING_PROGRESS_UPDATED_EVENT,
+      syncReadingProgress,
+    );
+
+    return () =>
+      window.removeEventListener(
+        READING_PROGRESS_UPDATED_EVENT,
+        syncReadingProgress,
+      );
+  }, [itemUuid]);
+
   async function markItem(shelfType: ShelfType, label: string) {
     setStatus("saving");
     setMessage("");
@@ -399,6 +457,14 @@ function MarkMenu({
       invalidateTimelineCache();
       setSelectedLabel(label);
       setSelectedShelfType(nextShelfType);
+      const nextReadingProgress =
+        category === "book" && nextShelfType === "progress"
+          ? readingProgress
+          : null;
+      setReadingProgress(nextReadingProgress);
+      if (category === "book" && nextShelfType !== "progress") {
+        publishReadingProgressUpdate(itemUuid, null);
+      }
       setMarkDate(toDateInputValue(nextCreatedTime));
       writeMarkCache(itemUuid, nextShelfType);
       writeMarkedItemSnapshot({
@@ -406,6 +472,7 @@ function MarkMenu({
         createdTime: nextCreatedTime,
         itemUuid,
         ratingGrade: nextRatingGrade,
+        readingProgress: nextReadingProgress,
         shelfType: nextShelfType,
         tags: nextTags,
       });
@@ -452,6 +519,10 @@ function MarkMenu({
       invalidateTimelineCache();
       setSelectedLabel(t("mark.defaultLabel"));
       setSelectedShelfType(null);
+      setReadingProgress(null);
+      if (category === "book") {
+        publishReadingProgressUpdate(itemUuid, null);
+      }
       setMarkDate("");
       writeMarkCache(itemUuid, null);
       writeMarkedItemSnapshot({
@@ -459,6 +530,7 @@ function MarkMenu({
         createdTime: "",
         itemUuid,
         ratingGrade: 0,
+        readingProgress: null,
         shelfType: null,
         tags: [],
       });
@@ -574,6 +646,25 @@ function MarkMenu({
     }
   }
 
+  async function saveReadingProgress(progress: ReadingProgress | null) {
+    try {
+      const nextProgress = await submitReadingProgress(itemUuid, progress);
+
+      setReadingProgress(nextProgress);
+      syncMarkedReadingProgress(
+        itemUuid,
+        nextProgress,
+        selectedShelfType,
+      );
+      showToast(t("mark.readingProgress.saved"));
+      return true;
+    } catch (error) {
+      console.error("[mark] reading progress save failed", error);
+      showToast(t("mark.readingProgress.saveError"), "error");
+      return false;
+    }
+  }
+
   const isDisabled = status === "saving";
   const markButtonTone = selectedShelfType
     ? getStatusTone(selectedShelfType)
@@ -633,6 +724,25 @@ function MarkMenu({
           })}
           {selectedShelfType ? (
             <>
+              {category === "book" && selectedShelfType === "progress" ? (
+                <>
+                  <div
+                    aria-hidden="true"
+                    className="action-menu-separator mx-2 my-1 h-0 border-t border-[#d6d7dc]"
+                    role="separator"
+                  />
+                  <button
+                    className="flex h-9 w-full items-center rounded-xl px-3 text-sm font-semibold text-[#44474c] whitespace-nowrap transition hover:bg-[#e2e2e5]/70"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsReadingProgressOpen(true);
+                    }}
+                    type="button"
+                  >
+                    {t("mark.readingProgress.title")}
+                  </button>
+                </>
+              ) : null}
               <button
                 className="flex h-9 w-full items-center rounded-xl px-3 text-sm font-semibold text-[#44474c] whitespace-nowrap transition hover:bg-[#e2e2e5]/70"
                 onClick={() => {
@@ -682,6 +792,15 @@ function MarkMenu({
             initialDate={markDate || getTodayDateInputValue()}
             onCancel={() => setIsMarkDateOpen(false)}
             onConfirm={saveMarkDate}
+          />
+        </Suspense>
+      ) : null}
+      {isReadingProgressOpen ? (
+        <Suspense fallback={null}>
+          <LazyReadingProgressDialog
+            initialProgress={readingProgress}
+            onCancel={() => setIsReadingProgressOpen(false)}
+            onSave={saveReadingProgress}
           />
         </Suspense>
       ) : null}

@@ -1,4 +1,7 @@
 import { STORAGE_PREFIX } from "@/lib/runtime-ids";
+import type { ReadingProgress } from "@/lib/reading-progress";
+import { updateMarkedListProgress } from "@/lib/marked-list-cache";
+
 export const MARKED_REFRESH_ITEM_EVENT = "app:marked-refresh-item";
 export const MARKED_REFRESH_ITEM_KEY = `${STORAGE_PREFIX}v1:marked:refresh-item`;
 export const MARKED_ITEM_SNAPSHOT_PREFIX = `${STORAGE_PREFIX}v1:marked:item-snapshot:`;
@@ -11,6 +14,7 @@ export type MarkedItemSnapshot = {
   createdTime?: string;
   itemUuid: string;
   ratingGrade?: number;
+  readingProgress?: ReadingProgress | null;
   savedAt?: number;
   shelfType?: string | null;
   tags?: string[];
@@ -62,4 +66,39 @@ export function writeMarkedItemSnapshot(snapshot: MarkedItemSnapshot) {
   } catch {
     // Focused marked-page refresh can still fall back to the NeoDB mark API.
   }
+}
+
+export function syncMarkedReadingProgress(
+  itemUuid: string,
+  readingProgress: ReadingProgress | null,
+  shelfType: string | null,
+) {
+  updateMarkedListProgress(itemUuid, readingProgress);
+
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const existing = readMarkedItemSnapshot(itemUuid);
+
+    window.sessionStorage.setItem(
+      `${MARKED_ITEM_SNAPSHOT_PREFIX}${itemUuid}`,
+      JSON.stringify({
+        ...existing,
+        itemUuid,
+        readingProgress,
+        savedAt: Date.now(),
+        shelfType,
+      } satisfies MarkedItemSnapshot),
+    );
+  } catch {
+    // The active card still updates even if session storage is unavailable.
+  }
+
+  window.dispatchEvent(
+    new CustomEvent<{ itemUuid: string }>(MARKED_REFRESH_ITEM_EVENT, {
+      detail: { itemUuid },
+    }),
+  );
 }

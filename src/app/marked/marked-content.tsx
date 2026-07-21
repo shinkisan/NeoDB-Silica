@@ -12,6 +12,7 @@ import {
   writeMarkedListCache,
 } from "@/lib/marked-list-cache";
 import { isNeodbCategory } from "@/lib/neodb";
+import type { ReadingProgress } from "@/lib/reading-progress";
 import { MarkedCard } from "./marked-card";
 import {
   MARKED_CATEGORY_ORDER_EVENT,
@@ -129,7 +130,80 @@ export function MarkedContent({ cacheScope, categories }: MarkedContentProps) {
       });
 
     return () => controller.abort();
-  }, [cacheScope, category, page, shelf]);
+  }, [cacheScope, category, page, shelf, t]);
+
+  useEffect(() => {
+    if (!cacheScope || shelf !== "progress" || !payload) {
+      return;
+    }
+
+    const itemUuids = payload.items
+      .filter(
+        ({ mark }) =>
+          mark.item.category === "book" &&
+          mark.reading_progress === undefined,
+      )
+      .map(({ mark }) => mark.item.uuid);
+
+    if (!itemUuids.length) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const params = new URLSearchParams({ itemUuids: itemUuids.join(",") });
+
+    fetch(`/api/neodb/progress?${params.toString()}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Reading progress fetch failed");
+        }
+
+        return (await response.json()) as {
+          items?: MarkedProgressMap;
+        };
+      })
+      .then(({ items = {} }) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setPayload((current) => {
+          if (!current) {
+            return current;
+          }
+
+          const nextPayload = {
+            ...current,
+            items: current.items.map((listItem) => {
+              const itemUuid = listItem.mark.item.uuid;
+
+              if (!(itemUuid in items)) {
+                return listItem;
+              }
+
+              return {
+                ...listItem,
+                mark: {
+                  ...listItem.mark,
+                  reading_progress: items[itemUuid],
+                },
+              };
+            }),
+          };
+
+          writeMarkedListCache(cacheScope, shelf, category, page, nextPayload);
+          return nextPayload;
+        });
+      })
+      .catch(() => {
+        // Progress is optional enrichment; keep the marked list usable.
+      });
+
+    return () => controller.abort();
+  }, [cacheScope, category, page, payload, shelf]);
 
   function refreshAll() {
     if (!cacheScope || isLoading) {
@@ -208,6 +282,8 @@ export function MarkedContent({ cacheScope, categories }: MarkedContentProps) {
     </main>
   );
 }
+
+type MarkedProgressMap = Record<string, ReadingProgress | null>;
 
 async function fetchMarkedList({
   category,

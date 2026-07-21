@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   memo,
+  Suspense,
   useCallback,
   useEffect,
   useRef,
@@ -11,9 +12,14 @@ import {
   type ReactNode,
 } from "react";
 import { showToast } from "@/components/app-toast";
+import { LazyReadingProgressDialog } from "@/components/lazy-reading-progress-dialog";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { useT } from "@/components/use-t";
-import { RatingBadge, StatusBadge } from "@/components/mark-badges";
+import {
+  getStatusTone,
+  RatingBadge,
+  StatusBadge,
+} from "@/components/mark-badges";
 import { ReviewReaderTrigger } from "@/components/review-reader-trigger";
 import { SpoilerText } from "@/components/spoiler-text";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -37,6 +43,17 @@ import {
 import { invalidateTimelineCache } from "@/lib/timeline-cache";
 import { renderTextWithEmoji } from "@/lib/mastodon-emoji";
 import { formatAccountHandle } from "@/lib/account-handle";
+import {
+  formatReadingProgressShort,
+  type ReadingProgress,
+} from "@/lib/reading-progress";
+import {
+  fetchReadingProgress,
+  READING_PROGRESS_UPDATED_EVENT,
+  submitReadingProgress,
+  type ReadingProgressUpdatedEvent,
+} from "@/lib/reading-progress-client";
+import { syncMarkedReadingProgress } from "@/app/marked/marked-refresh";
 import {
   DETAIL_COMMENT_LOCAL_EVENT,
   DETAIL_COMMENTS_CACHE_PREFIX,
@@ -689,7 +706,6 @@ export function CommunityList({
                 <CommunityComment
                   {...comment}
                   key={`comment-${comment.postId}`}
-                  neodbInstance={neodbInstance}
                   onDeleteComment={handleDeleteComment}
                   onDeleteReview={handleDeleteReview}
                 />
@@ -874,7 +890,6 @@ const CommunityComment = memo(function CommunityComment({
   itemUuid,
   name,
   nameEmojis,
-  neodbInstance,
   onDeleteComment,
   onDeleteReview,
   postId,
@@ -887,7 +902,6 @@ const CommunityComment = memo(function CommunityComment({
   time,
   visibility,
 }: CommunityCommentProps & {
-  neodbInstance: string;
   onDeleteComment: (postId: string) => void;
   onDeleteReview: (postId: string) => void;
 }) {
@@ -902,7 +916,16 @@ const CommunityComment = memo(function CommunityComment({
   const translation = useCommentTranslation(comment || "");
   const [currentReblogged, setCurrentReblogged] = useState(reblogged);
   const [currentReblogsCount, setCurrentReblogsCount] = useState(reblogsCount);
+  const [readingProgress, setReadingProgress] = useState<
+    ReadingProgress | null | undefined
+  >(undefined);
+  const [isReadingProgressOpen, setIsReadingProgressOpen] = useState(false);
   const authorHandle = formatAccountHandle(authorAcct || authorUsername);
+  const canShowReadingProgress =
+    isOwn && Boolean(comment) && category === "book" && status === "progress";
+  const readingProgressLabel =
+    formatReadingProgressShort(readingProgress, t) ||
+    t("mark.readingProgress.emptyBadge");
 
   useEffect(() => {
     window.queueMicrotask(() => setDidAvatarFail(false));
@@ -945,6 +968,61 @@ const CommunityComment = memo(function CommunityComment({
         // Keep default visibility
       });
   }, [isOwn, itemUuid]);
+
+  useEffect(() => {
+    if (!canShowReadingProgress) {
+      queueMicrotask(() => setReadingProgress(undefined));
+      return;
+    }
+
+    let cancelled = false;
+
+    function syncReadingProgress(event: Event) {
+      const detail = (event as ReadingProgressUpdatedEvent).detail;
+
+      if (detail.itemUuid === itemUuid) {
+        setReadingProgress(detail.progress);
+      }
+    }
+
+    window.addEventListener(
+      READING_PROGRESS_UPDATED_EVENT,
+      syncReadingProgress,
+    );
+
+    fetchReadingProgress(itemUuid)
+      .then((progress) => {
+        if (!cancelled) {
+          setReadingProgress(progress);
+        }
+      })
+      .catch(() => {
+        // Keep the progress badge hidden when the private progress cannot load.
+      });
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(
+        READING_PROGRESS_UPDATED_EVENT,
+        syncReadingProgress,
+      );
+    };
+  }, [canShowReadingProgress, itemUuid]);
+
+  async function saveReadingProgress(progress: ReadingProgress | null) {
+    try {
+      const nextProgress = await submitReadingProgress(itemUuid, progress);
+
+      setReadingProgress(nextProgress);
+      syncMarkedReadingProgress(itemUuid, nextProgress, "progress");
+      showToast(t("mark.readingProgress.saved"));
+      return true;
+    } catch (error) {
+      console.error("[mark] reading progress save failed", error);
+      showToast(t("mark.readingProgress.saveError"), "error");
+      return false;
+    }
+  }
 
   function handleDeleteConfirm() {
     if (deleteTarget === "comment") {
@@ -995,6 +1073,16 @@ const CommunityComment = memo(function CommunityComment({
         ) : null}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {status ? <StatusBadge category={category} status={status} /> : null}
+          {canShowReadingProgress && readingProgress !== undefined ? (
+            <button
+              aria-label={t("mark.readingProgress.set")}
+              className={`status-badge status-badge-progress badge-text-trim rounded-full border px-3 py-[7.2px] text-xs font-bold ${getStatusTone("progress")}`}
+              onClick={() => setIsReadingProgressOpen(true)}
+              type="button"
+            >
+              {readingProgressLabel}
+            </button>
+          ) : null}
           {typeof rating === "number" ? (
             isOwn ? (
               <button onClick={() => dispatchOpenShortReview(itemUuid)} type="button">
@@ -1129,6 +1217,15 @@ const CommunityComment = memo(function CommunityComment({
               : t("community.deleteReviewTitle")
           }
         />
+      ) : null}
+      {isReadingProgressOpen ? (
+        <Suspense fallback={null}>
+          <LazyReadingProgressDialog
+            initialProgress={readingProgress || null}
+            onCancel={() => setIsReadingProgressOpen(false)}
+            onSave={saveReadingProgress}
+          />
+        </Suspense>
       ) : null}
     </article>
   );
