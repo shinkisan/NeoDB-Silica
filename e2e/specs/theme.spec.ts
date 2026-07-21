@@ -11,6 +11,13 @@ test("chosen theme color persists across reloads", async ({ page }) => {
         .getPropertyValue("--theme-primary")
         .trim(),
     );
+  const readBrowserThemeColor = () =>
+    page.evaluate(
+      () =>
+        document.head.querySelector<HTMLMetaElement>(
+          'meta[name="theme-color"]',
+        )?.content || "",
+    );
 
   const initialPrimary = await readPrimary();
 
@@ -19,10 +26,16 @@ test("chosen theme color persists across reloads", async ({ page }) => {
   await page.getByRole("option", { name: "琥珀" }).click();
 
   await expect.poll(readPrimary).toBe("#9f6f2e");
+  await expect.poll(readBrowserThemeColor).toBe("#9f6f2e");
   expect(initialPrimary).not.toBe("#9f6f2e");
 
   await page.reload();
 
   await expect.poll(readPrimary).toBe("#9f6f2e");
+  await expect.poll(readBrowserThemeColor).toBe("#9f6f2e");
   await expect(page.getByRole("button", { name: "琥珀" })).toBeVisible();
+
+  await page.getByRole("link", { name: "发现" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(readBrowserThemeColor).toBe("#9f6f2e");
 });

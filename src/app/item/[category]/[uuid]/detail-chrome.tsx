@@ -24,6 +24,7 @@ import {
 import { invalidateTimelineCache } from "@/lib/timeline-cache";
 import { readPublishPreferences } from "@/lib/publish-preferences";
 import { type ReadingProgress } from "@/lib/reading-progress";
+import { clearReadingProgressTotals } from "@/lib/reading-progress-total";
 import {
   fetchReadingProgress,
   publishReadingProgressUpdate,
@@ -60,8 +61,10 @@ type DetailChromeProps = {
   coverUrl?: string | null;
   externalResources?: ExternalResource[];
   isbn?: string | null;
+  itemPageCount?: number | null;
   itemUuid: string;
   neodbUrl?: string | null;
+  progressStorageScope?: string;
   title: string;
   trackList?: string | null;
 };
@@ -89,6 +92,7 @@ type MarkSnapshot = {
 };
 export type DetailInitialMark = MarkSnapshot & {
   auth: "guest" | "ready";
+  cacheScope: string;
 };
 
 const LazyAddToCollectionDialog = lazy(() =>
@@ -122,8 +126,10 @@ export function DetailTopBar({
   coverUrl,
   externalResources = [],
   isbn,
+  itemPageCount,
   itemUuid,
   neodbUrl,
+  progressStorageScope = "",
   title,
   trackList,
 }: DetailChromeProps) {
@@ -153,7 +159,13 @@ export function DetailTopBar({
         </div>
         {closeOnly ? null : (
           <div className="flex shrink-0 items-center gap-1">
-            <MarkMenu category={category} itemUuid={itemUuid} />
+            <MarkMenu
+              category={category}
+              isbn={isbn}
+              itemPageCount={itemPageCount}
+              itemUuid={itemUuid}
+              progressStorageScope={progressStorageScope}
+            />
             <ItemToolsMenu
               category={category}
               externalResources={externalResources}
@@ -248,10 +260,16 @@ function TopBarItemSummary({
 
 function MarkMenu({
   category,
+  isbn,
+  itemPageCount,
   itemUuid,
+  progressStorageScope,
 }: {
   category: string;
+  isbn?: string | null;
+  itemPageCount?: number | null;
   itemUuid: string;
+  progressStorageScope: string;
 }) {
   const t = useT();
   const markOptions = getMarkOptions(category).map((opt) => ({
@@ -522,6 +540,7 @@ function MarkMenu({
       setReadingProgress(null);
       if (category === "book") {
         publishReadingProgressUpdate(itemUuid, null);
+        clearReadingProgressTotals(progressStorageScope, itemUuid);
       }
       setMarkDate("");
       writeMarkCache(itemUuid, null);
@@ -798,9 +817,13 @@ function MarkMenu({
       {isReadingProgressOpen ? (
         <Suspense fallback={null}>
           <LazyReadingProgressDialog
+            isbn={isbn}
+            itemPageCount={itemPageCount}
+            itemUuid={itemUuid}
             initialProgress={readingProgress}
             onCancel={() => setIsReadingProgressOpen(false)}
             onSave={saveReadingProgress}
+            storageScope={progressStorageScope}
           />
         </Suspense>
       ) : null}

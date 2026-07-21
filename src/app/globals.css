@@ -70,6 +70,28 @@ select:disabled {
   content: none;
 }
 
+.surface-glow > .reading-progress-track {
+  position: absolute;
+}
+
+.reading-progress-track {
+  --reading-progress-color: var(--theme-primary);
+  background: color-mix(in srgb, var(--reading-progress-color) 16%, transparent);
+}
+
+.reading-progress-fill {
+  background: var(--reading-progress-color);
+}
+
+:root[data-theme="dark"] .reading-progress-track {
+  --reading-progress-color: color-mix(
+    in hsl,
+    var(--theme-primary) 55%,
+    white 45%
+  );
+  background: color-mix(in srgb, var(--reading-progress-color) 24%, transparent);
+}
+
 :root[data-theme="dark"] .surface-glow::before {
   background: linear-gradient(
     135deg,

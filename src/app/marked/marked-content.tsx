@@ -254,6 +254,7 @@ export function MarkedContent({ cacheScope, categories }: MarkedContentProps) {
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               {payload.items.map(({ item, mark }) => (
                 <MarkedCard
+                  cacheScope={cacheScope || ""}
                   item={item}
                   key={[
                     mark.item.uuid,

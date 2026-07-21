@@ -73,8 +73,13 @@ try it out.
 
 All runtime/deployment configuration is done through environment variables,
 including: the NeoDB instance, session secret, OAuth redirect origin, optional
-TMDB and Azure Translator credentials, SEO/indexing, and an optional outbound
-proxy. **Secrets belong only in `.env.local`**, which is gitignored.
+TMDB, Google Books, and Azure Translator credentials, SEO/indexing, and an
+optional outbound proxy. **Secrets belong only in `.env.local`**, which is
+gitignored.
+
+`GOOGLE_BOOKS_API_KEY` is optional. When configured, it supplies a fallback
+total page count for book reading progress if NeoDB has no page count for that
+edition. Without it, users can still enter total pages or chapters manually.
 
 `NEODB_SESSION_SECRET` must be set for login to work.
 

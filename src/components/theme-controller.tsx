@@ -15,15 +15,19 @@ import {
 export function ThemeController() {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    let activeThemeColor = applyThemeColor(
+      window.localStorage.getItem(THEME_COLOR_KEY),
+    );
 
-    applyThemeColor(window.localStorage.getItem(THEME_COLOR_KEY));
     applyThemeMode(
       getThemeMode(window.localStorage.getItem(THEME_MODE_KEY)),
       mediaQuery.matches,
     );
 
     function syncThemeColor(event: Event) {
-      applyThemeColor((event as CustomEvent<string>).detail);
+      activeThemeColor = applyThemeColor(
+        (event as CustomEvent<string>).detail,
+      );
     }
 
     function syncThemeMode(event: Event) {
@@ -41,9 +45,20 @@ export function ThemeController() {
     }
 
     function syncAppReset() {
-      applyThemeColor(null);
+      activeThemeColor = applyThemeColor(null);
       applyThemeMode(getThemeMode(null), mediaQuery.matches);
     }
+
+    const headObserver = new MutationObserver(() => {
+      updateThemeColorMeta(activeThemeColor);
+    });
+
+    headObserver.observe(document.head, {
+      attributeFilter: ["content", "name"],
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
 
     window.addEventListener(THEME_COLOR_EVENT, syncThemeColor);
     window.addEventListener(THEME_MODE_EVENT, syncThemeMode);
@@ -55,6 +70,7 @@ export function ThemeController() {
       window.removeEventListener(THEME_MODE_EVENT, syncThemeMode);
       window.removeEventListener(APP_RESET_EVENT, syncAppReset);
       mediaQuery.removeEventListener("change", syncSystemTheme);
+      headObserver.disconnect();
     };
   }, []);
 
@@ -73,6 +89,7 @@ function applyThemeColor(id: string | null | undefined) {
     themeColor.primaryHover,
   );
   updateThemeColorMeta(themeColor.primary);
+  return themeColor.primary;
 }
 
 function applyThemeMode(mode: ReturnType<typeof getThemeMode>, prefersDark: boolean) {
@@ -84,10 +101,22 @@ function applyThemeMode(mode: ReturnType<typeof getThemeMode>, prefersDark: bool
 
 function updateThemeColorMeta(color: string) {
   const selector = 'meta[name="theme-color"]';
-  const meta =
-    document.head.querySelector<HTMLMetaElement>(selector) ||
-    document.head.appendChild(document.createElement("meta"));
+  const metas = Array.from(
+    document.head.querySelectorAll<HTMLMetaElement>(selector),
+  );
 
-  meta.name = "theme-color";
-  meta.content = color;
+  if (!metas.length) {
+    const meta = document.createElement("meta");
+
+    meta.name = "theme-color";
+    meta.content = color;
+    document.head.appendChild(meta);
+    return;
+  }
+
+  for (const meta of metas) {
+    if (meta.content !== color) {
+      meta.content = color;
+    }
+  }
 }

@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import {
   openCookie,
@@ -6,6 +5,7 @@ import {
   type NeodbSessionCookie,
 } from "@/lib/neodb-auth";
 import { getT } from "@/i18n/server";
+import { getSessionCacheScope } from "@/lib/session-cache-scope";
 import { MarkedContent } from "./marked-content";
 
 export const dynamic = "force-dynamic";
@@ -29,16 +29,8 @@ export default async function MarkedPage() {
 
   return (
     <MarkedContent
-      cacheScope={session ? getCacheScope(session) : null}
+      cacheScope={session ? getSessionCacheScope(session) : null}
       categories={categories}
     />
   );
-}
-
-function getCacheScope(session: NeodbSessionCookie) {
-  return crypto
-    .createHash("sha256")
-    .update(`${session.instance}:${session.createdAt}`)
-    .digest("base64url")
-    .slice(0, 20);
 }

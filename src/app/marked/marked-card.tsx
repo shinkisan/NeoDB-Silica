@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { showToast } from "@/components/app-toast";
 import { LazyReadingProgressDialog } from "@/components/lazy-reading-progress-dialog";
 import { useT } from "@/components/use-t";
+import { fetchBookPageCount } from "@/lib/google-books-client";
 import {
   RatingBadge,
   StatusBadge,
@@ -15,6 +16,13 @@ import {
   type ReadingProgress,
 } from "@/lib/reading-progress";
 import { submitReadingProgress } from "@/lib/reading-progress-client";
+import {
+  getReadingProgressRatio,
+  readReadingProgressTotals,
+  READING_PROGRESS_TOTAL_UPDATED_EVENT,
+  writeReadingProgressTotal,
+  type ReadingProgressTotalUpdatedEvent,
+} from "@/lib/reading-progress-total";
 import { MarkedCardBody } from "./marked-card-body";
 import {
   MARKED_REFRESH_ITEM_EVENT,
@@ -45,10 +53,12 @@ type MarkSnapshot = {
 };
 
 export function MarkedCard({
+  cacheScope,
   item,
   mark,
   shelf,
 }: {
+  cacheScope: string;
   item: HomeItem;
   mark: MarkedCardMark;
   shelf: ShelfType;
@@ -65,11 +75,93 @@ export function MarkedCard({
     mark.reading_progress ?? null,
   );
   const [isProgressOpen, setIsProgressOpen] = useState(false);
+  const [readingProgressTotals, setReadingProgressTotals] = useState(
+    {} as ReturnType<typeof readReadingProgressTotals>,
+  );
   const [shelfType, setShelfType] = useState<ShelfType>(mark.shelf_type);
   const markedDate = formatMarkedDate(createdTime);
   const readingProgressLabel =
     formatReadingProgressShort(readingProgress, t) ||
     t("mark.readingProgress.emptyBadge");
+  const readingProgressRatio = getReadingProgressRatio(
+    readingProgress,
+    readingProgressTotals,
+  );
+
+  useEffect(() => {
+    function syncTotals(event: Event) {
+      const detail = (event as ReadingProgressTotalUpdatedEvent).detail;
+
+      if (detail.scope === cacheScope && detail.itemUuid === itemUuid) {
+        setReadingProgressTotals(detail.totals);
+      }
+    }
+
+    queueMicrotask(() =>
+      setReadingProgressTotals(
+        readReadingProgressTotals(cacheScope, itemUuid),
+      ),
+    );
+    window.addEventListener(READING_PROGRESS_TOTAL_UPDATED_EVENT, syncTotals);
+
+    return () =>
+      window.removeEventListener(
+        READING_PROGRESS_TOTAL_UPDATED_EVENT,
+        syncTotals,
+      );
+  }, [cacheScope, itemUuid]);
+
+  useEffect(() => {
+    if (readingProgress?.type !== "page") {
+      return;
+    }
+
+    const totals = readReadingProgressTotals(cacheScope, itemUuid);
+
+    if (totals.page) {
+      queueMicrotask(() => setReadingProgressTotals(totals));
+      return;
+    }
+
+    const itemPageCount = Number(item.pages);
+
+    if (Number.isFinite(itemPageCount) && itemPageCount > 0) {
+      queueMicrotask(() =>
+        setReadingProgressTotals(
+          writeReadingProgressTotal(
+            cacheScope,
+            itemUuid,
+            "page",
+            itemPageCount,
+            "item",
+          ),
+        ),
+      );
+      return;
+    }
+
+    let cancelled = false;
+
+    fetchBookPageCount({ isbn: item.isbn, itemUuid }).then((result) => {
+      if (cancelled || !result) {
+        return;
+      }
+
+      setReadingProgressTotals(
+        writeReadingProgressTotal(
+          cacheScope,
+          itemUuid,
+          "page",
+          result.pageCount,
+          result.source,
+        ),
+      );
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cacheScope, item.isbn, item.pages, itemUuid, readingProgress?.type]);
 
   useEffect(() => {
     if (mark.reading_progress === undefined) {
@@ -178,7 +270,18 @@ export function MarkedCard({
   }
 
   return (
-    <article className="surface-glow rounded-xl border border-white/70 bg-white/55 p-3 shadow-lg shadow-slate-900/5">
+    <article className="surface-glow relative rounded-xl border border-white/70 bg-white/55 p-3 shadow-lg shadow-slate-900/5">
+      {readingProgressRatio !== null ? (
+        <div
+          aria-hidden="true"
+          className="reading-progress-track absolute inset-x-3 top-[4.5px] h-0.5 overflow-hidden"
+        >
+          <span
+            className="reading-progress-fill block h-full transition-[width] duration-300"
+            style={{ width: `${readingProgressRatio * 100}%` }}
+          />
+        </div>
+      ) : null}
       <MarkedCardBody
         className="grid w-full cursor-pointer grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 rounded-xl text-left transition active:scale-[0.99] sm:grid-cols-[7.5rem_minmax(0,1fr)]"
         href={item.detailPath}
@@ -244,9 +347,13 @@ export function MarkedCard({
       {isProgressOpen ? (
         <Suspense fallback={null}>
           <LazyReadingProgressDialog
+            isbn={item.isbn}
+            itemPageCount={item.pages}
+            itemUuid={itemUuid}
             initialProgress={readingProgress}
             onCancel={() => setIsProgressOpen(false)}
             onSave={saveReadingProgress}
+            storageScope={cacheScope}
           />
         </Suspense>
       ) : null}

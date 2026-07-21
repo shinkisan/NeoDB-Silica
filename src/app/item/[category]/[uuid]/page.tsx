@@ -40,6 +40,7 @@ import {
 import { emptyMarkSnapshot, fetchShelfMarkSnapshot } from "@/lib/neodb-mark";
 import { getCommunityCommentPage, getCommunityOwnEntries } from "@/lib/community";
 import { configureServerFetchProxy, fetchWithTimeout } from "@/lib/server-fetch";
+import { getSessionCacheScope } from "@/lib/session-cache-scope";
 import {
   getDefaultTmdbRegion,
   isTmdbRegion,
@@ -121,7 +122,9 @@ export default async function DetailPage({ params }: DetailPageProps) {
           ]}
           itemUuid={item.uuid}
           isbn={item.isbn || null}
+          itemPageCount={item.pages || null}
           neodbUrl={item.url ? toAbsoluteUrl(item.url) : null}
+          progressStorageScope={initialMark.cacheScope || ""}
           title={item.display_title || item.title || t("detail.fallbackTitle")}
           trackList={item.track_list || null}
         />
@@ -203,12 +206,16 @@ export default async function DetailPage({ params }: DetailPageProps) {
 
             <Suspense
               fallback={
-                <CommunitySectionFallback
-                  itemUuid={item.uuid}
-                />
+                <CommunitySectionFallback />
               }
             >
-              <CommunitySection category={item.category} itemUuid={item.uuid} />
+              <CommunitySection
+                category={item.category}
+                isbn={item.isbn || null}
+                itemPageCount={item.pages || null}
+                itemUuid={item.uuid}
+                progressStorageScope={initialMark.cacheScope || ""}
+              />
             </Suspense>
           </div>
         </main>
@@ -229,10 +236,16 @@ export default async function DetailPage({ params }: DetailPageProps) {
 
 async function CommunitySection({
   category,
+  isbn,
+  itemPageCount,
   itemUuid,
+  progressStorageScope,
 }: {
   category: string;
+  isbn?: string | null;
+  itemPageCount?: number | null;
   itemUuid: string;
+  progressStorageScope: string;
 }) {
   const locale = await getLocale();
   const cookieStore = await cookies();
@@ -252,8 +265,11 @@ async function CommunitySection({
         initialCommentsPage={initialCommentsPage}
         initialOwnEntries={initialOwnEntries}
         initialReviewsPage={initialReviewsPage}
+        isbn={isbn}
+        itemPageCount={itemPageCount}
         itemUuid={itemUuid}
         neodbInstance={session?.instance ?? ""}
+        progressStorageScope={progressStorageScope}
         reviewActions={
           <DetailReviewActions
             category={category}
@@ -266,11 +282,7 @@ async function CommunitySection({
   );
 }
 
-function CommunitySectionFallback({
-  itemUuid,
-}: {
-  itemUuid: string;
-}) {
+function CommunitySectionFallback() {
   return (
     <section className="space-y-4 border-t border-[#e2e2e5] pt-6" id="comments">
       <CommunityLoadingSkeleton />
@@ -412,6 +424,7 @@ async function fetchInitialMark(itemUuid: string): Promise<DetailInitialMark> {
   if (!session?.accessToken) {
     return {
       auth: "guest",
+      cacheScope: "",
       ...emptyMarkSnapshot(itemUuid),
     };
   }
@@ -419,12 +432,14 @@ async function fetchInitialMark(itemUuid: string): Promise<DetailInitialMark> {
   try {
     return {
       auth: "ready",
+      cacheScope: getSessionCacheScope(session),
       ...(await fetchShelfMarkSnapshot(session, itemUuid)),
     };
   } catch (error) {
     console.error("[neodb] initial mark fetch failed", error);
     return {
       auth: "ready",
+      cacheScope: getSessionCacheScope(session),
       ...emptyMarkSnapshot(itemUuid),
     };
   }

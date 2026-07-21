@@ -138,16 +138,22 @@ export function CommunityList({
   initialCommentsPage,
   initialOwnEntries,
   initialReviewsPage,
+  isbn,
+  itemPageCount,
   itemUuid,
   neodbInstance = "",
+  progressStorageScope,
   reviewActions,
 }: {
   category: string;
   initialCommentsPage?: CommunityPage;
   initialOwnEntries?: CommunityOwnEntries;
   initialReviewsPage?: CommunityPage;
+  isbn?: string | null;
+  itemPageCount?: number | null;
   itemUuid: string;
   neodbInstance: string;
+  progressStorageScope: string;
   reviewActions?: ReactNode;
 }) {
   const t = useT();
@@ -705,9 +711,12 @@ export function CommunityList({
               ) : (
                 <CommunityComment
                   {...comment}
+                  isbn={isbn}
+                  itemPageCount={itemPageCount}
                   key={`comment-${comment.postId}`}
                   onDeleteComment={handleDeleteComment}
                   onDeleteReview={handleDeleteReview}
+                  progressStorageScope={progressStorageScope}
                 />
               ),
             )}
@@ -887,12 +896,15 @@ const CommunityComment = memo(function CommunityComment({
   favourited,
   favouritesCount,
   isOwn,
+  isbn,
+  itemPageCount,
   itemUuid,
   name,
   nameEmojis,
   onDeleteComment,
   onDeleteReview,
   postId,
+  progressStorageScope,
   rating,
   reblogged,
   reblogsCount,
@@ -902,8 +914,11 @@ const CommunityComment = memo(function CommunityComment({
   time,
   visibility,
 }: CommunityCommentProps & {
+  isbn?: string | null;
+  itemPageCount?: number | null;
   onDeleteComment: (postId: string) => void;
   onDeleteReview: (postId: string) => void;
+  progressStorageScope: string;
 }) {
   const [didAvatarFail, setDidAvatarFail] = useState(false);
   const t = useT();
@@ -1221,9 +1236,13 @@ const CommunityComment = memo(function CommunityComment({
       {isReadingProgressOpen ? (
         <Suspense fallback={null}>
           <LazyReadingProgressDialog
+            isbn={isbn}
+            itemPageCount={itemPageCount}
+            itemUuid={itemUuid}
             initialProgress={readingProgress || null}
             onCancel={() => setIsReadingProgressOpen(false)}
             onSave={saveReadingProgress}
+            storageScope={progressStorageScope}
           />
         </Suspense>
       ) : null}

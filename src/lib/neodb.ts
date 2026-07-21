@@ -44,6 +44,8 @@ export type NeodbItem = {
     url?: string;
   }> | null;
   imdb?: string | null;
+  isbn?: string | null;
+  pages?: number | null;
   credits?: Array<{
     character_name?: string;
     role?: string;
@@ -79,7 +81,9 @@ export type HomeItem = {
   tags: string[];
   creator: string | null;
   description: string;
+  isbn?: string | null;
   kind?: "item" | "collection";
+  pages?: number | null;
 };
 
 const categoryLabels: Record<string, string> = {
@@ -134,7 +138,9 @@ export function normalizeNeodbItem(item: NeodbItem, baseUrl: string): HomeItem {
     tags: (item.tags || []).slice(0, 3),
     creator,
     description: item.description || item.brief || "",
+    isbn: item.isbn || null,
     kind: "item",
+    pages: Number.isFinite(item.pages) ? item.pages : null,
   };
 }
 
