@@ -271,17 +271,6 @@ export function MarkedCard({
 
   return (
     <article className="surface-glow relative rounded-xl border border-white/70 bg-white/55 p-3 shadow-lg shadow-slate-900/5">
-      {readingProgressRatio !== null ? (
-        <div
-          aria-hidden="true"
-          className="reading-progress-track absolute inset-x-3 top-[4.5px] h-0.5 overflow-hidden"
-        >
-          <span
-            className="reading-progress-fill block h-full transition-[width] duration-300"
-            style={{ width: `${readingProgressRatio * 100}%` }}
-          />
-        </div>
-      ) : null}
       <MarkedCardBody
         className="grid w-full cursor-pointer grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 rounded-xl text-left transition active:scale-[0.99] sm:grid-cols-[7.5rem_minmax(0,1fr)]"
         href={item.detailPath}
@@ -336,7 +325,15 @@ export function MarkedCard({
 
           <div className="mt-2 flex min-w-0 flex-wrap items-center gap-1.5">
             <RatingBadge value={ratingGrade} />
-            <StatusBadge category={mark.item.category} status={shelfType} />
+            <StatusBadge
+              category={mark.item.category}
+              progressRatio={
+                mark.item.category === "book" && shelfType === "progress"
+                  ? readingProgressRatio
+                  : null
+              }
+              status={shelfType}
+            />
           </div>
 
           <p className="mt-2 line-clamp-3 break-words text-sm leading-5 text-[#44474c] max-sm:line-clamp-2">

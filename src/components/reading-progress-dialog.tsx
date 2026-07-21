@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Dropdown } from "@/components/dropdown";
+import { NumberWheel } from "@/components/number-wheel";
 import { useT } from "@/components/use-t";
 import { fetchBookPageCount } from "@/lib/google-books-client";
 import {
@@ -17,6 +18,8 @@ import {
   writeReadingProgressTotal,
   type ReadingProgressTotalSource,
 } from "@/lib/reading-progress-total";
+
+const PERCENTAGE_OPTIONS = createNumberRange(0, 100);
 
 type ReadingProgressDialogProps = {
   isbn?: string | null;
@@ -38,10 +41,15 @@ export function ReadingProgressDialog({
   storageScope,
 }: ReadingProgressDialogProps) {
   const t = useT();
+  const initialType = initialProgress?.type || "percentage";
   const [type, setType] = useState<ReadingProgressType>(
-    initialProgress?.type || "percentage",
+    initialType,
   );
-  const [value, setValue] = useState(initialProgress?.value || "");
+  const [value, setValue] = useState(() =>
+    initialType === "percentage"
+      ? String(normalizePercentage(initialProgress?.value))
+      : initialProgress?.value || "",
+  );
   const [totalValue, setTotalValue] = useState("");
   const [savedTotalValue, setSavedTotalValue] = useState("");
   const [totalSource, setTotalSource] =
@@ -255,7 +263,7 @@ export function ReadingProgressDialog({
                   : null;
 
               setType(progressType);
-              setValue("");
+              setValue(progressType === "percentage" ? "0" : "");
               setTotalValue(nextTotal ? String(nextTotal.value) : "");
               setSavedTotalValue(nextTotal ? String(nextTotal.value) : "");
               setTotalSource(nextTotal?.source || null);
@@ -265,52 +273,76 @@ export function ReadingProgressDialog({
             value={type}
           />
         </div>
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#44474c]">
-            {t(`mark.readingProgress.input.${type}`)}
-          </span>
-          <input
-            autoFocus
-            className="h-11 w-full rounded-xl border border-white/70 bg-white/60 px-3 text-base font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--theme-primary)]"
-            inputMode="decimal"
-            max={type === "percentage" ? 100 : undefined}
-            min={0}
-            onChange={(event) => setValue(event.target.value)}
-            placeholder={t(`mark.readingProgress.placeholder.${type}`)}
-            step="any"
-            type="number"
-            value={value}
-          />
-        </label>
-        {needsTotal ? (
-          <label className="block">
+        {type === "percentage" ? (
+          <div>
             <span className="mb-2 block text-sm font-semibold text-[#44474c]">
+              {t("mark.readingProgress.input.percentage")}
+            </span>
+            <div className="relative mx-auto h-20 w-60 max-w-full overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/45 shadow-inner">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[#c5c6cd]/50 bg-white/55"
+              />
+              <NumberWheel
+                ariaLabel={t("mark.readingProgress.input.percentage")}
+                onSelect={(nextValue) => setValue(String(nextValue))}
+                options={PERCENTAGE_OPTIONS}
+                orientation="horizontal"
+                renderLabel={(option) => String(option)}
+                selected={normalizePercentage(value)}
+              />
+            </div>
+          </div>
+        ) : (
+          <div>
+            <span className="mb-2 block text-sm font-semibold text-[#44474c]">
+              {t(`mark.readingProgress.input.${type}`)} /{" "}
               {t(`mark.readingProgress.total.${type}`)}
             </span>
-            <input
-              className="h-11 w-full rounded-xl border border-white/70 bg-white/60 px-3 text-base font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--theme-primary)]"
-              inputMode="decimal"
-              min={0}
-              onChange={(event) => {
-                setTotalValue(event.target.value);
-                setTotalSource("manual");
-              }}
-              placeholder={
-                isPageTotalLoading && type === "page"
-                  ? t("mark.readingProgress.totalLoading")
-                  : t(`mark.readingProgress.totalPlaceholder.${type}`)
-              }
-              step="any"
-              type="number"
-              value={totalValue}
-            />
+            <div className="flex w-full min-w-0 items-center gap-2">
+              <input
+                aria-label={t(`mark.readingProgress.input.${type}`)}
+                autoFocus
+                className="h-11 w-0 min-w-0 flex-1 rounded-xl border border-white/70 bg-white/60 px-2 text-center text-base font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--theme-primary)] sm:px-3"
+                inputMode="decimal"
+                min={0}
+                onChange={(event) => setValue(event.target.value)}
+                step="any"
+                type="number"
+                value={value}
+              />
+              <span
+                aria-hidden="true"
+                className="shrink-0 text-base font-semibold text-[#75777d]"
+              >
+                /
+              </span>
+              <input
+                aria-label={t(`mark.readingProgress.total.${type}`)}
+                className="h-11 w-0 min-w-0 flex-1 rounded-xl border border-white/70 bg-white/60 px-2 text-center text-base font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--theme-primary)] sm:px-3"
+                inputMode="decimal"
+                min={0}
+                onChange={(event) => {
+                  setTotalValue(event.target.value);
+                  setTotalSource("manual");
+                }}
+                placeholder={
+                  isPageTotalLoading && type === "page"
+                    ? t("mark.readingProgress.totalLoading")
+                    : undefined
+                }
+                step="any"
+                type="number"
+                value={totalValue}
+              />
+            </div>
             {!isCurrentWithinTotal ? (
               <span className="mt-2 block text-xs font-semibold text-red-600">
                 {t("mark.readingProgress.totalTooSmall")}
               </span>
             ) : null}
-          </label>
-        ) : null}
+          </div>
+        )}
         {initialProgress ? (
           <button
             className="text-sm font-semibold text-red-600 transition hover:text-red-700 disabled:opacity-60"
@@ -330,4 +362,18 @@ function normalizePositiveNumber(value: unknown) {
   const number = Number(value);
 
   return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function normalizePercentage(value: unknown) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return Math.min(100, Math.max(0, Math.round(number)));
+}
+
+function createNumberRange(start: number, end: number) {
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }

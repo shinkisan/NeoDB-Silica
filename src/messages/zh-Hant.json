@@ -3,6 +3,7 @@
     "description": "用於發現圖書、電影、音樂等內容的 NeoDB PWA 客戶端。"
   },
   "bottomNav": {
+    "label": "主要導覽",
     "discover": "發現",
     "timeline": "動態",
     "marked": "標記",
@@ -536,13 +537,12 @@
       "titleWithCurrent": "標記進度（目前{progress}）",
       "method": "記錄方式",
       "type": { "percentage": "百分比", "page": "頁碼", "chapter": "章節" },
-      "input": { "percentage": "目前進度", "page": "目前頁碼", "chapter": "目前章節" },
-      "placeholder": { "percentage": "0–100", "page": "輸入頁碼", "chapter": "輸入章節" },
+      "input": { "percentage": "目前進度（%）", "page": "目前頁碼", "chapter": "目前章節" },
       "total": { "page": "總頁數", "chapter": "總章節數" },
-      "totalPlaceholder": { "page": "輸入總頁數", "chapter": "輸入總章節數" },
       "totalLoading": "正在取得總頁數",
       "totalTooSmall": "總量不能小於目前進度",
       "short": { "percentage": "{value}%", "page": "第 {value} 頁", "chapter": "第 {value} 章" },
+      "badgePercentage": "（{value}%）",
       "emptyBadge": "設定進度",
       "set": "設定閱讀進度",
       "clear": "清除進度",
@@ -754,6 +754,7 @@
     "settings": "應用設定",
     "darkMode": "夜間模式",
     "themeColor": "主題色",
+    "tabOrder": "底欄順序",
     "homeTags": "首頁標籤",
     "defaultVisibility": "預設可見性偏好",
     "autoForward": "自動轉發",
@@ -824,7 +825,8 @@
       "mode": { "system": "跟隨系統", "light": "白天模式", "dark": "夜間模式" },
       "themeColor": { "slate": "石墨", "rose": "薔薇", "sage": "鼠尾草", "amber": "琥珀", "indigo": "靛藍" },
       "language": { "system": "系統語言", "zhHans": "簡體中文", "zhHant": "繁體中文", "en": "English" },
-      "homeTagOrder": { "button": "排序", "dialogTitle": "首頁標籤排序", "close": "關閉", "moveUp": "上移", "moveDown": "下移", "resetDefault": "恢復預設" }
+      "homeTagOrder": { "button": "排序", "dialogTitle": "首頁標籤排序", "close": "關閉", "moveUp": "上移", "moveDown": "下移", "resetDefault": "恢復預設" },
+      "tabOrder": { "button": "排序", "dialogTitle": "底欄順序", "close": "關閉", "moveUp": "上移", "moveDown": "下移", "resetDefault": "恢復預設" }
     },
     "install": {
       "installed": "已安裝",

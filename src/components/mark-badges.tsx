@@ -6,17 +6,47 @@ export type ShelfType = "wishlist" | "progress" | "complete" | "dropped";
 
 export function StatusBadge({
   category,
+  progressRatio,
   status,
 }: {
   category: string;
+  progressRatio?: number | null;
   status: string;
 }) {
   const t = useT();
-  const tone = getStatusTone(status);
+  const progressPercentage =
+    status === "progress" && progressRatio !== null && progressRatio !== undefined
+      ? Math.round(Math.min(1, Math.max(0, progressRatio)) * 100)
+      : null;
+  const tone =
+    progressPercentage !== null
+      ? "border-[#ead9a7]/80 text-[#6d5522]"
+      : getStatusTone(status);
 
   return (
-    <span className={`status-badge status-badge-${status} badge-text-trim rounded-full border px-3 py-[7.2px] text-xs font-bold ${tone}`}>
-      {t(getStatusKey(category, status))}
+    <span
+      className={`status-badge status-badge-${status} badge-text-trim rounded-full border px-3 py-[7.2px] text-xs font-bold ${progressPercentage !== null ? "relative overflow-hidden" : ""} ${tone}`}
+      data-reading-progress-percentage={progressPercentage ?? undefined}
+    >
+      {progressPercentage !== null ? (
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0 left-0 bg-[#f7ebc6]/70"
+          data-reading-progress-fill
+          style={{ width: `${progressPercentage}%` }}
+        />
+      ) : null}
+      {progressPercentage !== null ? (
+        <span className="relative">
+          {t(getStatusKey(category, status))}
+          {t("mark.readingProgress.badgePercentage").replace(
+            "{value}",
+            String(progressPercentage),
+          )}
+        </span>
+      ) : (
+        t(getStatusKey(category, status))
+      )}
     </span>
   );
 }

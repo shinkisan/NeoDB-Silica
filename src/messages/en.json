@@ -3,6 +3,7 @@
     "description": "A NeoDB PWA client for discovering books, movies, music and more."
   },
   "bottomNav": {
+    "label": "Main navigation",
     "discover": "Discover",
     "timeline": "Timeline",
     "marked": "Marked",
@@ -536,13 +537,12 @@
       "titleWithCurrent": "Reading Progress (Currently {progress})",
       "method": "Track by",
       "type": { "percentage": "Percentage", "page": "Page", "chapter": "Chapter" },
-      "input": { "percentage": "Current progress", "page": "Current page", "chapter": "Current chapter" },
-      "placeholder": { "percentage": "0–100", "page": "Enter page", "chapter": "Enter chapter" },
+      "input": { "percentage": "Current progress (%)", "page": "Current page", "chapter": "Current chapter" },
       "total": { "page": "Total pages", "chapter": "Total chapters" },
-      "totalPlaceholder": { "page": "Enter total pages", "chapter": "Enter total chapters" },
       "totalLoading": "Finding total pages",
       "totalTooSmall": "Total must not be less than current progress",
       "short": { "percentage": "{value}%", "page": "p{value}", "chapter": "ch{value}" },
+      "badgePercentage": "({value}%)",
       "emptyBadge": "Set progress",
       "set": "Set reading progress",
       "clear": "Clear progress",
@@ -755,6 +755,7 @@
     "settings": "App Settings",
     "darkMode": "Dark Mode",
     "themeColor": "Theme Color",
+    "tabOrder": "Tab Order",
     "homeTags": "Home Tags",
     "defaultVisibility": "Default Visibility",
     "autoForward": "Auto Forward",
@@ -825,7 +826,8 @@
       "mode": { "system": "System", "light": "Light", "dark": "Dark" },
       "themeColor": { "slate": "Slate", "rose": "Rose", "sage": "Sage", "amber": "Amber", "indigo": "Indigo" },
       "language": { "system": "System Language", "zhHans": "Simplified Chinese", "zhHant": "Traditional Chinese", "en": "English" },
-      "homeTagOrder": { "button": "Sort", "dialogTitle": "Home Tag Order", "close": "Close", "moveUp": "Move Up", "moveDown": "Move Down", "resetDefault": "Reset Default" }
+      "homeTagOrder": { "button": "Sort", "dialogTitle": "Home Tag Order", "close": "Close", "moveUp": "Move Up", "moveDown": "Move Down", "resetDefault": "Reset Default" },
+      "tabOrder": { "button": "Sort", "dialogTitle": "Tab Order", "close": "Close", "moveUp": "Move Up", "moveDown": "Move Down", "resetDefault": "Reset Default" }
     },
     "install": {
       "installed": "Installed",

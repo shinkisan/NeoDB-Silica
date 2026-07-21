@@ -5,6 +5,7 @@ import type { PointerEvent, ReactNode } from "react";
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from "react";
 import type { ShelfType } from "@/components/mark-badges";
 import { HorizontalScrollControls } from "@/components/horizontal-scroll-controls";
+import { SortIcon } from "@/components/sort-icon";
 import { useT } from "@/components/use-t";
 import {
   MARKED_REFRESH_ITEM_EVENT,
@@ -508,23 +509,6 @@ function getMarkedSwipeClass(transition: SwipeTransition | null) {
   return transition.direction === "left"
     ? "home-swipe-enter-right"
     : "home-swipe-enter-left";
-}
-
-function SortIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-4"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M3 6h12M3 12h8M3 18h4M19 4v16m0 0-3-3m3 3 3-3" />
-    </svg>
-  );
 }
 
 function RefreshIcon() {

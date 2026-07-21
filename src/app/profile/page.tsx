@@ -22,6 +22,7 @@ import { InstallAppButton } from "./install-app-button";
 import { LogoutButton } from "./logout-button";
 import { ProfileHeader } from "./profile-header";
 import { ProfileHeatmapBackdrop } from "./profile-heatmap";
+import { TabOrderButton } from "./tab-order-control";
 import {
   AboutProfileLink,
   ProfileAboutScrollRestorer,
@@ -33,6 +34,7 @@ import {
 } from "@/lib/neodb-instance";
 import { configureServerFetchProxy } from "@/lib/server-fetch";
 import { siteConfig } from "@/site.config";
+import { SortIcon } from "@/components/sort-icon";
 
 export const dynamic = "force-dynamic";
 
@@ -146,6 +148,12 @@ export default async function ProfilePage() {
               icon={<PaletteIcon />}
               label={t("profile.themeColor")}
               right={<ThemeColorSelect />}
+              tone="settings"
+            />
+            <SettingsRow
+              icon={<SortIcon className="size-5" />}
+              label={t("profile.tabOrder")}
+              right={<TabOrderButton />}
               tone="settings"
             />
             <SettingsRow

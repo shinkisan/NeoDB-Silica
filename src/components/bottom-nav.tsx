@@ -12,10 +12,19 @@ import {
   normalizeHomeTagOrder,
 } from "@/lib/home-tags";
 import { resetNavigationStackRoot } from "@/components/navigation-history";
+import { APP_RESET_EVENT } from "@/lib/app-reset";
+import {
+  BOTTOM_TAB_ORDER_EVENT,
+  BOTTOM_TAB_ORDER_KEY,
+  bottomTabIds,
+  normalizeBottomTabOrder,
+  type BottomTabId,
+} from "@/lib/bottom-tabs";
 import { siteConfig } from "@/site.config";
 import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 
 type BottomTab = {
+  id: BottomTabId;
   href?: string;
   icon: React.ComponentType;
   label: string;
@@ -36,33 +45,39 @@ export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const [tabOrder, setTabOrder] = useState<BottomTabId[]>([...bottomTabIds]);
   const [isPending, startTransition] = useTransition();
-  const tabs: BottomTab[] = [
-    {
+  const tabDefinitions: Record<BottomTabId, BottomTab> = {
+    discover: {
+      id: "discover",
       href: "/",
       icon: DiscoverIcon,
       label: t("bottomNav.discover"),
       match: (path: string) => path === "/",
     },
-    {
+    timeline: {
+      id: "timeline",
       href: "/timeline",
       icon: TimelineIcon,
       label: t("bottomNav.timeline"),
       match: (path: string) => path.startsWith("/timeline"),
     },
-    {
+    marked: {
+      id: "marked",
       href: "/marked",
       icon: MarkedIcon,
       label: t("bottomNav.marked"),
       match: (path: string) => path.startsWith("/marked"),
     },
-    {
+    profile: {
+      id: "profile",
       href: "/profile",
       icon: ProfileIcon,
       label: t("bottomNav.profile"),
       match: (path: string) => path.startsWith("/profile"),
     },
-  ];
+  };
+  const tabs = tabOrder.map((id) => tabDefinitions[id]);
   const shouldHide =
     pathname.startsWith("/profile/collections") ||
     pathname.startsWith("/profile/reviews") ||
@@ -75,6 +90,35 @@ export function BottomNav() {
     : tabs.findIndex((tab) => tab.match?.(pathname));
   const activeIndex =
     isPending && pendingIndex !== null ? pendingIndex : pathnameIndex;
+
+  useEffect(() => {
+    function syncTabOrder(event?: Event) {
+      let order: unknown = null;
+
+      if (event instanceof CustomEvent) {
+        order = event.detail;
+      } else {
+        try {
+          order = JSON.parse(
+            window.localStorage.getItem(BOTTOM_TAB_ORDER_KEY) || "[]",
+          );
+        } catch {
+          order = [];
+        }
+      }
+
+      setTabOrder(normalizeBottomTabOrder(order));
+    }
+
+    window.queueMicrotask(syncTabOrder);
+    window.addEventListener(BOTTOM_TAB_ORDER_EVENT, syncTabOrder);
+    window.addEventListener(APP_RESET_EVENT, syncTabOrder);
+
+    return () => {
+      window.removeEventListener(BOTTOM_TAB_ORDER_EVENT, syncTabOrder);
+      window.removeEventListener(APP_RESET_EVENT, syncTabOrder);
+    };
+  }, []);
 
   useEffect(() => {
     if (hasClearedHomeMemoryForPageLoad) {
@@ -137,7 +181,10 @@ export function BottomNav() {
   return (
     <>
       <DesktopLogo />
-      <nav className="pointer-events-none fixed inset-x-0 bottom-6 z-40 px-4 lg:inset-x-auto lg:bottom-auto lg:left-6 lg:top-1/2 lg:-translate-y-1/2 lg:px-0">
+      <nav
+        aria-label={t("bottomNav.label")}
+        className="pointer-events-none fixed inset-x-0 bottom-6 z-40 px-4 lg:inset-x-auto lg:bottom-auto lg:left-6 lg:top-1/2 lg:-translate-y-1/2 lg:px-0"
+      >
       <div
         className="liquid-glass relative pointer-events-auto mx-auto h-[62px] max-w-sm rounded-[2rem] border border-white/50 bg-white/55 p-1.5 shadow-2xl shadow-slate-900/10 lg:h-auto lg:w-[72px] lg:max-w-none"
         data-lg-depth="8"
@@ -173,7 +220,7 @@ export function BottomNav() {
                   aria-current={isActive ? "page" : undefined}
                   className={className}
                   href={href}
-                  key={tab.label}
+                  key={tab.id}
                   onClick={(event) => {
                     event.preventDefault();
 
@@ -214,7 +261,7 @@ export function BottomNav() {
             }
 
             return (
-              <button className={className} key={tab.label} type="button">
+              <button className={className} key={tab.id} type="button">
                 {content}
               </button>
             );

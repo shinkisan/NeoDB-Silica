@@ -87,22 +87,27 @@ async function expectProgressRatio(
   page: Page,
   expectedRatio: number,
 ) {
-  const track = page.locator(".reading-progress-track");
-  const fill = page.locator(".reading-progress-fill");
+  const expectedPercentage = Math.round(expectedRatio * 100);
+  const badge = page.locator("[data-reading-progress-percentage]");
 
-  await expect(track).toBeVisible();
+  await expect(badge).toBeVisible();
+  await expect(badge).toHaveAttribute(
+    "data-reading-progress-percentage",
+    String(expectedPercentage),
+  );
+  await expect(badge).toContainText(`（${expectedPercentage}%）`);
   await expect
     .poll(async () => {
-      const trackWidth = await track.evaluate((element) =>
+      const badgeWidth = await badge.evaluate((element) =>
         element.getBoundingClientRect().width,
       );
-      const fillWidth = await fill.evaluate((element) =>
-        element.getBoundingClientRect().width,
-      );
+      const fillWidth = await badge
+        .locator("[data-reading-progress-fill]")
+        .evaluate((element) => element.getBoundingClientRect().width);
 
-      return fillWidth / trackWidth;
+      return fillWidth / badgeWidth;
     })
-    .toBeCloseTo(expectedRatio, 2);
+    .toBeCloseTo(expectedPercentage / 100, 2);
 }
 
 test("marked page lists shelf items", async ({ context, page }) => {
@@ -211,7 +216,7 @@ test("Google Books supplies the total when the item has no page count", async ({
   expect(getGoogleRequests()).toBe(1);
 });
 
-test("no progress bar is shown when no total page count is available", async ({
+test("no percentage is added when no total page count is available", async ({
   context,
   page,
 }) => {
@@ -224,5 +229,5 @@ test("no progress bar is shown when no total page count is available", async ({
   await page.goto("/marked?shelf=progress&category=book");
   await expect(page.getByText(BOOK_TITLE).first()).toBeVisible();
   await expect.poll(getGoogleRequests).toBe(1);
-  await expect(page.locator(".reading-progress-track")).toHaveCount(0);
+  await expect(page.locator("[data-reading-progress-percentage]")).toHaveCount(0);
 });

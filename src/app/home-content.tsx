@@ -20,6 +20,7 @@ import {
 import { IsbnScannerButton } from "@/components/isbn-scanner";
 import { SearchSuggestionsPopover } from "@/components/search-suggestions";
 import { SearchScopeSelect } from "@/components/search-scope-select";
+import { SortIcon } from "@/components/sort-icon";
 import { useSearchFocusDismissal } from "@/components/use-search-focus-dismissal";
 import { useT } from "@/components/use-t";
 import { CatalogFetchDialog, isSupportedCatalogLink } from "@/app/search/catalog-fetch-dialog";
@@ -1366,23 +1367,6 @@ function RefreshIcon() {
       <path d="M3 12A9 9 0 0 1 18.5 5.8" />
       <path d="M18 2v4h4" />
       <path d="M6 22v-4H2" />
-    </svg>
-  );
-}
-
-function SortIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-4"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M3 6h12M3 12h8M3 18h4M19 4v16m0 0-3-3m3 3 3-3" />
     </svg>
   );
 }

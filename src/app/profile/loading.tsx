@@ -24,7 +24,7 @@ export default function ProfileLoading() {
 
         <div className="space-y-8">
           <SkeletonGroup titleWidth="w-20" rows={3} />
-          <SkeletonGroup titleWidth="w-12" rows={7} />
+          <SkeletonGroup titleWidth="w-12" rows={8} />
           <SkeletonGroup titleWidth="w-12" rows={5} />
         </div>
       </section>

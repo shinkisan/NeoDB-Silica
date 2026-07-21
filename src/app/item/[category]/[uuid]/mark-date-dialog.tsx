@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { NumberWheel } from "@/components/number-wheel";
 import { useT } from "@/components/use-t";
-
-const DATE_WHEEL_ITEM_HEIGHT = 40;
 
 type MarkDateDialogProps = {
   initialDate: string;
@@ -35,23 +34,26 @@ export function MarkDateDialog({
   const years = createNumberRange(minYear, maxYear);
   const maxMonth = year === today.year ? today.month : 12;
   const months = createNumberRange(1, maxMonth);
-  const maxDay =
-    year === today.year && month === today.month
-      ? today.day
-      : getDaysInMonth(year, month);
+  const maxDay = getMaxDay(year, month, today);
   const days = createNumberRange(1, maxDay);
 
-  useEffect(() => {
-    if (month > maxMonth) {
-      setMonth(maxMonth);
-    }
-  }, [maxMonth, month]);
+  function selectYear(nextYear: number) {
+    const nextMaxMonth = nextYear === today.year ? today.month : 12;
+    const nextMonth = Math.min(month, nextMaxMonth);
 
-  useEffect(() => {
-    if (day > maxDay) {
-      setDay(maxDay);
-    }
-  }, [day, maxDay]);
+    setYear(nextYear);
+    setMonth(nextMonth);
+    setDay((current) =>
+      Math.min(current, getMaxDay(nextYear, nextMonth, today)),
+    );
+  }
+
+  function selectMonth(nextMonth: number) {
+    setMonth(nextMonth);
+    setDay((current) =>
+      Math.min(current, getMaxDay(year, nextMonth, today)),
+    );
+  }
 
   const selectedDate = formatDateInputValue({ day, month, year });
   async function confirmDate() {
@@ -88,21 +90,21 @@ export function MarkDateDialog({
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-3 top-1/2 h-10 -translate-y-1/2 rounded-xl border border-[#c5c6cd]/50 bg-white/55"
         />
-        <DateWheel
+        <NumberWheel
           ariaLabel={t("mark.dateYear")}
-          onSelect={setYear}
+          onSelect={selectYear}
           options={years}
           renderLabel={(value) => String(value)}
           selected={year}
         />
-        <DateWheel
+        <NumberWheel
           ariaLabel={t("mark.dateMonth")}
-          onSelect={setMonth}
+          onSelect={selectMonth}
           options={months}
           renderLabel={(value) => String(value).padStart(2, "0")}
           selected={month}
         />
-        <DateWheel
+        <NumberWheel
           ariaLabel={t("mark.dateDay")}
           onSelect={setDay}
           options={days}
@@ -111,140 +113,6 @@ export function MarkDateDialog({
         />
       </div>
     </ConfirmDialog>
-  );
-}
-
-function DateWheel({
-  ariaLabel,
-  onSelect,
-  options,
-  renderLabel,
-  selected,
-}: {
-  ariaLabel: string;
-  onSelect: (value: number) => void;
-  options: number[];
-  renderLabel: (value: number) => string;
-  selected: number;
-}) {
-  const wheelRef = useRef<HTMLDivElement>(null);
-  const dragStartScrollTopRef = useRef(0);
-  const dragStartYRef = useRef(0);
-  const isPointerDraggingRef = useRef(false);
-  const snapTimeoutRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (isPointerDraggingRef.current) {
-      return;
-    }
-
-    const selectedIndex = options.indexOf(selected);
-
-    if (selectedIndex >= 0) {
-      wheelRef.current?.scrollTo({
-        top: selectedIndex * DATE_WHEEL_ITEM_HEIGHT,
-      });
-    }
-  }, [options, selected]);
-
-  useEffect(() => {
-    return () => {
-      if (snapTimeoutRef.current !== null) {
-        window.clearTimeout(snapTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  return (
-    <div
-      aria-label={ariaLabel}
-      className="relative z-10 overflow-y-auto py-16 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      onPointerCancel={(event) => {
-        if (!isPointerDraggingRef.current || event.pointerType !== "mouse") {
-          return;
-        }
-
-        isPointerDraggingRef.current = false;
-        snapWheelToNearest(event.currentTarget);
-      }}
-      onPointerDown={(event) => {
-        if (event.pointerType !== "mouse") {
-          return;
-        }
-
-        isPointerDraggingRef.current = true;
-        dragStartYRef.current = event.clientY;
-        dragStartScrollTopRef.current = event.currentTarget.scrollTop;
-        event.currentTarget.setPointerCapture(event.pointerId);
-      }}
-      onPointerMove={(event) => {
-        if (!isPointerDraggingRef.current || event.pointerType !== "mouse") {
-          return;
-        }
-
-        event.preventDefault();
-        event.currentTarget.scrollTop =
-          dragStartScrollTopRef.current - (event.clientY - dragStartYRef.current);
-      }}
-      onPointerUp={(event) => {
-        if (!isPointerDraggingRef.current || event.pointerType !== "mouse") {
-          return;
-        }
-
-        isPointerDraggingRef.current = false;
-        event.currentTarget.releasePointerCapture(event.pointerId);
-        snapWheelToNearest(event.currentTarget);
-      }}
-      onScroll={(event) => {
-        const target = event.currentTarget;
-        const nextIndex = Math.round(
-          target.scrollTop / DATE_WHEEL_ITEM_HEIGHT,
-        );
-        const nextValue = options[nextIndex];
-
-        if (nextValue !== undefined && nextValue !== selected) {
-          onSelect(nextValue);
-        }
-
-        if (isPointerDraggingRef.current) {
-          return;
-        }
-
-        if (snapTimeoutRef.current !== null) {
-          window.clearTimeout(snapTimeoutRef.current);
-        }
-
-        snapTimeoutRef.current = window.setTimeout(() => {
-          snapWheelToNearest(target);
-        }, 90);
-      }}
-      onWheel={(event) => {
-        event.preventDefault();
-      }}
-      ref={wheelRef}
-      role="listbox"
-    >
-      {options.map((value) => {
-        const isSelected = value === selected;
-
-        return (
-          <button
-            aria-selected={isSelected}
-            className={`block h-10 w-full rounded-xl text-center text-base font-semibold transition ${
-              isSelected
-                ? "text-[var(--foreground)]"
-                : "text-[#75777d] hover:text-[var(--foreground)]"
-            }`}
-            key={value}
-            onClick={() => onSelect(value)}
-            role="option"
-            type="button"
-          >
-            {renderLabel(value)}
-          </button>
-        );
-      })}
-    </div>
   );
 }
 
@@ -291,15 +159,12 @@ function getDaysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
 
-function createNumberRange(start: number, end: number) {
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+function getMaxDay(year: number, month: number, today: DateParts) {
+  return year === today.year && month === today.month
+    ? today.day
+    : getDaysInMonth(year, month);
 }
 
-function snapWheelToNearest(target: HTMLElement) {
-  const nextIndex = Math.round(target.scrollTop / DATE_WHEEL_ITEM_HEIGHT);
-
-  target.scrollTo({
-    behavior: "smooth",
-    top: nextIndex * DATE_WHEEL_ITEM_HEIGHT,
-  });
+function createNumberRange(start: number, end: number) {
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }
