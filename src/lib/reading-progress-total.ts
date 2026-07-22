@@ -31,6 +31,29 @@ export type ReadingProgressTotalUpdatedEvent = CustomEvent<{
 }>;
 
 const STORAGE_KEY_PREFIX = `${STORAGE_PREFIX}v1:reading-progress-total:`;
+const LOCAL_TOTAL_WARNING_KEY_PREFIX =
+  `${STORAGE_PREFIX}v1:reading-progress-local-total-warning:`;
+
+export function hasAcknowledgedLocalTotalWarning(scope: string) {
+  try {
+    return window.localStorage.getItem(
+      `${LOCAL_TOTAL_WARNING_KEY_PREFIX}${scope}`,
+    ) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function acknowledgeLocalTotalWarning(scope: string) {
+  try {
+    window.localStorage.setItem(
+      `${LOCAL_TOTAL_WARNING_KEY_PREFIX}${scope}`,
+      "1",
+    );
+  } catch {
+    // The warning has still been shown even if local storage is unavailable.
+  }
+}
 
 export function readReadingProgressTotals(scope: string, itemUuid: string) {
   try {

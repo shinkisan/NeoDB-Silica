@@ -548,6 +548,9 @@
       "clear": "清除进度",
       "clearConfirmTitle": "清除阅读进度？",
       "clearConfirmDescription": "当前阅读进度将被删除。",
+      "localTotalWarningTitle": "本地数据提示",
+      "localTotalWarningDescription": "自定义的总页数和总章节数仅保存在当前浏览器中。清除浏览器数据、更换设备或浏览器时，这些数据将会丢失。",
+      "localTotalWarningContinue": "继续保存",
       "saved": "阅读进度已更新",
       "saveError": "阅读进度保存失败",
       "saving": "提交中"

@@ -548,6 +548,9 @@
       "clear": "清除進度",
       "clearConfirmTitle": "清除閱讀進度？",
       "clearConfirmDescription": "目前閱讀進度將被刪除。",
+      "localTotalWarningTitle": "本機資料提示",
+      "localTotalWarningDescription": "自訂的總頁數和總章節數僅儲存在目前的瀏覽器中。清除瀏覽器資料、更換裝置或瀏覽器時，這些資料將會遺失。",
+      "localTotalWarningContinue": "繼續儲存",
       "saved": "閱讀進度已更新",
       "saveError": "閱讀進度儲存失敗",
       "saving": "提交中"

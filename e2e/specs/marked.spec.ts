@@ -61,15 +61,25 @@ async function mockProgressCard(
   await page.route("**/api/neodb/marks?*", (route) =>
     route.fulfill({ json: markedProgressPayload(itemPageCount) }),
   );
-  await page.route("**/api/neodb/progress?*", (route) =>
-    route.fulfill({
+  await page.route("**/api/neodb/progress*", async (route) => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON() as {
+        type: string;
+        value: string;
+      };
+
+      await route.fulfill({ json: { type: body.type, value: body.value } });
+      return;
+    }
+
+    await route.fulfill({
       json: {
         items: {
           [BOOK_UUID]: { type: "page", value: String(progressPage) },
         },
       },
-    }),
-  );
+    });
+  });
   await page.route("**/api/google-books/page-count?*", (route) => {
     googleRequests += 1;
     return route.fulfill({
@@ -230,4 +240,38 @@ test("no percentage is added when no total page count is available", async ({
   await expect(page.getByText(BOOK_TITLE).first()).toBeVisible();
   await expect.poll(getGoogleRequests).toBe(1);
   await expect(page.locator("[data-reading-progress-percentage]")).toHaveCount(0);
+});
+
+test("a manual total shows the local-data warning only once", async ({
+  context,
+  page,
+}) => {
+  await signIn(context);
+  await mockProgressCard(page, {
+    googlePageCount: null,
+    itemPageCount: null,
+  });
+
+  await page.goto("/marked?shelf=progress&category=book");
+  await page.getByRole("button", { name: "设置阅读进度" }).click();
+  await page.getByRole("spinbutton", { name: "总页数" }).fill("200");
+  await page.getByRole("button", { name: "确认" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "本地数据提示" }),
+  ).toBeVisible();
+  await expect(page.getByText("这些数据将会丢失", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "继续保存" }).click();
+  await expect(page.getByText("阅读进度已更新")).toBeVisible();
+
+  await page.getByRole("button", { name: "设置阅读进度" }).click();
+  await page.getByRole("spinbutton", { name: "总页数" }).fill("300");
+  await page.getByRole("button", { name: "确认" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "本地数据提示" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: /标记进度/ }),
+  ).toHaveCount(0);
 });

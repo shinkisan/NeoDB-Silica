@@ -548,6 +548,9 @@
       "clear": "Clear progress",
       "clearConfirmTitle": "Clear reading progress?",
       "clearConfirmDescription": "Your current reading progress will be deleted.",
+      "localTotalWarningTitle": "Local data notice",
+      "localTotalWarningDescription": "Custom page and chapter totals are stored only in this browser. They will be lost if you clear browser data, switch devices, or use another browser.",
+      "localTotalWarningContinue": "Save anyway",
       "saved": "Reading progress updated",
       "saveError": "Failed to save reading progress",
       "saving": "Saving"

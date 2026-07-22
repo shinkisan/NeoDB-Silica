@@ -13,7 +13,9 @@ import {
   type ReadingProgressType,
 } from "@/lib/reading-progress";
 import {
+  acknowledgeLocalTotalWarning,
   clearReadingProgressTotals,
+  hasAcknowledgedLocalTotalWarning,
   readReadingProgressTotals,
   writeReadingProgressTotal,
   type ReadingProgressTotalSource,
@@ -57,6 +59,7 @@ export function ReadingProgressDialog({
   const [isPageTotalLoading, setIsPageTotalLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+  const [isConfirmingLocalTotal, setIsConfirmingLocalTotal] = useState(false);
   const normalizedValue = value.trim();
   const currentProgressLabel = formatReadingProgressShort(initialProgress, t);
   const title = currentProgressLabel
@@ -168,7 +171,10 @@ export function ReadingProgressDialog({
     };
   }, [isbn, itemPageCount, itemUuid, storageScope, type]);
 
-  async function save(progress: ReadingProgress | null) {
+  async function save(
+    progress: ReadingProgress | null,
+    acknowledgeLocalTotal = false,
+  ) {
     if (isSaving) {
       return;
     }
@@ -193,6 +199,10 @@ export function ReadingProgressDialog({
               total,
               totalSource || "manual",
             );
+
+            if (acknowledgeLocalTotal) {
+              acknowledgeLocalTotalWarning(storageScope);
+            }
           }
         }
 
@@ -203,10 +213,25 @@ export function ReadingProgressDialog({
     }
   }
 
+  function requestSave() {
+    if (
+      needsTotal &&
+      totalSource === "manual" &&
+      normalizedTotalValue &&
+      normalizedTotalValue !== savedTotalValue &&
+      !hasAcknowledgedLocalTotalWarning(storageScope)
+    ) {
+      setIsConfirmingLocalTotal(true);
+      return;
+    }
+
+    void save({ type, value: normalizedValue });
+  }
+
   return (
     <ConfirmDialog
       confirmDisabled={
-        isConfirmingClear
+        isConfirmingClear || isConfirmingLocalTotal
           ? isSaving
           : isSaving ||
             !isValid ||
@@ -219,11 +244,15 @@ export function ReadingProgressDialog({
           ? t("mark.readingProgress.saving")
           : isConfirmingClear
             ? t("mark.readingProgress.clear")
+            : isConfirmingLocalTotal
+              ? t("mark.readingProgress.localTotalWarningContinue")
             : t("confirmDialog.defaultConfirm")
       }
       description={
         isConfirmingClear
           ? t("mark.readingProgress.clearConfirmDescription")
+          : isConfirmingLocalTotal
+            ? t("mark.readingProgress.localTotalWarningDescription")
           : undefined
       }
       onCancel={() => {
@@ -232,20 +261,35 @@ export function ReadingProgressDialog({
           return;
         }
 
+        if (isConfirmingLocalTotal) {
+          setIsConfirmingLocalTotal(false);
+          return;
+        }
+
         onCancel();
       }}
-      onConfirm={() =>
-        isConfirmingClear
-          ? save(null)
-          : save({ type, value: normalizedValue })
-      }
+      onConfirm={() => {
+        if (isConfirmingClear) {
+          void save(null);
+          return;
+        }
+
+        if (isConfirmingLocalTotal) {
+          void save({ type, value: normalizedValue }, true);
+          return;
+        }
+
+        requestSave();
+      }}
       title={
         isConfirmingClear
           ? t("mark.readingProgress.clearConfirmTitle")
+          : isConfirmingLocalTotal
+            ? t("mark.readingProgress.localTotalWarningTitle")
           : title
       }
     >
-      {isConfirmingClear ? null : <div className="space-y-3">
+      {isConfirmingClear || isConfirmingLocalTotal ? null : <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-semibold text-[#44474c]">
             {t("mark.readingProgress.method")}
