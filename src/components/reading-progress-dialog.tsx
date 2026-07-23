@@ -310,10 +310,10 @@ export function ReadingProgressDialog({
         <div>
           <div
             aria-label={t("mark.readingProgress.method")}
-            className="h-10 w-full rounded-full border border-white/60 bg-white/45 p-1 shadow-inner"
+            className="h-10 w-full rounded-full border border-white/60 bg-white/45 p-[3px] shadow-inner"
             role="radiogroup"
           >
-            <div className="relative grid h-8 grid-cols-3">
+            <div className="relative grid h-full grid-cols-3">
               <span
                 aria-hidden="true"
                 className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[var(--theme-primary)] shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -325,7 +325,7 @@ export function ReadingProgressDialog({
                 return (
                   <button
                     aria-checked={isActive}
-                    className={`relative z-10 grid h-8 place-items-center rounded-full text-xs font-bold transition-colors duration-300 ${
+                    className={`relative z-10 grid h-full place-items-center rounded-full text-xs font-bold transition-colors duration-300 ${
                       isActive ? "text-white" : "text-[#44474c]"
                     }`}
                     key={option.id}
