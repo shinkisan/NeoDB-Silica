@@ -49,7 +49,12 @@ export function ConfirmDialog({
   }
 
   return createPortal(
-    <div className={`fixed inset-0 ${zIndex} grid place-items-center bg-[#1a1c1e]/20 px-5 backdrop-blur-sm`}>
+    <div
+      className={`fixed inset-0 ${zIndex} grid place-items-center bg-[#1a1c1e]/20 px-5 backdrop-blur-sm`}
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
+      onPointerUp={(event) => event.stopPropagation()}
+    >
       <div className="w-full max-w-sm rounded-[2rem] border border-white/60 bg-white/85 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-2xl">
         <h2 className="text-lg font-bold text-[var(--foreground)]">{title}</h2>
         {description ? (

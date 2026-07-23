@@ -61,6 +61,88 @@ select:disabled {
   cursor: default !important;
 }
 
+.reading-progress-slider {
+  --reading-progress-track: rgba(117, 119, 125, 0.22);
+  accent-color: var(--theme-primary);
+  appearance: none;
+  background: transparent;
+  height: 44px;
+  touch-action: pan-y;
+}
+
+.reading-progress-slider::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    var(--theme-primary) 0 var(--reading-progress-value),
+    var(--reading-progress-track) var(--reading-progress-value) 100%
+  );
+  background-clip: padding-box;
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 2px rgba(26, 28, 30, 0.08);
+  height: 10px;
+}
+
+.reading-progress-slider::-webkit-slider-thumb {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(26, 28, 30, 0.1);
+  border-radius: 50%;
+  box-shadow:
+    0 2px 8px rgba(26, 28, 30, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  height: 28px;
+  margin-top: -9px;
+  width: 28px;
+}
+
+.reading-progress-slider::-moz-range-track {
+  background: var(--reading-progress-track);
+  background-clip: padding-box;
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 2px rgba(26, 28, 30, 0.08);
+  height: 10px;
+}
+
+.reading-progress-slider::-moz-range-progress {
+  background: var(--theme-primary);
+  border-radius: 999px;
+  height: 10px;
+}
+
+.reading-progress-slider::-moz-range-thumb {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(26, 28, 30, 0.1);
+  border-radius: 50%;
+  box-shadow:
+    0 2px 8px rgba(26, 28, 30, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  height: 28px;
+  width: 28px;
+}
+
+.reading-progress-slider:focus-visible {
+  border-radius: 999px;
+  outline: 2px solid color-mix(in srgb, var(--theme-primary) 52%, transparent);
+  outline-offset: 2px;
+}
+
+:root[data-theme="dark"] .reading-progress-slider {
+  --reading-progress-track: rgba(255, 255, 255, 0.18);
+}
+
+:root[data-theme="dark"]
+  .reading-progress-slider::-webkit-slider-runnable-track {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .reading-progress-slider::-moz-range-track {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
 .surface-glow {
   overflow: hidden;
   position: relative;

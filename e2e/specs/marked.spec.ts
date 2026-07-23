@@ -242,6 +242,63 @@ test("no percentage is added when no total page count is available", async ({
   await expect(page.locator("[data-reading-progress-percentage]")).toHaveCount(0);
 });
 
+test("the percentage slider jumps directly along its track", async ({
+  context,
+  page,
+}) => {
+  await signIn(context);
+  await mockProgressCard(page, {
+    googlePageCount: null,
+    itemPageCount: null,
+  });
+
+  await page.goto("/marked?shelf=progress&category=book");
+  await page.getByRole("button", { name: "设置阅读进度" }).click();
+  await page.getByRole("radio", { name: "百分比" }).click();
+
+  const slider = page.getByRole("slider", { name: "当前进度" });
+  const box = await slider.boundingBox();
+
+  if (!box) {
+    throw new Error("Percentage slider was not rendered");
+  }
+
+  await slider.click({ position: { x: box.width * 0.75, y: box.height / 2 } });
+  await expect
+    .poll(async () => Number(await slider.inputValue()))
+    .toBeGreaterThanOrEqual(70);
+  await expect
+    .poll(async () => Number(await slider.inputValue()))
+    .toBeLessThanOrEqual(80);
+  await expect(
+    page.locator('output[for="reading-progress-percentage"]'),
+  ).toHaveText(/\d+%/);
+
+  const valueBeforeStep = Number(await slider.inputValue());
+  await page.getByRole("button", { name: "增加百分比" }).click();
+  await expect(slider).toHaveValue(String(valueBeforeStep + 1));
+  await page.getByRole("button", { name: "减少百分比" }).click();
+  await expect(slider).toHaveValue(String(valueBeforeStep));
+
+  await slider.dispatchEvent("pointerdown", {
+    clientX: box.x + box.width * 0.8,
+    clientY: box.y + box.height / 2,
+    isPrimary: true,
+    pointerId: 42,
+    pointerType: "touch",
+  });
+  await slider.dispatchEvent("pointerup", {
+    clientX: box.x + box.width * 0.2,
+    clientY: box.y + box.height / 2,
+    isPrimary: true,
+    pointerId: 42,
+    pointerType: "touch",
+  });
+
+  await expect(page.getByRole("heading", { name: /标记进度/ })).toBeVisible();
+  await expect(page).toHaveURL(/category=book/);
+});
+
 test("a manual total shows the local-data warning only once", async ({
   context,
   page,

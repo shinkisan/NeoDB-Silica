@@ -1,9 +1,8 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { Dropdown } from "@/components/dropdown";
-import { NumberWheel } from "@/components/number-wheel";
 import { useT } from "@/components/use-t";
 import { fetchBookPageCount } from "@/lib/google-books-client";
 import {
@@ -20,8 +19,6 @@ import {
   writeReadingProgressTotal,
   type ReadingProgressTotalSource,
 } from "@/lib/reading-progress-total";
-
-const PERCENTAGE_OPTIONS = createNumberRange(0, 100);
 
 type ReadingProgressDialogProps = {
   isbn?: string | null;
@@ -86,10 +83,12 @@ export function ReadingProgressDialog({
     initialProgress?.type === type &&
     initialProgress.value === normalizedValue &&
     normalizedTotalValue === savedTotalValue;
+  const percentageValue = normalizePercentage(value);
   const options = (["percentage", "page", "chapter"] as const).map((id) => ({
     id,
     label: t(`mark.readingProgress.type.${id}`),
   }));
+  const activeTypeIndex = options.findIndex((option) => option.id === type);
 
   useEffect(() => {
     let cancelled = false;
@@ -228,6 +227,24 @@ export function ReadingProgressDialog({
     void save({ type, value: normalizedValue });
   }
 
+  function selectType(progressType: ReadingProgressType) {
+    if (progressType === type) {
+      return;
+    }
+
+    const totals = readReadingProgressTotals(storageScope, itemUuid);
+    const nextTotal =
+      progressType === "page" || progressType === "chapter"
+        ? totals[progressType]
+        : null;
+
+    setType(progressType);
+    setValue(progressType === "percentage" ? "0" : "");
+    setTotalValue(nextTotal ? String(nextTotal.value) : "");
+    setSavedTotalValue(nextTotal ? String(nextTotal.value) : "");
+    setTotalSource(nextTotal?.source || null);
+  }
+
   return (
     <ConfirmDialog
       confirmDisabled={
@@ -290,55 +307,103 @@ export function ReadingProgressDialog({
       }
     >
       {isConfirmingClear || isConfirmingLocalTotal ? null : <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-semibold text-[#44474c]">
-            {t("mark.readingProgress.method")}
-          </span>
-          <Dropdown
-            ariaLabel={t("mark.readingProgress.method")}
-            buttonClassName="min-w-28 justify-between"
-            menuClassName="z-[150]"
-            onChange={(nextType) => {
-              const progressType = nextType as ReadingProgressType;
-              const totals = readReadingProgressTotals(storageScope, itemUuid);
-              const nextTotal =
-                progressType === "page" || progressType === "chapter"
-                  ? totals[progressType]
-                  : null;
+        <div>
+          <div
+            aria-label={t("mark.readingProgress.method")}
+            className="h-10 w-full rounded-full border border-white/60 bg-white/45 p-1 shadow-inner"
+            role="radiogroup"
+          >
+            <div className="relative grid h-8 grid-cols-3">
+              <span
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[var(--theme-primary)] shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                style={{ transform: `translateX(${activeTypeIndex * 100}%)` }}
+              />
+              {options.map((option) => {
+                const isActive = option.id === type;
 
-              setType(progressType);
-              setValue(progressType === "percentage" ? "0" : "");
-              setTotalValue(nextTotal ? String(nextTotal.value) : "");
-              setSavedTotalValue(nextTotal ? String(nextTotal.value) : "");
-              setTotalSource(nextTotal?.source || null);
-            }}
-            options={options}
-            overlayClassName="z-[140]"
-            value={type}
-          />
+                return (
+                  <button
+                    aria-checked={isActive}
+                    className={`relative z-10 grid h-8 place-items-center rounded-full text-xs font-bold transition-colors duration-300 ${
+                      isActive ? "text-white" : "text-[#44474c]"
+                    }`}
+                    key={option.id}
+                    onClick={() => selectType(option.id)}
+                    role="radio"
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
         {type === "percentage" ? (
-          <div>
-            <span className="mb-2 block text-sm font-semibold text-[#44474c]">
-              {t("mark.readingProgress.input.percentage")}
-            </span>
-            <div className="relative mx-auto h-20 w-60 max-w-full overflow-hidden rounded-[1.5rem] border border-white/60 bg-white/45 shadow-inner">
+          <div className="pt-2">
+            <div className="flex items-center justify-between gap-3">
+              <label
+                className="text-sm font-semibold text-[#44474c]"
+                htmlFor="reading-progress-percentage"
+              >
+                {t("mark.readingProgress.input.percentage")}
+              </label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  aria-label={t("mark.readingProgress.decreasePercentage")}
+                  className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={percentageValue <= 0}
+                  onClick={() => setValue(String(percentageValue - 1))}
+                  type="button"
+                >
+                  -
+                </button>
+                <output
+                  className="min-w-14 rounded-full border border-white/70 bg-white/55 px-2.5 py-1 text-center text-sm font-bold tabular-nums text-[var(--foreground)] shadow-sm"
+                  htmlFor="reading-progress-percentage"
+                >
+                  {percentageValue}%
+                </output>
+                <button
+                  aria-label={t("mark.readingProgress.increasePercentage")}
+                  className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={percentageValue >= 100}
+                  onClick={() => setValue(String(percentageValue + 1))}
+                  type="button"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <div className="mt-2 px-1">
+              <input
+                aria-valuetext={`${percentageValue}%`}
+                className="reading-progress-slider block w-full"
+                id="reading-progress-percentage"
+                max={100}
+                min={0}
+                onChange={(event) => setValue(event.target.value)}
+                step={1}
+                style={
+                  {
+                    "--reading-progress-value": `${percentageValue}%`,
+                  } as CSSProperties
+                }
+                type="range"
+                value={percentageValue}
+              />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[#c5c6cd]/50 bg-white/55"
-              />
-              <NumberWheel
-                ariaLabel={t("mark.readingProgress.input.percentage")}
-                onSelect={(nextValue) => setValue(String(nextValue))}
-                options={PERCENTAGE_OPTIONS}
-                orientation="horizontal"
-                renderLabel={(option) => String(option)}
-                selected={normalizePercentage(value)}
-              />
+                className="flex justify-between px-0.5 text-[11px] font-semibold tabular-nums text-[#75777d]"
+              >
+                <span>0%</span>
+                <span>100%</span>
+              </div>
             </div>
           </div>
         ) : (
-          <div>
+          <div className="pt-2">
             <span className="mb-2 block text-sm font-semibold text-[#44474c]">
               {t(`mark.readingProgress.input.${type}`)} /{" "}
               {t(`mark.readingProgress.total.${type}`)}
@@ -416,8 +481,4 @@ function normalizePercentage(value: unknown) {
   }
 
   return Math.min(100, Math.max(0, Math.round(number)));
-}
-
-function createNumberRange(start: number, end: number) {
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }
