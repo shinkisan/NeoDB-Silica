@@ -380,8 +380,8 @@ export function ReadingProgressDialog({
                           : String(normalizePercentage(nextValue)),
                       );
                     }}
-                    onClick={selectInputValue}
-                    onFocus={selectInputValue}
+                    onClick={selectInputValueOnFinePointer}
+                    onFocus={selectInputValueOnFinePointer}
                     onKeyDown={preventNonDigitKey}
                     onPaste={preventNonDigitPaste}
                     step={1}
@@ -421,8 +421,8 @@ export function ReadingProgressDialog({
                     setValue(nextValue);
                   }
                 }}
-                onClick={selectInputValue}
-                onFocus={selectInputValue}
+                onClick={selectInputValueOnFinePointer}
+                onFocus={selectInputValueOnFinePointer}
                 onKeyDown={preventNonDigitKey}
                 onPaste={preventNonDigitPaste}
                 step={1}
@@ -450,8 +450,8 @@ export function ReadingProgressDialog({
                   setTotalValue(nextValue);
                   setTotalSource("manual");
                 }}
-                onClick={selectInputValue}
-                onFocus={selectInputValue}
+                onClick={selectInputValueOnFinePointer}
+                onFocus={selectInputValueOnFinePointer}
                 onKeyDown={preventNonDigitKey}
                 onPaste={preventNonDigitPaste}
                 placeholder={
@@ -523,6 +523,10 @@ function preventNonDigitPaste(event: ClipboardEvent<HTMLInputElement>) {
   }
 }
 
-function selectInputValue(event: { currentTarget: HTMLInputElement }) {
-  event.currentTarget.select();
+function selectInputValueOnFinePointer(event: {
+  currentTarget: HTMLInputElement;
+}) {
+  if (window.matchMedia("(pointer: fine)").matches) {
+    event.currentTarget.select();
+  }
 }
