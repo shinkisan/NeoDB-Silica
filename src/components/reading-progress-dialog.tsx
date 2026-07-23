@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { ClipboardEvent, KeyboardEvent } from "react";
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useT } from "@/components/use-t";
@@ -342,64 +342,63 @@ export function ReadingProgressDialog({
         </div>
         {type === "percentage" ? (
           <div className="pt-2">
-            <div className="flex items-center justify-between gap-3">
-              <label
-                className="text-sm font-semibold text-[#44474c]"
-                htmlFor="reading-progress-percentage"
+            <label
+              className="block text-sm font-semibold text-[#44474c]"
+              htmlFor="reading-progress-percentage"
+            >
+              {t("mark.readingProgress.input.percentage")}
+            </label>
+            <div className="mt-2 flex items-center justify-center gap-1.5">
+              <button
+                aria-label={t("mark.readingProgress.decreasePercentage")}
+                className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={percentageValue <= 0}
+                onClick={() => setValue(String(percentageValue - 1))}
+                type="button"
               >
-                {t("mark.readingProgress.input.percentage")}
-              </label>
-              <div className="flex items-center gap-1.5">
-                <button
-                  aria-label={t("mark.readingProgress.decreasePercentage")}
-                  className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={percentageValue <= 0}
-                  onClick={() => setValue(String(percentageValue - 1))}
-                  type="button"
-                >
-                  -
-                </button>
-                <output
-                  className="min-w-14 rounded-full border border-white/70 bg-white/55 px-2.5 py-1 text-center text-sm font-bold tabular-nums text-[var(--foreground)] shadow-sm"
-                  htmlFor="reading-progress-percentage"
-                >
-                  {percentageValue}%
-                </output>
-                <button
-                  aria-label={t("mark.readingProgress.increasePercentage")}
-                  className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-                  disabled={percentageValue >= 100}
-                  onClick={() => setValue(String(percentageValue + 1))}
-                  type="button"
-                >
-                  +
-                </button>
+                -
+              </button>
+              <div className="flex h-8 w-16 items-center justify-center gap-0.5 rounded-full border border-white/70 bg-white/55 px-2 text-sm font-bold tabular-nums text-[var(--foreground)] shadow-sm transition focus-within:border-[var(--theme-primary)]">
+                <input
+                  className="w-8 appearance-none bg-transparent text-right outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  id="reading-progress-percentage"
+                  inputMode="numeric"
+                    max={100}
+                    min={0}
+                    onChange={(event) => {
+                      const nextValue = readNonNegativeInteger(
+                        event.target.value,
+                      );
+
+                      if (nextValue === null) {
+                        return;
+                      }
+
+                      setValue(
+                        nextValue === ""
+                          ? ""
+                          : String(normalizePercentage(nextValue)),
+                      );
+                    }}
+                    onClick={selectInputValue}
+                    onFocus={selectInputValue}
+                    onKeyDown={preventNonDigitKey}
+                    onPaste={preventNonDigitPaste}
+                    step={1}
+                  type="number"
+                  value={value}
+                />
+                <span aria-hidden="true">%</span>
               </div>
-            </div>
-            <div className="mt-2 px-1">
-              <input
-                aria-valuetext={`${percentageValue}%`}
-                className="reading-progress-slider block w-full"
-                id="reading-progress-percentage"
-                max={100}
-                min={0}
-                onChange={(event) => setValue(event.target.value)}
-                step={1}
-                style={
-                  {
-                    "--reading-progress-value": `${percentageValue}%`,
-                  } as CSSProperties
-                }
-                type="range"
-                value={percentageValue}
-              />
-              <div
-                aria-hidden="true"
-                className="flex justify-between px-0.5 text-[11px] font-semibold tabular-nums text-[#75777d]"
+              <button
+                aria-label={t("mark.readingProgress.increasePercentage")}
+                className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={percentageValue >= 100}
+                onClick={() => setValue(String(percentageValue + 1))}
+                type="button"
               >
-                <span>0%</span>
-                <span>100%</span>
-              </div>
+                +
+              </button>
             </div>
           </div>
         ) : (
@@ -413,10 +412,20 @@ export function ReadingProgressDialog({
                 aria-label={t(`mark.readingProgress.input.${type}`)}
                 autoFocus
                 className="h-11 w-0 min-w-0 flex-1 rounded-xl border border-white/70 bg-white/60 px-2 text-center text-base font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--theme-primary)] sm:px-3"
-                inputMode="decimal"
+                inputMode="numeric"
                 min={0}
-                onChange={(event) => setValue(event.target.value)}
-                step="any"
+                onChange={(event) => {
+                  const nextValue = readNonNegativeInteger(event.target.value);
+
+                  if (nextValue !== null) {
+                    setValue(nextValue);
+                  }
+                }}
+                onClick={selectInputValue}
+                onFocus={selectInputValue}
+                onKeyDown={preventNonDigitKey}
+                onPaste={preventNonDigitPaste}
+                step={1}
                 type="number"
                 value={value}
               />
@@ -429,18 +438,28 @@ export function ReadingProgressDialog({
               <input
                 aria-label={t(`mark.readingProgress.total.${type}`)}
                 className="h-11 w-0 min-w-0 flex-1 rounded-xl border border-white/70 bg-white/60 px-2 text-center text-base font-semibold text-[var(--foreground)] outline-none transition focus:border-[var(--theme-primary)] sm:px-3"
-                inputMode="decimal"
+                inputMode="numeric"
                 min={0}
                 onChange={(event) => {
-                  setTotalValue(event.target.value);
+                  const nextValue = readNonNegativeInteger(event.target.value);
+
+                  if (nextValue === null) {
+                    return;
+                  }
+
+                  setTotalValue(nextValue);
                   setTotalSource("manual");
                 }}
+                onClick={selectInputValue}
+                onFocus={selectInputValue}
+                onKeyDown={preventNonDigitKey}
+                onPaste={preventNonDigitPaste}
                 placeholder={
                   isPageTotalLoading && type === "page"
                     ? t("mark.readingProgress.totalLoading")
                     : undefined
                 }
-                step="any"
+                step={1}
                 type="number"
                 value={totalValue}
               />
@@ -481,4 +500,29 @@ function normalizePercentage(value: unknown) {
   }
 
   return Math.min(100, Math.max(0, Math.round(number)));
+}
+
+function readNonNegativeInteger(value: string) {
+  return value === "" || /^\d+$/.test(value) ? value : null;
+}
+
+function preventNonDigitKey(event: KeyboardEvent<HTMLInputElement>) {
+  if (
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.altKey &&
+    ["e", "E", "+", "-", ".", ","].includes(event.key)
+  ) {
+    event.preventDefault();
+  }
+}
+
+function preventNonDigitPaste(event: ClipboardEvent<HTMLInputElement>) {
+  if (!/^\d+$/.test(event.clipboardData.getData("text"))) {
+    event.preventDefault();
+  }
+}
+
+function selectInputValue(event: { currentTarget: HTMLInputElement }) {
+  event.currentTarget.select();
 }

@@ -242,7 +242,7 @@ test("no percentage is added when no total page count is available", async ({
   await expect(page.locator("[data-reading-progress-percentage]")).toHaveCount(0);
 });
 
-test("the percentage slider jumps directly along its track", async ({
+test("the percentage input supports direct and stepped changes", async ({
   context,
   page,
 }) => {
@@ -256,38 +256,42 @@ test("the percentage slider jumps directly along its track", async ({
   await page.getByRole("button", { name: "设置阅读进度" }).click();
   await page.getByRole("radio", { name: "百分比" }).click();
 
-  const slider = page.getByRole("slider", { name: "当前进度" });
-  const box = await slider.boundingBox();
+  const percentageInput = page.getByRole("spinbutton", {
+    name: "当前进度",
+  });
+  await page.getByRole("button", { name: "增加百分比" }).click();
+  await expect(percentageInput).toHaveValue("1");
 
+  await percentageInput.click();
+  await page.keyboard.press("Backspace");
+  await expect(percentageInput).toHaveValue("");
+  await expect(page.getByRole("button", { name: "确认" })).toBeDisabled();
+  await page.keyboard.type("42");
+  await expect(percentageInput).toHaveValue("42");
+
+  await percentageInput.press("e");
+  await percentageInput.press("-");
+  await percentageInput.press(".");
+  await expect(percentageInput).toHaveValue("42");
+
+  await page.getByRole("button", { name: "增加百分比" }).click();
+  await expect(percentageInput).toHaveValue("43");
+  await page.getByRole("button", { name: "减少百分比" }).click();
+  await expect(percentageInput).toHaveValue("42");
+
+  const box = await percentageInput.boundingBox();
   if (!box) {
-    throw new Error("Percentage slider was not rendered");
+    throw new Error("Percentage input was not rendered");
   }
 
-  await slider.click({ position: { x: box.width * 0.75, y: box.height / 2 } });
-  await expect
-    .poll(async () => Number(await slider.inputValue()))
-    .toBeGreaterThanOrEqual(70);
-  await expect
-    .poll(async () => Number(await slider.inputValue()))
-    .toBeLessThanOrEqual(80);
-  await expect(
-    page.locator('output[for="reading-progress-percentage"]'),
-  ).toHaveText(/\d+%/);
-
-  const valueBeforeStep = Number(await slider.inputValue());
-  await page.getByRole("button", { name: "增加百分比" }).click();
-  await expect(slider).toHaveValue(String(valueBeforeStep + 1));
-  await page.getByRole("button", { name: "减少百分比" }).click();
-  await expect(slider).toHaveValue(String(valueBeforeStep));
-
-  await slider.dispatchEvent("pointerdown", {
+  await percentageInput.dispatchEvent("pointerdown", {
     clientX: box.x + box.width * 0.8,
     clientY: box.y + box.height / 2,
     isPrimary: true,
     pointerId: 42,
     pointerType: "touch",
   });
-  await slider.dispatchEvent("pointerup", {
+  await percentageInput.dispatchEvent("pointerup", {
     clientX: box.x + box.width * 0.2,
     clientY: box.y + box.height / 2,
     isPrimary: true,
@@ -297,6 +301,35 @@ test("the percentage slider jumps directly along its track", async ({
 
   await expect(page.getByRole("heading", { name: /标记进度/ })).toBeVisible();
   await expect(page).toHaveURL(/category=book/);
+
+  for (const mode of [
+    { current: "当前页码", label: "页码", total: "总页数" },
+    { current: "当前章节", label: "章节", total: "总章节数" },
+  ]) {
+    await page.getByRole("radio", { name: mode.label }).click();
+    const currentInput = page.getByRole("spinbutton", {
+      name: mode.current,
+    });
+    const totalInput = page.getByRole("spinbutton", { name: mode.total });
+
+    await currentInput.fill("12");
+    await currentInput.press("e");
+    await currentInput.press("-");
+    await currentInput.press(".");
+    await expect(currentInput).toHaveValue("12");
+    await currentInput.click();
+    await page.keyboard.type("13");
+    await expect(currentInput).toHaveValue("13");
+
+    await totalInput.fill("20");
+    await totalInput.press("e");
+    await totalInput.press("-");
+    await totalInput.press(".");
+    await expect(totalInput).toHaveValue("20");
+    await totalInput.click();
+    await page.keyboard.type("21");
+    await expect(totalInput).toHaveValue("21");
+  }
 });
 
 test("a manual total shows the local-data warning only once", async ({
