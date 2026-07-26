@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { showToast } from "@/components/app-toast";
 import { useT } from "@/components/use-t";
@@ -19,12 +19,23 @@ declare global {
 }
 
 type IsbnScannerButtonProps = {
+  defaultOpen?: boolean;
+  onClose?: () => void;
   onDetected: (isbn: string) => void;
 };
 
-export function IsbnScannerButton({ onDetected }: IsbnScannerButtonProps) {
+export function IsbnScannerButton({
+  defaultOpen = false,
+  onClose,
+  onDetected,
+}: IsbnScannerButtonProps) {
   const t = useT();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  function closeScanner() {
+    setIsOpen(false);
+    onClose?.();
+  }
 
   return (
     <>
@@ -38,9 +49,9 @@ export function IsbnScannerButton({ onDetected }: IsbnScannerButtonProps) {
       </button>
       {isOpen ? (
         <IsbnScannerDialog
-          onClose={() => setIsOpen(false)}
+          onClose={closeScanner}
           onDetected={(isbn) => {
-            setIsOpen(false);
+            closeScanner();
             onDetected(isbn);
           }}
         />
@@ -57,6 +68,11 @@ function IsbnScannerDialog({
   onDetected: (isbn: string) => void;
 }) {
   const t = useT();
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
   const [status, setStatus] = useState<"starting" | "scanning" | "error">(
     "starting",
   );
@@ -162,7 +178,7 @@ function IsbnScannerDialog({
     };
   }, [onClose, onDetected, t]);
 
-  if (typeof document === "undefined") {
+  if (!isHydrated) {
     return null;
   }
 
@@ -221,6 +237,18 @@ function IsbnScannerDialog({
     </div>,
     document.body,
   );
+}
+
+function subscribeToHydration() {
+  return () => {};
+}
+
+function getClientHydrationSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
 }
 
 function stopStream(stream: MediaStream | null) {

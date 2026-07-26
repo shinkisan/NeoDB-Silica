@@ -14,6 +14,7 @@ import {
   DetailScrollRestorer,
 } from "./detail-scroll-controls";
 import { ImageViewer } from "./image-viewer";
+import { DetailCoverProvider } from "./detail-cover-state";
 import { RatingDistributionBadge } from "./rating-distribution-badge";
 import { DetailHashtags } from "./detail-hashtags";
 import { SeasonDropdown, type SeasonOption } from "./season-dropdown";
@@ -110,7 +111,11 @@ export default async function DetailPage({ params }: DetailPageProps) {
     ]);
 
     return (
-      <>
+      <DetailCoverProvider
+        fallbackSrc={item.cover_image_url}
+        initialSrc={displayCoverUrl}
+        key={item.uuid}
+      >
         <DetailTopBar
           category={item.category}
           coverUrl={displayCoverUrl}
@@ -142,6 +147,10 @@ export default async function DetailPage({ params }: DetailPageProps) {
                   {displayCoverUrl ? (
                     <ImageViewer
                       alt={item.display_title || item.title || "作品封面"}
+                      key={displayCoverUrl}
+                      showLoadingSkeleton={
+                        item.category === "movie" || item.category === "tv"
+                      }
                       src={displayCoverUrl}
                       stills={stills}
                     />
@@ -221,7 +230,7 @@ export default async function DetailPage({ params }: DetailPageProps) {
         </main>
         <ShortReviewFloatingButton initialMark={initialMark} itemUuid={item.uuid} />
         <DetailBackToTop />
-      </>
+      </DetailCoverProvider>
     );
   }
 

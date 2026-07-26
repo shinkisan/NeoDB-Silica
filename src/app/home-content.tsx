@@ -4,7 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { MouseEvent, PointerEvent } from "react";
-import { lazy, Suspense, useContext, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { showToast } from "@/components/app-toast";
 import { BackToTopButton } from "@/components/back-to-top";
 import { Dropdown } from "@/components/dropdown";
@@ -221,8 +229,21 @@ function HomeContent({
   const suppressGestureClickRef = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchRootRef = useRef<HTMLFormElement>(null);
+  const handledSearchShortcutRef = useRef(false);
   const tagViewportRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const shortcutAction = searchParams.get("shortcut");
+  const clearShortcutParam = useCallback(() => {
+    const nextParams = new URLSearchParams(searchParams.toString());
+
+    if (!nextParams.has("shortcut")) {
+      return;
+    }
+
+    nextParams.delete("shortcut");
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `/?${nextQuery}` : "/", { scroll: false });
+  }, [router, searchParams]);
 
   useSearchFocusDismissal({
     inputRef: searchInputRef,
@@ -232,6 +253,28 @@ function HomeContent({
       setIsSuggestionsOpen(false);
     },
   });
+
+  useEffect(() => {
+    if (shortcutAction !== "search") {
+      handledSearchShortcutRef.current = false;
+      return;
+    }
+
+    if (handledSearchShortcutRef.current) {
+      return;
+    }
+
+    handledSearchShortcutRef.current = true;
+    const frame = requestAnimationFrame(() => {
+      setHistoryItems(readSearchHistory());
+      setIsHistoryOpen(true);
+      setIsSuggestionsOpen(false);
+      searchInputRef.current?.focus();
+      clearShortcutParam();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [clearShortcutParam, shortcutAction]);
 
   useEffect(() => {
     return () => {
@@ -1002,6 +1045,13 @@ function HomeContent({
             ) : null}
             {!query.trim() ? (
               <IsbnScannerButton
+                defaultOpen={shortcutAction === "scan-book"}
+                key={
+                  shortcutAction === "scan-book"
+                    ? "shortcut-scanner"
+                    : "home-scanner"
+                }
+                onClose={clearShortcutParam}
                 onDetected={(isbn) => {
                   setQuery(isbn);
                   setSearchScope("book");

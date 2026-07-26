@@ -18,6 +18,41 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     display: "standalone",
     background_color: siteConfig.backgroundColor,
     theme_color: getDefaultThemeColor().primary,
+    shortcuts: [
+      {
+        icons: [
+          {
+            src: "/icons/shortcut-scan-book.png",
+            sizes: "96x96",
+            type: "image/png",
+          },
+        ],
+        name: getMessage(messages, "app.shortcuts.scanBook"),
+        url: "/?shortcut=scan-book",
+      },
+      {
+        icons: [
+          {
+            src: "/icons/shortcut-search.png",
+            sizes: "96x96",
+            type: "image/png",
+          },
+        ],
+        name: getMessage(messages, "app.shortcuts.searchItems"),
+        url: "/?shortcut=search",
+      },
+      {
+        icons: [
+          {
+            src: "/icons/shortcut-reading-progress.png",
+            sizes: "96x96",
+            type: "image/png",
+          },
+        ],
+        name: getMessage(messages, "app.shortcuts.readingBooks"),
+        url: "/marked?shelf=progress&category=book",
+      },
+    ],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },

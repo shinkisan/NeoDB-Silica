@@ -54,6 +54,7 @@ import {
   saveDetailScroll,
 } from "./detail-scroll-controls";
 import { CloseDetailButton } from "./close-detail-button";
+import { useDetailCover } from "./detail-cover-state";
 
 type DetailChromeProps = {
   category: string;
@@ -189,6 +190,7 @@ function TopBarItemSummary({
   coverUrl?: string | null;
   title: string;
 }) {
+  const { currentSrc, switchToFallback } = useDetailCover(coverUrl);
   const frameRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLSpanElement>(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
@@ -221,12 +223,18 @@ function TopBarItemSummary({
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2.5">
       <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/70 bg-[#e2e2e5] shadow-sm">
-        {coverUrl ? (
+        {currentSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             alt={title}
             className="h-full w-full object-cover"
-            src={coverUrl}
+            key={currentSrc}
+            onError={(event) => {
+              if (!switchToFallback()) {
+                event.currentTarget.hidden = true;
+              }
+            }}
+            src={currentSrc}
           />
         ) : (
           <span className="text-xs font-bold text-[#75777d]">B</span>

@@ -1,6 +1,11 @@
 {
   "app": {
-    "description": "A NeoDB PWA client for discovering books, movies, music and more."
+    "description": "A NeoDB PWA client for discovering books, movies, music and more.",
+    "shortcuts": {
+      "scanBook": "Scan a book",
+      "searchItems": "Search",
+      "readingBooks": "Reading progress"
+    }
   },
   "bottomNav": {
     "label": "Main navigation",

@@ -1,6 +1,11 @@
 {
   "app": {
-    "description": "用于发现图书、电影、音乐等内容的 NeoDB PWA 客户端。"
+    "description": "用于发现图书、电影、音乐等内容的 NeoDB PWA 客户端。",
+    "shortcuts": {
+      "scanBook": "扫描图书",
+      "searchItems": "搜索",
+      "readingBooks": "阅读进度"
+    }
   },
   "bottomNav": {
     "label": "主导航",
