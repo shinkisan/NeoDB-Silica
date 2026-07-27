@@ -452,7 +452,7 @@ function HomeContent({
       };
     }
 
-    const cacheKey = getCacheKey(activeFilter);
+    const cacheKey = getCacheKey(activeFilter, locale);
     const shouldRefresh = refreshRequest?.category === activeFilter;
     const bootstrap = window.__appHomeTrendingBootstrap;
 
@@ -947,8 +947,8 @@ function HomeContent({
   }
 
   function refreshCurrentFilter() {
-    clearOtherTrendingCaches(activeFilter);
-    window.localStorage.removeItem(getCacheKey(activeFilter));
+    clearOtherTrendingCaches(activeFilter, locale);
+    window.localStorage.removeItem(getCacheKey(activeFilter, locale));
 
     window.sessionStorage.setItem(getHomeScrollKey(activeFilter), "0");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1773,8 +1773,8 @@ function getHomeSwipeClass(transition: SwipeTransition | null) {
     : "home-swipe-enter-left";
 }
 
-function getCacheKey(category: string) {
-  return `${STORAGE_PREFIX}v1:neodb:trending:${category}`;
+function getCacheKey(category: string, locale: string) {
+  return `${STORAGE_PREFIX}v1:neodb:trending:${category}:${locale}`;
 }
 
 function getHomeHref(category: string) {
@@ -1785,8 +1785,8 @@ function getHomeHref(category: string) {
   return `/?category=${encodeURIComponent(category)}`;
 }
 
-function clearOtherTrendingCaches(activeCategory: string) {
-  const activeKey = getCacheKey(activeCategory);
+function clearOtherTrendingCaches(activeCategory: string, locale: string) {
+  const activeKey = getCacheKey(activeCategory, locale);
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
     const key = window.localStorage.key(index);

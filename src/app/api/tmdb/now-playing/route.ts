@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { locales, type Locale } from "@/i18n/config";
+import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { checkRateLimit } from "@/lib/rate-limit";
 import {
   fetchTmdbJson,
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
   const localeParam = searchParams.get("locale") || "";
   const locale: Locale = (locales as readonly string[]).includes(localeParam)
     ? (localeParam as Locale)
-    : "zh-Hans";
+    : await resolveRequestLocale();
   const pageParam = Number(searchParams.get("page") || "1");
   const page = Number.isFinite(pageParam)
     ? Math.min(MAX_PAGE, Math.max(1, Math.trunc(pageParam)))

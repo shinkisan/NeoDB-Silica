@@ -4,7 +4,7 @@ import {
   SESSION_COOKIE,
   type NeodbSessionCookie,
 } from "@/lib/neodb-auth";
-import { getT } from "@/i18n/server";
+import { getLocale, getT } from "@/i18n/server";
 import { getSessionCacheScope } from "@/lib/session-cache-scope";
 import { MarkedContent } from "./marked-content";
 
@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function MarkedPage() {
   const t = await getT();
+  const locale = await getLocale();
   const cookieStore = await cookies();
   const session = openCookie<NeodbSessionCookie>(
     cookieStore.get(SESSION_COOKIE)?.value,
@@ -29,7 +30,7 @@ export default async function MarkedPage() {
 
   return (
     <MarkedContent
-      cacheScope={session ? getSessionCacheScope(session) : null}
+      cacheScope={session ? `${getSessionCacheScope(session)}:${locale}` : null}
       categories={categories}
     />
   );
