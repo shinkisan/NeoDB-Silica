@@ -1,5 +1,5 @@
 import { ProxyAgent, setGlobalDispatcher } from "undici";
-import { cookies } from "next/headers";
+import { resolveRequestLocale } from "@/i18n/resolve-locale";
 
 const proxyDispatcherFlag = Symbol.for("app.neodb.proxyDispatcher");
 const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
@@ -89,12 +89,7 @@ export function localeToNeoDBAcceptLanguage(locale: string): string | undefined 
 
 async function getNeoDBAcceptLanguage(): Promise<string | undefined> {
   try {
-    const cookieStore = await cookies();
-    const locale = cookieStore.get("NEXT_LOCALE")?.value;
-
-    if (!locale) {
-      return undefined;
-    }
+    const locale = await resolveRequestLocale();
 
     return localeToNeoDBAcceptLanguage(locale);
   } catch {

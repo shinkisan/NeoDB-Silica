@@ -13,7 +13,7 @@ type CollectionFallbackCoverOptions = {
 
 export async function applyCollectionFallbackCover(
   collection: HomeItem,
-  { baseUrl, fetchInit, locale = "default" }: CollectionFallbackCoverOptions,
+  { baseUrl, fetchInit, locale }: CollectionFallbackCoverOptions,
 ): Promise<HomeItem> {
   if (!needsCollectionFallbackCover(collection.coverUrl)) {
     return collection;
@@ -44,7 +44,7 @@ export function needsCollectionFallbackCover(coverUrl: string | null | undefined
 
 async function fetchFirstCollectionItemCover(
   collectionUuid: string,
-  { baseUrl, fetchInit, locale }: CollectionFallbackCoverOptions & { locale: string },
+  { baseUrl, fetchInit, locale }: CollectionFallbackCoverOptions,
 ) {
   try {
     const url = new URL(
@@ -52,7 +52,10 @@ async function fetchFirstCollectionItemCover(
     );
     url.searchParams.set("page", "1");
     url.searchParams.set("page_size", "1");
-    url.searchParams.set("_locale", locale);
+
+    if (locale) {
+      url.searchParams.set("_locale", locale);
+    }
 
     const response = await fetchWithTimeout(url, fetchInit || {}, 3_500);
 

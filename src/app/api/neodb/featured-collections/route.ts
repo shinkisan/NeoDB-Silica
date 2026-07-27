@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { locales } from "@/i18n/config";
+import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import {
   getNeodbBaseUrl,
   normalizeNeodbCollection,
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
   const localeParam = searchParams.get("locale") || "";
   const resolvedLocale = (locales as readonly string[]).includes(localeParam)
     ? localeParam
-    : (await cookies()).get("NEXT_LOCALE")?.value || "default";
+    : await resolveRequestLocale();
   const acceptLanguage = localeToNeoDBAcceptLanguage(resolvedLocale) || null;
   const baseUrl = getNeodbBaseUrl();
 

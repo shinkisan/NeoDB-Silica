@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { getT } from "@/i18n/server";
-import { defaultLocale, type Locale, locales } from "@/i18n/config";
+import { getLocale, getT } from "@/i18n/server";
 import {
   openCookie,
   SESSION_COOKIE,
@@ -61,11 +60,7 @@ type MastodonAccount = {
 
 export default async function ProfilePage() {
   const t = await getT();
-  const cookieLocale = (await cookies()).get("NEXT_LOCALE")?.value;
-  const locale: Locale =
-    cookieLocale && (locales as readonly string[]).includes(cookieLocale)
-      ? (cookieLocale as Locale)
-      : defaultLocale;
+  const locale = await getLocale();
   const languageLabel =
     locale === "en" ? "Language" : `${t("profile.language")} (Language)`;
   const aboutHref =

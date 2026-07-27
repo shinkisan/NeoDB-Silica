@@ -1,10 +1,11 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { I18nProvider } from "@/components/i18n-provider";
 import { loadMessages } from "@/i18n/messages";
-import { type Locale, type Messages, defaultLocale, locales } from "@/i18n/config";
+import { type Locale, type Messages, locales } from "@/i18n/config";
+import { resolveRequestLocale } from "@/i18n/resolve-locale";
 import { AppToast } from "@/components/app-toast";
 import { BottomNav } from "@/components/bottom-nav";
 import { GlassFilterDefs } from "@/components/glass-filter-defs";
@@ -28,7 +29,7 @@ import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const locale = resolveLocale(await cookies());
+    const locale = await resolveLocale();
     const messages = await loadMessages(locale);
 
     return {
@@ -66,8 +67,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = resolveLocale(
-    await cookies(),
+  const locale = await resolveLocale(
     (await headers()).get("x-app-about-locale"),
   );
   const messages = await loadMessages(locale);
@@ -109,10 +109,7 @@ export default async function RootLayout({
   );
 }
 
-function resolveLocale(
-  cookieStore: Awaited<ReturnType<typeof cookies>>,
-  requestedLocale?: string | null,
-): Locale {
+async function resolveLocale(requestedLocale?: string | null): Promise<Locale> {
   if (
     requestedLocale &&
     (locales as readonly string[]).includes(requestedLocale)
@@ -120,16 +117,7 @@ function resolveLocale(
     return requestedLocale as Locale;
   }
 
-  const cookieLocale = cookieStore.get("NEXT_LOCALE")?.value;
-
-  if (
-    cookieLocale &&
-    (locales as readonly string[]).includes(cookieLocale)
-  ) {
-    return cookieLocale as Locale;
-  }
-
-  return defaultLocale;
+  return resolveRequestLocale();
 }
 
 function getMessage(messages: Messages, key: string): string {
