@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { useT } from "@/components/use-t";
-import { setImageViewerState } from "./image-viewer";
+import { setDetailMediaOverlayState } from "./detail-media-overlay-state";
 
 const SWIPE_THRESHOLD_PX = 48;
 
@@ -32,7 +32,7 @@ export function DetailImageGallery({
   );
 
   useEffect(() => {
-    setImageViewerState(true);
+    setDetailMediaOverlayState(true);
 
     const previousOverflow = document.body.style.overflow;
     const previousOverscrollBehavior = document.body.style.overscrollBehavior;
@@ -46,7 +46,7 @@ export function DetailImageGallery({
     document.documentElement.style.overscrollBehavior = "none";
 
     return () => {
-      setImageViewerState(false);
+      setDetailMediaOverlayState(false);
       document.body.style.overflow = previousOverflow;
       document.body.style.overscrollBehavior = previousOverscrollBehavior;
       document.documentElement.style.overflow = previousRootOverflow;

@@ -24,6 +24,8 @@ type AboutContent = {
   languageLabel: string;
   metadataDescription: string;
   metadataTitle: string;
+  openSourceDescription: string;
+  openSourceTitle: string;
   siteName: string;
 };
 
@@ -149,6 +151,21 @@ export function AboutPage({
           {content.creditSuffix}
         </p>
 
+        <Link
+          className="mt-10 flex items-start gap-4 border-y border-[#c5c6cd]/40 py-5 transition hover:bg-white/30"
+          href={`${paths[locale].replace(/\/about$/, "/licenses")}${fromProfile ? "?from=profile" : ""}`}
+        >
+          <span className="mt-1 grid size-8 shrink-0 place-items-center rounded-lg border border-[#c5c6cd]/60 bg-white/60 text-[#44474c]">
+            <OpenSourceIcon />
+          </span>
+          <span className="min-w-0">
+            <strong className="block font-bold">{content.openSourceTitle}</strong>
+            <span className="mt-2 block leading-7 text-[#44474c]">
+              {content.openSourceDescription}
+            </span>
+          </span>
+        </Link>
+
         {!fromProfile ? (
           <nav
             aria-label={content.languageLabel}
@@ -189,6 +206,8 @@ function getContent(locale: AboutLocale): AboutContent {
       languageLabel: "Language versions",
       metadataDescription: `${name} is built on NeoDB and NeoDB Silica.`,
       metadataTitle: name,
+      openSourceDescription: `${name} is built with open-source software including React, Next.js, and hls.js. View project and license information.`,
+      openSourceTitle: "Third-party open-source software",
       siteName: name,
     };
   }
@@ -203,6 +222,8 @@ function getContent(locale: AboutLocale): AboutContent {
       languageLabel: "語言版本",
       metadataDescription: `${name} 基於 NeoDB 和 NeoDB Silica 建構。`,
       metadataTitle: name,
+      openSourceDescription: `${name} 使用 React、Next.js、hls.js 等開源軟體構建，可在此查看專案與授權資訊。`,
+      openSourceTitle: "第三方開源軟體",
       siteName: name,
     };
   }
@@ -216,6 +237,8 @@ function getContent(locale: AboutLocale): AboutContent {
     languageLabel: "语言版本",
     metadataDescription: `${name} 基于 NeoDB 和 NeoDB Silica 构建。`,
     metadataTitle: name,
+    openSourceDescription: `${name} 使用 React、Next.js、hls.js 等开源软件构建，可在此查看项目与许可信息。`,
+    openSourceTitle: "第三方开源软件",
     siteName: name,
   };
 }
@@ -246,6 +269,23 @@ function CloseIcon() {
       viewBox="0 0 24 24"
     >
       <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
+function OpenSourceIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14" />
     </svg>
   );
 }

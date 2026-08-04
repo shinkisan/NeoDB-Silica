@@ -16,10 +16,7 @@ export default function ProfileLoading() {
               </div>
             ))}
           </div>
-          <div className="mt-6 flex items-center gap-3">
-            <Skeleton className="h-12 w-28 rounded-full" />
-            <Skeleton className="h-12 w-24 rounded-full" />
-          </div>
+          <Skeleton className="mt-6 h-12 w-40 rounded-full" />
         </header>
 
         <div className="space-y-8">

@@ -4,28 +4,47 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useT } from "@/components/use-t";
 import type { TmdbStillImage } from "@/lib/tmdb";
 import { useDetailCover } from "./detail-cover-state";
+import { setDetailMediaOverlayState } from "./detail-media-overlay-state";
 
 const LazyDetailImageGallery = lazy(() =>
   import("./detail-image-gallery").then((module) => ({
     default: module.DetailImageGallery,
   })),
 );
+const LazySpotifyAlbumPlayer = lazy(() =>
+  import("./spotify-album-player").then((module) => ({
+    default: module.SpotifyAlbumPlayer,
+  })),
+);
+const LazySteamTrailerPlayer = lazy(() =>
+  import("./steam-trailer-player").then((module) => ({
+    default: module.SteamTrailerPlayer,
+  })),
+);
 
 type ImageViewerProps = {
   alt: string;
   showLoadingSkeleton?: boolean;
+  spotifyAlbumUrl?: string | null;
   src: string;
+  steamAppId?: string | null;
+  steamLocale?: "en" | "zh-Hans" | "zh-Hant";
   stills?: TmdbStillImage[] | null;
 };
 
 export function ImageViewer({
   alt,
   showLoadingSkeleton = false,
+  spotifyAlbumUrl,
   src,
+  steamAppId,
+  steamLocale,
   stills,
 }: ImageViewerProps) {
   const t = useT();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [isSpotifyOpen, setIsSpotifyOpen] = useState(false);
+  const [isSteamTrailerOpen, setIsSteamTrailerOpen] = useState(false);
   const { currentSrc, switchToFallback } = useDetailCover(src);
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
@@ -39,7 +58,7 @@ export function ImageViewer({
 
   useEffect(() => {
     return () => {
-      setImageViewerState(false);
+      setDetailMediaOverlayState(false);
     };
   }, []);
 
@@ -110,16 +129,42 @@ export function ImageViewer({
         ) : null}
       </button>
 
-      {stills && stills.length > 0 ? (
-        <button
-          aria-label={t("detail.stills.badgeLabel")}
-          className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
-          onClick={() => setOpenIndex(1)}
-          type="button"
-        >
-          <GalleryIcon />
-          {stills.length}
-        </button>
+      {spotifyAlbumUrl || steamAppId || (stills && stills.length > 0) ? (
+        <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
+          {spotifyAlbumUrl ? (
+            <button
+              aria-label={t("detail.spotify.open")}
+              className="grid size-10 place-items-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              onClick={() => setIsSpotifyOpen(true)}
+              title={t("detail.spotify.open")}
+              type="button"
+            >
+              <PlayIcon />
+            </button>
+          ) : null}
+          {steamAppId ? (
+            <button
+              aria-label={t("detail.steam.open")}
+              className="grid size-10 place-items-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              onClick={() => setIsSteamTrailerOpen(true)}
+              title={t("detail.steam.open")}
+              type="button"
+            >
+              <PlayIcon />
+            </button>
+          ) : null}
+          {stills && stills.length > 0 ? (
+            <button
+              aria-label={t("detail.stills.badgeLabel")}
+              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              onClick={() => setOpenIndex(1)}
+              type="button"
+            >
+              <GalleryIcon />
+              {stills.length}
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       {openIndex !== null ? (
@@ -132,14 +177,41 @@ export function ImageViewer({
           />
         </Suspense>
       ) : null}
+
+      {isSpotifyOpen && spotifyAlbumUrl ? (
+        <Suspense fallback={null}>
+          <LazySpotifyAlbumPlayer
+            albumTitle={alt}
+            embedUrl={spotifyAlbumUrl}
+            onClose={() => setIsSpotifyOpen(false)}
+          />
+        </Suspense>
+      ) : null}
+
+      {isSteamTrailerOpen && steamAppId && steamLocale ? (
+        <Suspense fallback={null}>
+          <LazySteamTrailerPlayer
+            appId={steamAppId}
+            gameTitle={alt}
+            locale={steamLocale}
+            onClose={() => setIsSteamTrailerOpen(false)}
+          />
+        </Suspense>
+      ) : null}
     </>
   );
 }
 
-export function setImageViewerState(isOpen: boolean) {
-  document.documentElement.dataset.imageViewerOpen = isOpen ? "true" : "false";
-  window.dispatchEvent(
-    new CustomEvent("app:image-viewer", { detail: isOpen }),
+function PlayIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-5 translate-x-px"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path d="M8 5.8a1 1 0 0 1 1.52-.85l9 6.2a1 1 0 0 1 0 1.7l-9 6.2A1 1 0 0 1 8 18.2V5.8Z" />
+    </svg>
   );
 }
 

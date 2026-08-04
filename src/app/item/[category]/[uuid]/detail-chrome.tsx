@@ -134,7 +134,7 @@ export function DetailTopBar({
   title,
   trackList,
 }: DetailChromeProps) {
-  const isViewerOpen = useImageViewerState();
+  const isViewerOpen = useDetailMediaOverlayState();
 
   if (isViewerOpen) {
     return null;
@@ -1664,18 +1664,20 @@ export function DetailReviewActions({
   );
 }
 
-function useImageViewerState() {
+function useDetailMediaOverlayState() {
   const [isOpen, setIsOpen] = useState(() => {
     if (typeof document === "undefined") {
       return false;
     }
 
-    return document.documentElement.dataset.imageViewerOpen === "true";
+    return document.documentElement.dataset.detailMediaOverlayOpen === "true";
   });
 
   useEffect(() => {
     function syncFromDocument() {
-      setIsOpen(document.documentElement.dataset.imageViewerOpen === "true");
+      setIsOpen(
+        document.documentElement.dataset.detailMediaOverlayOpen === "true",
+      );
     }
 
     function syncViewerState(event: Event) {
@@ -1683,12 +1685,12 @@ function useImageViewerState() {
     }
 
     syncFromDocument();
-    window.addEventListener("app:image-viewer", syncViewerState);
+    window.addEventListener("app:detail-media-overlay", syncViewerState);
     window.addEventListener("pageshow", syncFromDocument);
     window.addEventListener("focus", syncFromDocument);
 
     return () => {
-      window.removeEventListener("app:image-viewer", syncViewerState);
+      window.removeEventListener("app:detail-media-overlay", syncViewerState);
       window.removeEventListener("pageshow", syncFromDocument);
       window.removeEventListener("focus", syncFromDocument);
     };

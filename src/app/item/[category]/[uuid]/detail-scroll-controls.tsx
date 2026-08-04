@@ -82,7 +82,7 @@ export function DetailScrollRestorer({ itemUuid }: { itemUuid: string }) {
 
 export function DetailPageExitReset({ itemUuid }: { itemUuid: string }) {
   useEffect(() => {
-    document.documentElement.dataset.imageViewerOpen = "false";
+    document.documentElement.dataset.detailMediaOverlayOpen = "false";
 
     function resetExitState() {
       document

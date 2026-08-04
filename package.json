@@ -8,12 +8,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "licenses:generate": "node scripts/generate-third-party-notices.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "hls.js": "^1.6.16",
     "next": "^16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",

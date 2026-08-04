@@ -32,6 +32,8 @@ import {
   type NeodbItem,
 } from "@/lib/neodb";
 import { getEnhancedDetailCoverUrl } from "@/lib/detail-cover";
+import { getSpotifyAlbumEmbedUrl } from "@/lib/spotify";
+import { getSteamAppId } from "@/lib/steam";
 import { getTmdbStills, type TmdbMediaType } from "@/lib/tmdb";
 import {
   openCookie,
@@ -103,6 +105,12 @@ export default async function DetailPage({ params }: DetailPageProps) {
     const item = itemResult.item;
     const meta = getDetailMeta(item, t);
     const description = item.description || item.brief || t("detail.noDescription");
+    const spotifyAlbumUrl =
+      item.category === "music"
+        ? getSpotifyAlbumEmbedUrl(item.external_resources)
+        : null;
+    const steamAppId =
+      item.category === "game" ? getSteamAppId(item.external_resources) : null;
     const tmdbRegion = await getDetailTmdbRegion(locale);
     const [displayCoverUrl, stills, seasonOptions] = await Promise.all([
       getEnhancedDetailCoverUrl(item, { locale, tmdbRegion }),
@@ -151,7 +159,10 @@ export default async function DetailPage({ params }: DetailPageProps) {
                       showLoadingSkeleton={
                         item.category === "movie" || item.category === "tv"
                       }
+                      spotifyAlbumUrl={spotifyAlbumUrl}
                       src={displayCoverUrl}
+                      steamAppId={steamAppId}
+                      steamLocale={locale}
                       stills={stills}
                     />
                   ) : (

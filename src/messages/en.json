@@ -292,6 +292,21 @@
       "previous": "Previous",
       "next": "Next"
     },
+    "spotify": {
+      "title": "Listen on Spotify",
+      "open": "Listen to album",
+      "close": "Close album player",
+      "loading": "Loading Spotify player",
+      "iframeTitle": "Spotify player: {title}"
+    },
+    "steam": {
+      "title": "Game trailer",
+      "open": "Play trailer",
+      "close": "Close trailer",
+      "loading": "Loading trailer",
+      "videoLabel": "Trailer for {title}",
+      "unavailable": "Trailer is temporarily unavailable"
+    },
     "tools": {
       "label": "Item tools",
       "share": "Share",

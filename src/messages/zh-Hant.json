@@ -292,6 +292,21 @@
       "previous": "上一張",
       "next": "下一張"
     },
+    "spotify": {
+      "title": "Spotify 試聽",
+      "open": "試聽專輯",
+      "close": "關閉專輯播放器",
+      "loading": "正在載入 Spotify 播放器",
+      "iframeTitle": "Spotify 播放器：{title}"
+    },
+    "steam": {
+      "title": "遊戲預告片",
+      "open": "播放預告片",
+      "close": "關閉預告片",
+      "loading": "正在載入預告片",
+      "videoLabel": "{title} 預告片",
+      "unavailable": "預告片暫時無法播放"
+    },
     "tools": {
       "label": "條目工具",
       "share": "分享",
