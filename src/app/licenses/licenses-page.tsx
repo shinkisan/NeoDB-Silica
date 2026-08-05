@@ -4,13 +4,18 @@ import type { AboutLocale } from "../about/about-page";
 import { siteConfig } from "@/site.config";
 
 type Library = {
-  license: "Apache-2.0" | "MIT";
+  license: "AGPL-3.0" | "Apache-2.0" | "MIT";
   name: string;
   source: string;
   version?: string;
 };
 
 const libraries: Library[] = [
+  {
+    license: "AGPL-3.0",
+    name: "NeoDB",
+    source: "https://github.com/neodb-social/neodb",
+  },
   {
     license: "MIT",
     name: "React / React DOM",
@@ -157,14 +162,6 @@ export function LicensesPage({
           ))}
         </div>
 
-        <a
-          className="mt-8 inline-flex rounded-full border border-[#c5c6cd] px-5 py-2.5 text-sm font-bold text-[var(--foreground)] transition hover:bg-white/60"
-          href="/third-party-notices.txt"
-          target="_blank"
-        >
-          {content.fullNotices}
-        </a>
-
       </section>
     </main>
   );
@@ -177,7 +174,6 @@ function getContent(locale: AboutLocale) {
     return {
       closeLabel: "Close open-source licenses",
       description: `${name} is built with the following open-source projects. Each project remains subject to its own license.`,
-      fullNotices: "View full license notices",
       title: "Third-party open-source software",
     };
   }
@@ -186,7 +182,6 @@ function getContent(locale: AboutLocale) {
     return {
       closeLabel: "關閉開源授權頁面",
       description: `${name} 使用以下開源專案構建。各專案仍分別受其自身授權條款約束。`,
-      fullNotices: "查看完整授權聲明",
       title: "第三方開源軟體",
     };
   }
@@ -194,7 +189,6 @@ function getContent(locale: AboutLocale) {
   return {
     closeLabel: "关闭开源许可页面",
     description: `${name} 使用以下开源项目构建。各项目仍分别受其自身许可条款约束。`,
-    fullNotices: "查看完整许可声明",
     title: "第三方开源软件",
   };
 }
