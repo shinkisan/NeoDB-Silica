@@ -9,6 +9,7 @@
   },
   "bottomNav": {
     "label": "主要導覽",
+    "backToTop": "回到頂部",
     "discover": "發現",
     "timeline": "動態",
     "marked": "標記",
@@ -236,6 +237,10 @@
   },
   "detail": {
     "noDescription": "暫無簡介。",
+    "description": {
+      "expand": "展開全文",
+      "collapse": "收起"
+    },
     "fallbackTitle": "作品詳情",
     "loadError": "載入失敗",
     "notFound": "條目不存在",

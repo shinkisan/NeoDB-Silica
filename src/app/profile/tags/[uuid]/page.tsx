@@ -67,7 +67,6 @@ export default async function ProfileTagItemsPage({
       <ProfileTagsTopBar
         backHref="/profile/tags"
         neodbUrl={neodbUrl}
-        pageSelector="[data-profile-tag-items-page]"
         showActions
         title={title}
       />

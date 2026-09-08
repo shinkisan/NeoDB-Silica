@@ -94,8 +94,11 @@ export function NotificationsPage() {
         <div className="mx-auto flex h-16 max-w-2xl items-center gap-3">
           <button
             aria-label={t("notifications.close")}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95"
-            onClick={() => router.push(returnHref)}
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+            onClick={(event) => {
+              event.currentTarget.disabled = true;
+              router.push(returnHref);
+            }}
             type="button"
           >
             <CloseIcon />

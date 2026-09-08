@@ -9,13 +9,19 @@ export default async function Loading() {
 
   return (
     <>
-      <CollectionTopBar title={t("collection.title")} />
+      <CollectionTopBar
+        contextSelector="[data-collection-loading-context-title]"
+        title={t("collection.title")}
+      />
       <CollectionLoadingScrollTop />
       <div aria-hidden="true" className="h-16" />
       <main className="min-h-dvh bg-[var(--background)] px-5 pb-32 pt-6 text-[var(--foreground)]">
         <div className="mx-auto max-w-2xl space-y-6 lg:max-w-4xl">
           <section className="min-w-0 space-y-3">
-            <div className="h-10 w-4/5 max-w-full animate-pulse rounded-full bg-[#e2e2e5]" />
+            <div
+              className="h-10 w-4/5 max-w-full animate-pulse rounded-full bg-[#e2e2e5]"
+              data-collection-loading-context-title
+            />
             <div className="flex flex-wrap items-center gap-3">
               <div className="h-5 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
             </div>

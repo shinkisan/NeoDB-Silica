@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useT } from "@/components/use-t";
+import { useTopBarContextVisibility } from "@/components/use-top-bar-context-visibility";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ActionMenu, type ActionMenuItem } from "@/components/action-menu";
 import { showToast } from "@/components/app-toast";
@@ -135,6 +136,10 @@ export function DetailTopBar({
   trackList,
 }: DetailChromeProps) {
   const isViewerOpen = useDetailMediaOverlayState();
+  const showContext = useTopBarContextVisibility({
+    contextKey: itemUuid,
+    selector: closeOnly ? undefined : "[data-detail-context-title]",
+  });
 
   if (isViewerOpen) {
     return null;
@@ -155,7 +160,11 @@ export function DetailTopBar({
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <CloseDetailButton />
           {closeOnly ? null : (
-            <TopBarItemSummary coverUrl={coverUrl} title={title} />
+            <TopBarItemSummary
+              coverUrl={coverUrl}
+              isVisible={showContext}
+              title={title}
+            />
           )}
         </div>
         {closeOnly ? null : (
@@ -185,9 +194,11 @@ export function DetailTopBar({
 
 function TopBarItemSummary({
   coverUrl,
+  isVisible,
   title,
 }: {
   coverUrl?: string | null;
+  isVisible: boolean;
   title: string;
 }) {
   const { currentSrc, switchToFallback } = useDetailCover(coverUrl);
@@ -221,7 +232,14 @@ function TopBarItemSummary({
   }, [title]);
 
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+    <div
+      aria-hidden={!isVisible}
+      className={`flex min-w-0 flex-1 items-center gap-2.5 transition-[opacity,transform] duration-200 ease-out ${
+        isVisible
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none -translate-y-2 opacity-0"
+      }`}
+    >
       <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/70 bg-[#e2e2e5] shadow-sm">
         {currentSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -725,7 +743,9 @@ function MarkMenu({
 
       {isOpen ? (
         <div
-          className="absolute right-0 top-12 min-w-32 w-max overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-1 shadow-xl shadow-slate-900/10"
+          className="action-menu-popover action-menu-popover-enter absolute right-0 top-12 min-w-32 w-max overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-1 shadow-xl shadow-slate-900/10"
+          data-alignment="right"
+          data-placement="bottom"
           role="listbox"
         >
           {markOptions.map((option) => {

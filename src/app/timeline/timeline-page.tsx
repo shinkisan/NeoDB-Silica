@@ -16,7 +16,6 @@ import {
   writePublicTimelineCache,
   writeTimelineCache,
 } from "@/lib/timeline-cache";
-import { BackToTopButton } from "@/components/back-to-top";
 import { readLastSeenNotificationId } from "@/lib/notification-read-state";
 import { TimelineListSkeleton } from "./timeline-skeleton";
 import type {
@@ -907,7 +906,6 @@ export function TimelinePage() {
           </div>
         </div>
       </section>
-      <BackToTopButton />
     </main>
   );
 }

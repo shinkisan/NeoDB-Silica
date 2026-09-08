@@ -59,9 +59,7 @@ function PersonWorksLoadingTopBar() {
         <div className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c]">
           <CloseIcon />
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="h-4 w-32 animate-pulse rounded-full bg-[#e2e2e5]" />
-        </div>
+        <div className="min-w-0 flex-1" />
         <div aria-hidden="true" className="size-10 shrink-0" />
       </div>
     </header>

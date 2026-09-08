@@ -10,15 +10,10 @@ export function ProfileCollectionsTopBar({ title }: { title: string }) {
       <div className="mx-auto flex h-16 max-w-2xl items-center gap-3 lg:max-w-4xl">
         <button
           aria-label={title}
-          className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70"
-          onClick={() => {
-            document
-              .querySelector("[data-profile-collections-page]")
-              ?.classList.add("detail-page-exit");
-
-            window.setTimeout(() => {
-              router.push("/profile");
-            }, 180);
+          className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+          onClick={(event) => {
+            event.currentTarget.disabled = true;
+            router.push("/profile");
           }}
           type="button"
         >

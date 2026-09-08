@@ -112,6 +112,10 @@ export default async function CollectionPage({
   return (
     <>
       <CollectionTopBar
+        contextKey={`${uuid}:${page}`}
+        contextSelector={
+          page === 1 ? "[data-collection-context-title]" : undefined
+        }
         neodbUrl={toAbsoluteUrl(collection.url, baseUrl)}
         title={title}
         uuid={uuid}
@@ -127,7 +131,10 @@ export default async function CollectionPage({
           {page === 1 ? (
             <CollectionIntroFrame>
               <section className="min-w-0 space-y-3">
-                <h1 className="break-words text-[1.8rem] font-semibold leading-tight text-[var(--foreground)]">
+                <h1
+                  className="break-words text-[1.8rem] font-semibold leading-tight text-[var(--foreground)]"
+                  data-collection-context-title
+                >
                   {title}
                 </h1>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

@@ -36,6 +36,7 @@ const HOME_LEAVING_KEY = `${STORAGE_PREFIX}v1:home:leaving`;
 const HOME_RESTORE_KEY = `${STORAGE_PREFIX}v1:home:restore`;
 const HOME_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:home:scroll:`;
 const homeCategories = new Set(homeTags.map((tag) => tag.id));
+const BACK_TO_TOP_MIN_DISTANCE = 360;
 
 let hasClearedHomeMemoryForPageLoad = false;
 let hasPrefetchedRootLoadingShells = false;
@@ -46,6 +47,7 @@ export function BottomNav() {
   const router = useRouter();
   const [pendingIndex, setPendingIndex] = useState<number | null>(null);
   const [tabOrder, setTabOrder] = useState<BottomTabId[]>([...bottomTabIds]);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [isPending, startTransition] = useTransition();
   const tabDefinitions: Record<BottomTabId, BottomTab> = {
     discover: {
@@ -174,6 +176,38 @@ export function BottomNav() {
     return () => globalThis.clearTimeout(timeout);
   }, [pathname, router]);
 
+  useEffect(() => {
+    let frame = 0;
+
+    function evaluate() {
+      frame = 0;
+      const threshold = Math.max(
+        BACK_TO_TOP_MIN_DISTANCE,
+        window.innerHeight * 0.5,
+      );
+      const shouldShow = window.scrollY > threshold;
+
+      setShowBackToTop((current) =>
+        current === shouldShow ? current : shouldShow,
+      );
+    }
+
+    function scheduleEvaluation() {
+      if (frame) return;
+      frame = window.requestAnimationFrame(evaluate);
+    }
+
+    window.queueMicrotask(evaluate);
+    window.addEventListener("scroll", scheduleEvaluation, { passive: true });
+    window.addEventListener("resize", scheduleEvaluation);
+
+    return () => {
+      window.removeEventListener("scroll", scheduleEvaluation);
+      window.removeEventListener("resize", scheduleEvaluation);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [pathname]);
+
   if (shouldHide || activeIndex < 0) {
     return null;
   }
@@ -201,15 +235,19 @@ export function BottomNav() {
           />
           {tabs.map((tab, index) => {
             const isActive = index === activeIndex;
+            const isBackToTop =
+              isActive && !isPending && showBackToTop;
             const Icon = tab.icon;
             const className = `relative z-10 flex h-[50px] flex-col items-center justify-center gap-0.5 rounded-[1.65rem] text-[11px] font-bold leading-none transition-colors duration-300 lg:h-[70px] ${
               isActive ? "text-white" : "text-[#44474c]"
             }`;
             const content = (
-              <>
-                <Icon />
-                <span>{tab.label}</span>
-              </>
+              <TabContent
+                backToTopLabel={t("bottomNav.backToTop")}
+                Icon={Icon}
+                isBackToTop={isBackToTop}
+                label={tab.label}
+              />
             );
 
             if (tab.href) {
@@ -217,6 +255,9 @@ export function BottomNav() {
 
               return (
                 <Link
+                  aria-label={
+                    isBackToTop ? t("bottomNav.backToTop") : tab.label
+                  }
                   aria-current={isActive ? "page" : undefined}
                   className={className}
                   href={href}
@@ -270,6 +311,82 @@ export function BottomNav() {
       </div>
       </nav>
     </>
+  );
+}
+
+function TabContent({
+  backToTopLabel,
+  Icon,
+  isBackToTop,
+  label,
+}: {
+  backToTopLabel: string;
+  Icon: React.ComponentType;
+  isBackToTop: boolean;
+  label: string;
+}) {
+  const motionClass =
+    "absolute inset-0 grid place-items-center transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]";
+
+  return (
+    <span aria-hidden="true" className="contents">
+      <span className="relative grid size-[22px] shrink-0 place-items-center">
+        <span
+          className={`${motionClass} ${
+            isBackToTop
+              ? "-translate-y-1.5 scale-90 opacity-0"
+              : "translate-y-0 scale-100 opacity-100"
+          }`}
+        >
+          <Icon />
+        </span>
+        <span
+          className={`${motionClass} ${
+            isBackToTop
+              ? "translate-y-0 scale-100 opacity-100"
+              : "translate-y-1.5 scale-90 opacity-0"
+          }`}
+        >
+          <BackToTopIcon />
+        </span>
+      </span>
+      <span className="relative h-[11px] w-full overflow-hidden">
+        <span
+          className={`${motionClass} whitespace-nowrap ${
+            isBackToTop
+              ? "-translate-y-1 opacity-0"
+              : "translate-y-0 opacity-100"
+          }`}
+        >
+          {label}
+        </span>
+        <span
+          className={`bottom-nav-back-to-top-label ${motionClass} whitespace-nowrap ${
+            isBackToTop
+              ? "translate-y-0 opacity-100"
+              : "translate-y-1 opacity-0"
+          }`}
+          data-label={backToTopLabel}
+        />
+      </span>
+    </span>
+  );
+}
+
+function BackToTopIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-[22px] shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M12 18V5M6.5 10.5 12 5l5.5 5.5M5 21h14" />
+    </svg>
   );
 }
 

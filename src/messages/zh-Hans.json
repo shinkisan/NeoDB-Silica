@@ -9,6 +9,7 @@
   },
   "bottomNav": {
     "label": "主导航",
+    "backToTop": "回到顶部",
     "discover": "发现",
     "timeline": "动态",
     "marked": "标记",
@@ -236,6 +237,10 @@
   },
   "detail": {
     "noDescription": "暂无简介。",
+    "description": {
+      "expand": "展开全文",
+      "collapse": "收起"
+    },
     "fallbackTitle": "作品详情",
     "loadError": "加载失败",
     "notFound": "条目不存在",

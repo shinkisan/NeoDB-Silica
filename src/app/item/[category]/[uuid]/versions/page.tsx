@@ -72,13 +72,20 @@ export default async function BookVersionsPage({
 
   return (
     <>
-      <VersionsTopBar title={versionsTitle} />
+      <VersionsTopBar
+        contextKey={`${uuid}:${page}`}
+        contextSelector="[data-versions-context-title]"
+        title={versionsTitle}
+      />
       <VersionsScrollManager itemUuid={uuid} />
       <div aria-hidden="true" className="h-16" />
       <main className="detail-page-enter min-h-dvh bg-[var(--background)] px-5 pb-24 pt-5 text-[var(--foreground)]">
         <div className="mx-auto max-w-2xl space-y-5 lg:max-w-4xl">
           <div className="px-1">
-            <h1 className="text-2xl font-bold text-[var(--foreground)]">
+            <h1
+              className="text-2xl font-bold text-[var(--foreground)]"
+              data-versions-context-title
+            >
               {versionsTitle}
             </h1>
             {result.status === "ready" ? (

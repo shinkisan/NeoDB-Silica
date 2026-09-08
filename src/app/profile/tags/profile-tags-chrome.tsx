@@ -13,14 +13,12 @@ export function ProfileTagsTopBar({
   backHref = "/profile",
   enableTagJump = false,
   neodbUrl,
-  pageSelector = "[data-profile-tags-page]",
   showActions = false,
   title,
 }: {
   backHref?: string;
   enableTagJump?: boolean;
   neodbUrl?: string | null;
-  pageSelector?: string;
   showActions?: boolean;
   title: string;
 }) {
@@ -76,15 +74,10 @@ export function ProfileTagsTopBar({
         <div className="mx-auto flex h-16 max-w-2xl items-center gap-3 lg:max-w-4xl">
           <button
             aria-label={title}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70"
-            onClick={() => {
-              document
-                .querySelector(pageSelector)
-                ?.classList.add("detail-page-exit");
-
-              window.setTimeout(() => {
-                router.push(backHref);
-              }, 180);
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+            onClick={(event) => {
+              event.currentTarget.disabled = true;
+              router.push(backHref);
             }}
             type="button"
           >

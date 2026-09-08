@@ -14,7 +14,6 @@ import {
   useState,
 } from "react";
 import { showToast } from "@/components/app-toast";
-import { BackToTopButton } from "@/components/back-to-top";
 import { Dropdown } from "@/components/dropdown";
 import { useFeatureFlags } from "@/components/feature-flags";
 import { HorizontalScrollControls } from "@/components/horizontal-scroll-controls";
@@ -1339,10 +1338,6 @@ function HomeContent({
         </div>
         )}
       </section>
-      <BackToTopButton
-        includeCompact={false}
-        wideRight="max(1.25rem, calc(50vw - 27rem))"
-      />
     </main>
   );
 }

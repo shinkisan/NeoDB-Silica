@@ -62,13 +62,19 @@ export default async function CreditsPage({ params }: CreditsPageProps) {
 
   return (
     <>
-      <CreditsTopBar title={pageTitle} />
+      <CreditsTopBar
+        contextSelector="[data-credits-context-title]"
+        title={pageTitle}
+      />
       <CreditsScrollManager category={category} itemUuid={uuid} />
       <div aria-hidden="true" className="h-16" />
       <main className="detail-page-enter min-h-dvh bg-[var(--background)] px-5 pb-24 pt-5 text-[var(--foreground)]">
         <div className="mx-auto max-w-2xl space-y-5 lg:max-w-4xl">
           <div className="px-1">
-            <h1 className="text-2xl font-bold leading-tight text-[var(--foreground)]">
+            <h1
+              className="text-2xl font-bold leading-tight text-[var(--foreground)]"
+              data-credits-context-title
+            >
               {pageTitle}
             </h1>
             {credits.some((person) => person.source === "tmdb" && person.personId) ? (

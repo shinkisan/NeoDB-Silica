@@ -16,17 +16,11 @@ export function CloseDetailButton({
   return (
     <button
       aria-label="返回首页"
-      className="grid size-10 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70"
-      onClick={() => {
+      className="grid size-10 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+      onClick={(event) => {
+        event.currentTarget.disabled = true;
         onBeforeClose?.();
-
-        document
-          .querySelector("[data-detail-page]")
-          ?.classList.add("detail-page-exit");
-
-        window.setTimeout(() => {
-          performNavigationClose(resolveDetailCloseAction(), router);
-        }, 180);
+        performNavigationClose(resolveDetailCloseAction(), router);
       }}
       type="button"
     >

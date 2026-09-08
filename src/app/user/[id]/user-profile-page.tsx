@@ -3,6 +3,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useT } from "@/components/use-t";
+import { useTopBarContextVisibility } from "@/components/use-top-bar-context-visibility";
 import { BackToTopButton } from "@/components/back-to-top";
 import { showToast } from "@/components/app-toast";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -453,6 +454,11 @@ function UserProfileTopBar({
     next: Partial<Pick<AccountProfile, "blocking" | "followedBy" | "following" | "requested">>,
   ) => void;
 }) {
+  const isSummaryVisible = useTopBarContextVisibility({
+    contextKey: account?.id || "loading",
+    selector: account ? "[data-user-profile-context-title]" : undefined,
+  });
+
   return (
     <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
       <div className="mx-auto flex h-16 max-w-2xl items-center gap-3">
@@ -462,6 +468,7 @@ function UserProfileTopBar({
             avatar={account.avatar}
             displayName={account.displayName}
             emojis={account.emojis}
+            isVisible={isSummaryVisible}
           />
         ) : (
           <div className="min-w-0 flex-1" />
@@ -483,10 +490,12 @@ function TopBarAccountSummary({
   avatar,
   displayName,
   emojis,
+  isVisible,
 }: {
   avatar: string;
   displayName: string;
   emojis: MastodonEmoji[];
+  isVisible: boolean;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLSpanElement>(null);
@@ -520,7 +529,14 @@ function TopBarAccountSummary({
   const renderedName = renderTextWithEmoji(displayName, emojis);
 
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+    <div
+      aria-hidden={!isVisible}
+      className={`flex min-w-0 flex-1 items-center gap-2.5 transition-[opacity,transform] duration-200 ease-out ${
+        isVisible
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none -translate-y-2 opacity-0"
+      }`}
+    >
       <TopBarAvatar avatar={avatar} displayName={displayName} />
       <div
         className="relative min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm font-bold text-[#1a1c1e]"
@@ -871,7 +887,10 @@ function UserProfileHeader({
         )}
       </div>
 
-      <h1 className="max-w-full text-2xl font-bold tracking-normal text-[#1a1c1e]">
+      <h1
+        className="max-w-full text-2xl font-bold tracking-normal text-[#1a1c1e]"
+        data-user-profile-context-title
+      >
         {renderTextWithEmoji(account.displayName, account.emojis)}
       </h1>
       <p className="mt-1 max-w-sm text-sm font-semibold text-[#75777d]">

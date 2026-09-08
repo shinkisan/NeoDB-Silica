@@ -20,16 +20,53 @@ export function SearchScopeSelect({
   value,
 }: SearchScopeSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const closeTimerRef = useRef<number | null>(null);
   const activeOption =
     options.find((option) => option.id === value) || options[0];
 
-  useEffect(() => {
-    if (!isOpen) {
-      setMenuRect(null);
-      return;
+  function openMenu() {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
     }
+
+    setIsClosing(false);
+    setMenuRect(null);
+    setIsOpen(true);
+  }
+
+  function closeMenu() {
+    if (!isOpen || isClosing) return;
+
+    setIsClosing(true);
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    closeTimerRef.current = window.setTimeout(
+      () => {
+        setIsOpen(false);
+        setIsClosing(false);
+        setMenuRect(null);
+        closeTimerRef.current = null;
+      },
+      prefersReducedMotion ? 0 : 130,
+    );
+  }
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
 
     function updateMenuRect() {
       if (buttonRef.current) {
@@ -50,17 +87,23 @@ export function SearchScopeSelect({
   return (
     <div className="relative flex shrink-0 items-center">
       <button
-        aria-expanded={isOpen}
+        aria-expanded={isOpen && !isClosing}
         aria-haspopup="listbox"
         className="relative z-[90] flex h-10 items-center gap-1.5 px-3 text-sm font-semibold text-[#333e50] transition hover:text-[#111c2c]"
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={() => {
+          if (isOpen) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        }}
         ref={buttonRef}
         type="button"
       >
         <span className="max-w-12 truncate sm:max-w-none">
           {activeOption.label}
         </span>
-        <ChevronDownIcon isOpen={isOpen} />
+        <ChevronDownIcon isOpen={isOpen && !isClosing} />
       </button>
       <span className="mx-1 h-6 w-px bg-[#c5c6cd]" />
 
@@ -73,7 +116,7 @@ export function SearchScopeSelect({
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  setIsOpen(false);
+                  closeMenu();
                 }}
                 onPointerDown={(event) => {
                   event.preventDefault();
@@ -81,7 +124,11 @@ export function SearchScopeSelect({
                 }}
               />
               <div
-                className="fixed z-[90] w-32 overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-1 shadow-xl shadow-slate-900/10"
+                className={`action-menu-popover action-menu-popover-${
+                  isClosing ? "exit" : "enter"
+                } fixed z-[90] w-32 overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-1 shadow-xl shadow-slate-900/10`}
+                data-alignment="left"
+                data-placement="bottom"
                 role="listbox"
                 style={{
                   left: menuRect.left,
@@ -102,7 +149,7 @@ export function SearchScopeSelect({
                       key={option.id}
                       onClick={() => {
                         onChange(option.id);
-                        setIsOpen(false);
+                        closeMenu();
                       }}
                       role="option"
                       type="button"

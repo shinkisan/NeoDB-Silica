@@ -38,15 +38,51 @@ export function ActionMenu({
   triggerIcon,
 }: ActionMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const closeTimerRef = useRef<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setMenuRect(null);
-      return;
+  function openMenu() {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
     }
+
+    setIsClosing(false);
+    setIsOpen(true);
+  }
+
+  function closeMenu() {
+    if (!isOpen || isClosing) return;
+
+    setIsClosing(true);
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    closeTimerRef.current = window.setTimeout(
+      () => {
+        setIsOpen(false);
+        setIsClosing(false);
+        setMenuRect(null);
+        closeTimerRef.current = null;
+      },
+      prefersReducedMotion ? 0 : 130,
+    );
+  }
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
 
     function updateMenuRect() {
       if (buttonRef.current) {
@@ -54,11 +90,12 @@ export function ActionMenu({
       }
     }
 
-    updateMenuRect();
+    const frame = window.requestAnimationFrame(updateMenuRect);
     window.addEventListener("resize", updateMenuRect);
     window.addEventListener("scroll", updateMenuRect, true);
 
     return () => {
+      window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", updateMenuRect);
       window.removeEventListener("scroll", updateMenuRect, true);
     };
@@ -67,10 +104,16 @@ export function ActionMenu({
   return (
     <>
       <button
-        aria-expanded={isOpen}
+        aria-expanded={isOpen && !isClosing}
         aria-label={label}
         className={`grid size-10 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-[0.98] ${buttonClassName}`}
-        onClick={() => setIsOpen((value) => !value)}
+        onClick={() => {
+          if (isOpen) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        }}
         ref={buttonRef}
         type="button"
       >
@@ -86,7 +129,7 @@ export function ActionMenu({
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  setIsOpen(false);
+                  closeMenu();
                 }}
                 onPointerDown={(event) => {
                   event.preventDefault();
@@ -95,9 +138,7 @@ export function ActionMenu({
               />
               {menuRect ? (
                 <div
-                  className={`fixed z-[121] min-w-40 w-max overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-1 shadow-xl shadow-slate-900/10 ${menuClassName}`}
-                  ref={menuRef}
-                  role="menu"
+                  className="fixed z-[121]"
                   style={{
                     left: menuRect.right,
                     top:
@@ -110,44 +151,53 @@ export function ActionMenu({
                         : "translateX(-100%)",
                   }}
                 >
-                  {items.map((item, index) =>
-                    item.type === "separator" ? (
-                      <div
-                        aria-hidden="true"
-                        className="action-menu-separator mx-2 my-1 h-0 border-t border-[#d6d7dc]"
-                        key={item.key || `separator-${index}`}
-                        role="separator"
-                      />
-                    ) : item.href ? (
-                      <a
-                        className={getItemClassName(item)}
-                        href={item.href}
-                        key={`${item.label}-${index}`}
-                        onClick={() => setIsOpen(false)}
-                        rel="noreferrer"
-                        role="menuitem"
-                        target="_blank"
-                      >
-                        {item.icon}
-                        {item.label}
-                      </a>
-                    ) : (
-                      <button
-                        className={getItemClassName(item)}
-                        disabled={item.disabled}
-                        key={`${item.label}-${index}`}
-                        onClick={() => {
-                          setIsOpen(false);
-                          item.onClick?.();
-                        }}
-                        role="menuitem"
-                        type="button"
-                      >
-                        {item.icon}
-                        {item.label}
-                      </button>
-                    ),
-                  )}
+                  <div
+                    className={`action-menu-popover action-menu-popover-${
+                      isClosing ? "exit" : "enter"
+                    } min-w-40 w-max overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-1 shadow-xl shadow-slate-900/10 ${menuClassName}`}
+                    data-placement={placement}
+                    ref={menuRef}
+                    role="menu"
+                  >
+                    {items.map((item, index) =>
+                      item.type === "separator" ? (
+                        <div
+                          aria-hidden="true"
+                          className="action-menu-separator mx-2 my-1 h-0 border-t border-[#d6d7dc]"
+                          key={item.key || `separator-${index}`}
+                          role="separator"
+                        />
+                      ) : item.href ? (
+                        <a
+                          className={getItemClassName(item)}
+                          href={item.href}
+                          key={`${item.label}-${index}`}
+                          onClick={closeMenu}
+                          rel="noreferrer"
+                          role="menuitem"
+                          target="_blank"
+                        >
+                          {item.icon}
+                          {item.label}
+                        </a>
+                      ) : (
+                        <button
+                          className={getItemClassName(item)}
+                          disabled={item.disabled}
+                          key={`${item.label}-${index}`}
+                          onClick={() => {
+                            closeMenu();
+                            item.onClick?.();
+                          }}
+                          role="menuitem"
+                          type="button"
+                        >
+                          {item.icon}
+                          {item.label}
+                        </button>
+                      ),
+                    )}
+                  </div>
                 </div>
               ) : null}
             </>,

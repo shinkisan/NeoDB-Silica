@@ -14,20 +14,10 @@ export function CloseSearchButton({ tabIndex }: { tabIndex?: number }) {
   return (
     <button
       aria-label={t("search.close")}
-      className="liquid-glass relative grid size-14 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-lg shadow-slate-900/5 transition hover:bg-white/80 hover:text-[#333e50]"
-      onClick={() => {
-        const page = document.querySelector("[data-search-page]");
-
-        if (page) {
-          page.classList.remove("search-page-exit");
-          page.getBoundingClientRect();
-          page.classList.add("search-page-exit");
-        }
-
-        window.setTimeout(() => {
-          const action = resolveSearchCloseAction();
-          performNavigationClose(action, router);
-        }, 240);
+      className="liquid-glass relative grid size-14 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-lg shadow-slate-900/5 transition hover:bg-white/80 hover:text-[#333e50] active:scale-95 disabled:cursor-default"
+      onClick={(event) => {
+        event.currentTarget.disabled = true;
+        performNavigationClose(resolveSearchCloseAction(), router);
       }}
       tabIndex={tabIndex}
       type="button"

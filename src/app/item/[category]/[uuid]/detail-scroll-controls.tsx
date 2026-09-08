@@ -80,27 +80,9 @@ export function DetailScrollRestorer({ itemUuid }: { itemUuid: string }) {
   return null;
 }
 
-export function DetailPageExitReset({ itemUuid }: { itemUuid: string }) {
+export function DetailPageStateReset({ itemUuid }: { itemUuid: string }) {
   useEffect(() => {
     document.documentElement.dataset.detailMediaOverlayOpen = "false";
-
-    function resetExitState() {
-      document
-        .querySelectorAll("[data-detail-page].detail-page-exit")
-        .forEach((element) => {
-          element.classList.remove("detail-page-exit");
-        });
-    }
-
-    resetExitState();
-    const frame = requestAnimationFrame(resetExitState);
-
-    window.addEventListener("pageshow", resetExitState);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("pageshow", resetExitState);
-    };
   }, [itemUuid]);
 
   return null;

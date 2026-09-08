@@ -36,7 +36,7 @@ export function ProfileFollowsPage({ type }: { type: FollowListType }) {
 
   return (
     <>
-      <ProfileFollowsTopBar pageSelector="[data-profile-follows-page]" title={title} />
+      <ProfileFollowsTopBar title={title} />
       <main
         className="detail-page-enter min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)]"
         data-profile-follows-page
@@ -50,10 +50,8 @@ export function ProfileFollowsPage({ type }: { type: FollowListType }) {
 }
 
 function ProfileFollowsTopBar({
-  pageSelector,
   title,
 }: {
-  pageSelector: string;
   title: string;
 }) {
   const router = useRouter();
@@ -63,13 +61,10 @@ function ProfileFollowsTopBar({
       <div className="mx-auto flex h-16 max-w-2xl items-center gap-3">
         <button
           aria-label={title}
-          className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70"
-          onClick={() => {
-            document.querySelector(pageSelector)?.classList.add("detail-page-exit");
-
-            window.setTimeout(() => {
-              router.push("/profile");
-            }, 180);
+          className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+          onClick={(event) => {
+            event.currentTarget.disabled = true;
+            router.push("/profile");
           }}
           type="button"
         >

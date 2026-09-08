@@ -9,6 +9,7 @@
   },
   "bottomNav": {
     "label": "Main navigation",
+    "backToTop": "Back to top",
     "discover": "Discover",
     "timeline": "Timeline",
     "marked": "Marked",
@@ -236,6 +237,10 @@
   },
   "detail": {
     "noDescription": "No description.",
+    "description": {
+      "expand": "Show more",
+      "collapse": "Show less"
+    },
     "fallbackTitle": "Item Details",
     "loadError": "Load Failed",
     "notFound": "Item Not Found",

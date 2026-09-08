@@ -54,12 +54,21 @@ export function Dropdown({
   value,
 }: DropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const isOpen = isControlled ? controlledOpen : internalOpen;
+  const closeTimerRef = useRef<number | null>(null);
+  const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const setOpen = useCallback(
     (next: boolean) => {
-      if (disabled) {
+      if (disabled && next) {
         return;
       }
 
@@ -72,23 +81,53 @@ export function Dropdown({
     [disabled, isControlled, onOpenChange],
   );
 
-  const [menuRect, setMenuRect] = useState<DOMRect | null>(null);
-  const [menuPosition, setMenuPosition] = useState<{ left: number; top: number } | null>(
-    null,
-  );
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  function openMenu() {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+
+    setIsClosing(false);
+    setMenuRect(null);
+    setMenuPosition(null);
+    setOpen(true);
+  }
+
+  function closeMenu() {
+    if (!isOpen || isClosing) return;
+
+    setIsClosing(true);
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    closeTimerRef.current = window.setTimeout(
+      () => {
+        setOpen(false);
+        setIsClosing(false);
+        setMenuRect(null);
+        setMenuPosition(null);
+        closeTimerRef.current = null;
+      },
+      prefersReducedMotion ? 0 : 130,
+    );
+  }
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
   const activeOption = useMemo(
     () => options.find((option) => option.id === value) || options[0],
     [options, value],
   );
 
   useEffect(() => {
-    if (!isOpen) {
-      setMenuRect(null);
-      setMenuPosition(null);
-      return;
-    }
+    if (!isOpen) return;
 
     function updateMenuRect() {
       if (buttonRef.current) {
@@ -137,12 +176,18 @@ export function Dropdown({
   return (
     <>
       <button
-        aria-expanded={isOpen}
+        aria-expanded={isOpen && !isClosing}
         aria-haspopup="listbox"
         aria-label={ariaLabel}
         className={`relative z-[90] inline-flex h-9 items-center gap-2 rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${buttonClassName}`}
         disabled={disabled}
-        onClick={() => setOpen(!isOpen)}
+        onClick={() => {
+          if (isOpen) {
+            closeMenu();
+          } else {
+            openMenu();
+          }
+        }}
         ref={buttonRef}
         type="button"
       >
@@ -154,7 +199,7 @@ export function Dropdown({
           />
         ) : null}
         <span className="truncate">{triggerLabel ?? activeOption.label}</span>
-        <ChevronDownIcon isOpen={isOpen} />
+        <ChevronDownIcon isOpen={isOpen && !isClosing} />
       </button>
 
       {isOpen && menuRect && typeof document !== "undefined"
@@ -166,7 +211,7 @@ export function Dropdown({
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  setOpen(false);
+                  closeMenu();
                 }}
                 onPointerDown={(event) => {
                   event.preventDefault();
@@ -174,9 +219,13 @@ export function Dropdown({
                 }}
               />
               <div
-                className={`fixed z-[90] min-w-36 w-max overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-1 shadow-xl shadow-slate-900/10 ${
+                className={`action-menu-popover action-menu-popover-${
+                  isClosing ? "exit" : "enter"
+                } fixed z-[90] min-w-36 w-max overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-1 shadow-xl shadow-slate-900/10 ${
                   maxMenuHeightRem ? "overflow-y-auto" : ""
                 } ${menuClassName}`}
+                data-alignment="right"
+                data-placement="bottom"
                 ref={menuRef}
                 role="listbox"
                 style={{
@@ -205,7 +254,7 @@ export function Dropdown({
                       key={option.id}
                       onClick={() => {
                         onChange(option.id);
-                        setOpen(false);
+                        closeMenu();
                       }}
                       role="option"
                       type="button"

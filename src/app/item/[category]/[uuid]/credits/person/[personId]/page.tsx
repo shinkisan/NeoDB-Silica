@@ -109,7 +109,13 @@ export default async function PersonWorksPage({
 
   return (
     <>
-      <CreditsTopBar title={pageTitle} />
+      <CreditsTopBar
+        contextKey={`${personId}:${page}`}
+        contextSelector={
+          page === 1 ? "[data-person-works-context-title]" : undefined
+        }
+        title={pageTitle}
+      />
       <PersonWorksScrollManager personId={personId} />
       <div aria-hidden="true" className="h-16" />
       <main className="detail-page-enter min-h-dvh bg-[var(--background)] px-5 pb-24 pt-5 text-[var(--foreground)]">
@@ -129,7 +135,10 @@ export default async function PersonWorksPage({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="break-words text-2xl font-bold leading-tight text-[var(--foreground)]">
+                  <h1
+                    className="break-words text-2xl font-bold leading-tight text-[var(--foreground)]"
+                    data-person-works-context-title
+                  >
                     {person.name}
                   </h1>
                   {person.meta.length ? (

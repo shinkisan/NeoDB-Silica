@@ -53,16 +53,15 @@ export function LoadingTopBar() {
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <button
             aria-label="关闭详情页"
-            className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70"
-            onClick={() =>
-              performNavigationClose(resolveDetailCloseAction(), router)
-            }
+            className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+            onClick={(event) => {
+              event.currentTarget.disabled = true;
+              performNavigationClose(resolveDetailCloseAction(), router);
+            }}
             type="button"
           >
             <CloseIcon />
           </button>
-          <div className="size-10 shrink-0 animate-pulse rounded-full bg-[#d9dde5]" />
-          <div className="h-5 w-32 min-w-0 animate-pulse rounded-full bg-[#d9dde5]" />
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <div className="h-10 w-20 animate-pulse rounded-full bg-[#d9dde5]" />

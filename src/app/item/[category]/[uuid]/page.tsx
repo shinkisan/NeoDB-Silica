@@ -10,13 +10,14 @@ import {
 } from "./detail-chrome";
 import {
   DetailBackToTop,
-  DetailPageExitReset,
+  DetailPageStateReset,
   DetailScrollRestorer,
 } from "./detail-scroll-controls";
 import { ImageViewer } from "./image-viewer";
 import { DetailCoverProvider } from "./detail-cover-state";
 import { RatingDistributionBadge } from "./rating-distribution-badge";
 import { DetailHashtags } from "./detail-hashtags";
+import { DetailDescription } from "./detail-description";
 import { SeasonDropdown, type SeasonOption } from "./season-dropdown";
 import {
   getCategoryLabel,
@@ -143,7 +144,7 @@ export default async function DetailPage({ params }: DetailPageProps) {
         />
         <div aria-hidden="true" className="h-16" />
         <DetailScrollRestorer itemUuid={item.uuid} />
-        <DetailPageExitReset itemUuid={item.uuid} />
+        <DetailPageStateReset itemUuid={item.uuid} />
         <main
           className="detail-page-enter min-h-dvh scroll-pt-20 bg-[var(--background)] px-5 pb-20 pt-5 text-[var(--foreground)]"
           data-detail-page
@@ -192,7 +193,10 @@ export default async function DetailPage({ params }: DetailPageProps) {
                     ) : null}
                   </div>
                   <div className="flex min-w-0 flex-wrap items-center gap-3">
-                    <h1 className="min-w-0 max-w-full break-words text-3xl font-semibold leading-tight text-[var(--foreground)]">
+                    <h1
+                      className="min-w-0 max-w-full break-words text-3xl font-semibold leading-tight text-[var(--foreground)]"
+                      data-detail-context-title
+                    >
                       {item.display_title || item.title}
                     </h1>
                     <RatingDistributionBadge
@@ -217,9 +221,7 @@ export default async function DetailPage({ params }: DetailPageProps) {
                   ))}
                 </div>
 
-                <p className="min-w-0 max-w-full whitespace-pre-line break-words text-lg leading-relaxed text-[#44474c]">
-                  {description}
-                </p>
+                <DetailDescription text={description} />
                 <DetailHashtags tags={getDetailHashtags(item.tags || [], t)} />
               </div>
             </section>
@@ -332,7 +334,7 @@ async function DetailUnavailable({
         title={isNotFound ? t("detail.notFound") : t("detail.loadError")}
       />
       <div aria-hidden="true" className="h-16" />
-      <DetailPageExitReset itemUuid={uuid} />
+      <DetailPageStateReset itemUuid={uuid} />
       <main
         className="detail-page-enter min-h-dvh bg-[var(--background)] px-5 pb-20 pt-5 text-[var(--foreground)]"
         data-detail-page

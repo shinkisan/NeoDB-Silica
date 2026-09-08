@@ -126,9 +126,10 @@ export function MyNotesPage({
           <button
             aria-label={t("detail.notes.close")}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95"
-            onClick={() =>
-              performNavigationClose(resolveDetailCloseAction(), router)
-            }
+            onClick={(event) => {
+              event.currentTarget.disabled = true;
+              performNavigationClose(resolveDetailCloseAction(), router);
+            }}
             type="button"
           >
             <CloseIcon />
