@@ -219,6 +219,8 @@
     "noRating": "暂无评分",
     "noBrief": "暂无介绍",
     "editBrief": "编辑介绍",
+    "expandBrief": "展开",
+    "collapseBrief": "收起",
     "closeBriefEditor": "关闭介绍编辑器",
     "briefPlaceholder": "写下收藏单介绍……",
     "saveBrief": "保存",

@@ -4,19 +4,8 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { showToast } from "@/components/app-toast";
 import { useT } from "@/components/use-t";
+import { createIsbnBarcodeDetector } from "@/lib/isbn-barcode-detector";
 import { normalizeIsbn } from "@/lib/isbn";
-
-type BarcodeDetectorConstructor = new (options?: {
-  formats?: string[];
-}) => {
-  detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue: string }>>;
-};
-
-declare global {
-  interface Window {
-    BarcodeDetector?: BarcodeDetectorConstructor;
-  }
-}
 
 type IsbnScannerButtonProps = {
   defaultOpen?: boolean;
@@ -86,17 +75,16 @@ function IsbnScannerDialog({
     let frame = 0;
 
     async function startScanner() {
-      if (!window.BarcodeDetector) {
-        setStatus("error");
-        setError(t("search.isbnScanner.unsupported"));
-        return;
-      }
-
       if (!navigator.mediaDevices?.getUserMedia) {
         setStatus("error");
         setError(t("search.isbnScanner.cameraUnavailable"));
         return;
       }
+
+      const detectorResultPromise = createIsbnBarcodeDetector().then(
+        (detector) => ({ detector, error: null }),
+        (error: unknown) => ({ detector: null, error }),
+      );
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -118,9 +106,21 @@ function IsbnScannerDialog({
           await videoRef.current.play();
         }
 
-        const detector = new window.BarcodeDetector({
-          formats: ["ean_13", "ean_8"],
-        });
+        const detectorResult = await detectorResultPromise;
+
+        if (detectorResult.error || !detectorResult.detector) {
+          console.error(
+            "[isbn scanner] barcode decoder failed to load",
+            detectorResult.error,
+          );
+          stopStream(stream);
+          streamRef.current = null;
+          setStatus("error");
+          setError(t("search.isbnScanner.error"));
+          return;
+        }
+
+        const detector = detectorResult.detector;
 
         setStatus("scanning");
 
@@ -132,7 +132,18 @@ function IsbnScannerDialog({
           const video = videoRef.current;
 
           if (video && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-            const barcodes = await detector.detect(video).catch(() => []);
+            let barcodes;
+
+            try {
+              barcodes = await detector.detect(video);
+            } catch (detectionError) {
+              console.error("[isbn scanner] detection failed", detectionError);
+              stopStream(streamRef.current);
+              streamRef.current = null;
+              setStatus("error");
+              setError(t("search.isbnScanner.error"));
+              return;
+            }
 
             for (const barcode of barcodes) {
               const isbn = normalizeIsbn(barcode.rawValue);

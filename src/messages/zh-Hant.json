@@ -219,6 +219,8 @@
     "noRating": "暫無評分",
     "noBrief": "暫無介紹",
     "editBrief": "編輯介紹",
+    "expandBrief": "展開",
+    "collapseBrief": "收起",
     "closeBriefEditor": "關閉介紹編輯器",
     "briefPlaceholder": "寫下收藏單介紹……",
     "saveBrief": "儲存",

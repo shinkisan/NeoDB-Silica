@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { showToast } from "@/components/app-toast";
 import { useT } from "@/components/use-t";
@@ -22,10 +22,39 @@ export function CollectionBriefEditor({
   const [draft, setDraft] = useState(description);
   const [isOpen, setIsOpen] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving">("idle");
+  const textRef = useRef<HTMLParagraphElement>(null);
+  const scrollYBeforeExpandRef = useRef<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [canExpand, setCanExpand] = useState(false);
 
   useEffect(() => {
     setDraft(description);
   }, [description]);
+
+  useEffect(() => {
+    const element = textRef.current;
+    if (!element || isExpanded) return;
+
+    const measureOverflow = () => {
+      setCanExpand(element.scrollHeight - element.clientHeight > 1);
+    };
+    const frame = requestAnimationFrame(measureOverflow);
+    const resizeObserver = new ResizeObserver(measureOverflow);
+    resizeObserver.observe(element);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+    };
+  }, [isExpanded, description]);
+
+  useLayoutEffect(() => {
+    if (!isExpanded || scrollYBeforeExpandRef.current === null) return;
+
+    const scrollY = scrollYBeforeExpandRef.current;
+    scrollYBeforeExpandRef.current = null;
+    window.scrollTo({ behavior: "instant", top: scrollY });
+  }, [isExpanded]);
 
   async function saveBrief() {
     if (status === "saving") {
@@ -70,22 +99,47 @@ export function CollectionBriefEditor({
   return (
     <>
       {description || canEdit ? (
-        <p className="max-w-full whitespace-pre-line break-words text-base leading-7 text-[#44474c] [overflow-wrap:anywhere]">
-          {description || t("collection.noBrief")}
-          {canEdit ? (
+        <div className="min-w-0 max-w-full [overflow-anchor:none]">
+          <p
+            className={`min-w-0 max-w-full whitespace-pre-line break-words text-base leading-7 text-[#44474c] [overflow-wrap:anywhere] ${
+              isExpanded ? "" : "line-clamp-6"
+            }`}
+            ref={textRef}
+          >
+            {description || t("collection.noBrief")}
+            {canEdit ? (
+              <button
+                aria-label={t("collection.editBrief")}
+                className="ml-1.5 inline-grid size-5 place-items-center rounded-full border border-white/70 bg-white/60 align-[-0.18em] text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+                onClick={() => {
+                  setDraft(description);
+                  setIsOpen(true);
+                }}
+                type="button"
+              >
+                <PencilIcon />
+              </button>
+            ) : null}
+          </p>
+          {canExpand ? (
             <button
-              aria-label={t("collection.editBrief")}
-              className="ml-1.5 inline-grid size-5 place-items-center rounded-full border border-white/70 bg-white/60 align-[-0.18em] text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+              aria-expanded={isExpanded}
+              className="ml-auto mt-1.5 flex cursor-pointer items-center gap-1 rounded-full px-1 py-0.5 text-sm font-bold text-[#75777d] transition-[color,transform] hover:text-[var(--foreground)] active:scale-[0.98]"
               onClick={() => {
-                setDraft(description);
-                setIsOpen(true);
+                if (!isExpanded) {
+                  scrollYBeforeExpandRef.current = window.scrollY;
+                }
+                setIsExpanded((current) => !current);
               }}
               type="button"
             >
-              <PencilIcon />
+              {isExpanded
+                ? t("collection.collapseBrief")
+                : t("collection.expandBrief")}
+              <ChevronIcon isExpanded={isExpanded} />
             </button>
           ) : null}
-        </p>
+        </div>
       ) : null}
 
       {isOpen && typeof document !== "undefined"
@@ -168,6 +222,25 @@ function BriefDialog({
         </button>
       </section>
     </div>
+  );
+}
+
+function ChevronIcon({ isExpanded }: { isExpanded: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={`size-4 transition-transform duration-200 ${
+        isExpanded ? "rotate-180" : ""
+      }`}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }
 

@@ -78,6 +78,17 @@ const libraries: Library[] = [
   },
   {
     license: "MIT",
+    name: "zxing-wasm",
+    source: "https://github.com/Sec-ant/zxing-wasm",
+    version: "3.1.4",
+  },
+  {
+    license: "Apache-2.0",
+    name: "ZXing-C++",
+    source: "https://github.com/zxing-cpp/zxing-cpp",
+  },
+  {
+    license: "MIT",
     name: "liquid-glass",
     source: "https://github.com/nikdelvin/liquid-glass",
   },

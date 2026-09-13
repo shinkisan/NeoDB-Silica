@@ -219,6 +219,8 @@
     "noRating": "No rating",
     "noBrief": "No description",
     "editBrief": "Edit description",
+    "expandBrief": "Show more",
+    "collapseBrief": "Show less",
     "closeBriefEditor": "Close description editor",
     "briefPlaceholder": "Write a collection description...",
     "saveBrief": "Save",

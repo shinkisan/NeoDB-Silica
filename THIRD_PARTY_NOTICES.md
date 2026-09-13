@@ -14,6 +14,8 @@ This project uses the following direct runtime dependencies and source adaptatio
 | unist-util-visit | MIT |
 | Vercel Analytics | MIT |
 | Vercel Speed Insights | Apache-2.0 |
+| zxing-wasm | MIT |
+| ZXing-C++ | Apache-2.0 |
 | liquid-glass | MIT |
 
 The complete license texts distributed with the application are generated at

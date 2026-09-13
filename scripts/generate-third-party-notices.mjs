@@ -43,6 +43,18 @@ const notices = Object.keys(appPackage.dependencies)
 
 notices.push(
   formatNotice({
+    license: "Apache-2.0",
+    licenseText: fs
+      .readFileSync(path.join(root, "node_modules", "sharp", "LICENSE"), "utf8")
+      .trim(),
+    name: "ZXing-C++",
+    source: "https://github.com/zxing-cpp/zxing-cpp",
+    version: "embedded in zxing-wasm 3.1.4",
+  }),
+);
+
+notices.push(
+  formatNotice({
     license: "MIT",
     licenseText: `MIT License
 

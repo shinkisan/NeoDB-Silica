@@ -102,3 +102,103 @@ test("home PWA scan shortcut opens and closes the ISBN scanner", async ({
   await expect(page).toHaveURL("/");
   expect(pageErrors).toEqual([]);
 });
+
+test("ISBN scanner falls back to WASM when BarcodeDetector is unavailable", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "BarcodeDetector", {
+      configurable: true,
+      value: undefined,
+    });
+
+    const leftPatterns = {
+      L: [
+        "0001101",
+        "0011001",
+        "0010011",
+        "0111101",
+        "0100011",
+        "0110001",
+        "0101111",
+        "0111011",
+        "0110111",
+        "0001011",
+      ],
+      G: [
+        "0100111",
+        "0110011",
+        "0011011",
+        "0100001",
+        "0011101",
+        "0111001",
+        "0000101",
+        "0010001",
+        "0001001",
+        "0010111",
+      ],
+    } as const;
+    const rightPatterns = [
+      "1110010",
+      "1100110",
+      "1101100",
+      "1000010",
+      "1011100",
+      "1001110",
+      "1010000",
+      "1000100",
+      "1001000",
+      "1110100",
+    ];
+    const isbn = "9780000000002";
+    const parity = "LGGLGL";
+    const left = isbn
+      .slice(1, 7)
+      .split("")
+      .map((digit, index) =>
+        leftPatterns[parity[index] as "L" | "G"][Number(digit)],
+      )
+      .join("");
+    const right = isbn
+      .slice(7)
+      .split("")
+      .map((digit) => rightPatterns[Number(digit)])
+      .join("");
+    const modules = `101${left}01010${right}101`;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d")!;
+    const moduleWidth = 4;
+    const barcodeWidth = modules.length * moduleWidth;
+    const barcodeX = (720 - barcodeWidth) / 2;
+
+    canvas.width = 720;
+    canvas.height = 480;
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "black";
+
+    for (const [index, module] of [...modules].entries()) {
+      if (module === "1") {
+        context.fillRect(barcodeX + index * moduleWidth, 130, moduleWidth, 220);
+      }
+    }
+
+    const stream = canvas.captureStream(5);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: {
+        getUserMedia: async () => stream,
+      },
+    });
+
+    // Keep the canvas alive for the duration of the synthetic camera stream.
+    Object.assign(window, { __appIsbnScannerCanvas: canvas });
+  });
+
+  await page.goto("/?shortcut=scan-book");
+
+  await expect(page).toHaveURL(
+    "/search?q=9780000000002&category=book",
+    { timeout: 30_000 },
+  );
+});

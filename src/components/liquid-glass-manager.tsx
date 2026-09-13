@@ -14,9 +14,44 @@ import { getDisplacementFilter } from "@/lib/liquid-glass";
 
 let cachedSupport: boolean | null = null;
 
+type NavigatorWithUserAgentData = Navigator & {
+  userAgentData?: {
+    brands?: Array<{ brand: string }>;
+  };
+};
+
+function usesChromiumEngine() {
+  if (typeof navigator === "undefined") return false;
+
+  // Every browser on iOS/iPadOS uses WebKit, even when its product name is
+  // Chrome, Edge, Firefox, or Opera.
+  if (/(?:CriOS|EdgiOS|FxiOS|OPiOS)\//.test(navigator.userAgent)) {
+    return false;
+  }
+
+  const brands = (navigator as NavigatorWithUserAgentData).userAgentData
+    ?.brands;
+  if (
+    brands?.some(({ brand }) =>
+      /^(?:Chromium|Google Chrome|Microsoft Edge)$/.test(brand),
+    )
+  ) {
+    return true;
+  }
+
+  return /(?:Chrome|Chromium|Edg|OPR)\//.test(navigator.userAgent);
+}
+
 function supportsBackdropFilterUrl() {
   if (cachedSupport !== null) return cachedSupport;
-  if (typeof document === "undefined") return false;
+  if (typeof document === "undefined" || !usesChromiumEngine()) {
+    cachedSupport = false;
+    return cachedSupport;
+  }
+
+  // WebKit accepts this declaration syntactically but currently drops the
+  // complete backdrop filter at paint time. Restrict the rendering upgrade to
+  // Blink before using parsing as the final capability check.
   const probe = document.createElement("div");
   probe.style.cssText = "backdrop-filter: url(#test)";
   cachedSupport =
