@@ -122,8 +122,14 @@ export function TopBarIsland({
         const isInteractiveTarget =
           target instanceof Element &&
           target.closest("button, a, [role='button']") !== null;
+        // A menu opened from the island renders inside it; swelling the island
+        // would scale the open menu too and shift options under the pointer.
+        const isInsidePopover =
+          target instanceof Element &&
+          target.closest(".action-menu-popover, [role='listbox'], [role='menu']") !==
+            null;
 
-        if (isInteractiveTarget && isPrimaryPress(event)) {
+        if (isInteractiveTarget && !isInsidePopover && isPrimaryPress(event)) {
           beginPress(event.currentTarget);
         }
       }}
