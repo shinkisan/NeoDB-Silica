@@ -1,15 +1,19 @@
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
+
 export default function Loading() {
   return (
     <main className="min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)]">
-      <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-2xl items-center gap-3 lg:max-w-4xl">
+      <FloatingTopBar className="fixed inset-x-0 top-0 z-[60]" rowClassName="max-w-2xl lg:max-w-4xl">
+        <TopBarIsland>
           <div className="grid size-10 place-items-center rounded-full text-[#44474c]">
             <CloseIcon />
           </div>
+        </TopBarIsland>
+        <div className="flex min-w-0 flex-1 justify-center">
           <Skeleton className="h-5 w-24 rounded-full" />
-          <div aria-hidden="true" className="ml-auto size-10 shrink-0" />
         </div>
-      </header>
+        <div aria-hidden="true" className="ml-auto size-10 shrink-0" />
+      </FloatingTopBar>
       <section className="mx-auto max-w-2xl space-y-4">
         <div className="flex items-center justify-between gap-4 px-1">
           <Skeleton className="h-4 w-24 rounded-full" />

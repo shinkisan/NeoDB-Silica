@@ -4,7 +4,9 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom";
 import { useT } from "@/components/use-t";
 import { useTopBarContextVisibility } from "@/components/use-top-bar-context-visibility";
-import { BackToTopButton } from "@/components/back-to-top";
+import { TopBarAvatarButton } from "@/components/top-bar-avatar-button";
+import { TopBarIsland } from "@/components/floating-top-bar";
+import topBarStyles from "@/components/floating-top-bar.module.css";
 import { showToast } from "@/components/app-toast";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ActionMenu } from "@/components/action-menu";
@@ -56,8 +58,6 @@ const USER_PROFILE_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:user-profile:scroll:`;
 const USER_PROFILE_RESTORE_PREFIX = `${STORAGE_PREFIX}v1:user-profile:restore:`;
 const USER_PROFILE_CACHE_PREFIX = `${STORAGE_PREFIX}v12:user-profile-cache:`;
 const USER_PROFILE_ACTIVITY_ID = "recent-activity";
-const USER_PROFILE_ACTIVITY_TOP_OFFSET = 80;
-const USER_PROFILE_ACTIVITY_VISIBILITY_EPSILON = 2;
 
 type UserProfileCacheEntry = {
   account: AccountProfile;
@@ -113,44 +113,6 @@ export function UserProfilePage({ id }: { id: string }) {
   const [nextMaxId, setNextMaxId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasScrolledPastActivityStart, setHasScrolledPastActivityStart] =
-    useState(false);
-
-  useEffect(() => {
-    let frame = 0;
-
-    function evaluate() {
-      frame = 0;
-      const target = document.getElementById(USER_PROFILE_ACTIVITY_ID);
-      if (!target) {
-        setHasScrolledPastActivityStart(false);
-        return;
-      }
-
-      const top = target.getBoundingClientRect().top;
-      setHasScrolledPastActivityStart(
-        top <
-          USER_PROFILE_ACTIVITY_TOP_OFFSET -
-            USER_PROFILE_ACTIVITY_VISIBILITY_EPSILON,
-      );
-    }
-
-    function onScroll() {
-      if (frame) return;
-      frame = window.requestAnimationFrame(evaluate);
-    }
-
-    queueMicrotask(evaluate);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
   useEffect(() => {
     let cancelled = false;
     const cached = readUserProfileCache(id);
@@ -383,7 +345,11 @@ export function UserProfilePage({ id }: { id: string }) {
           ) : accountState === "error" || !account ? (
             <UserProfileEmptyState text={t("userProfile.loadError")} />
           ) : (
-            <UserProfileHeader account={account} onBioChange={handleBioChange} />
+            <UserProfileHeader
+              account={account}
+              onBioChange={handleBioChange}
+              onRelationshipChange={handleRelationshipChange}
+            />
           )}
 
           {accountState === "ready" && account ? (
@@ -409,7 +375,7 @@ export function UserProfilePage({ id }: { id: string }) {
                   {hasMore ? (
                     <div className="mt-5 flex justify-center">
                       <button
-                        className="h-10 rounded-full border border-white/70 bg-white/60 px-5 text-sm font-bold text-[#44474c] shadow-sm transition hover:bg-white/80 active:scale-95 disabled:cursor-wait disabled:text-[#a4a6ad]"
+                        className="h-10 rounded-full border border-white/70 bg-white/60 px-5 text-sm font-bold text-[#44474c] shadow-sm transition hover:bg-white/80 press-control disabled:cursor-wait disabled:text-[#a4a6ad]"
                         disabled={isLoadingMore}
                         onClick={loadMoreActivity}
                         type="button"
@@ -424,21 +390,6 @@ export function UserProfilePage({ id }: { id: string }) {
           ) : null}
         </section>
       </main>
-      <BackToTopButton
-        compactVisible={hasScrolledPastActivityStart}
-        compactTop="5rem"
-        onBackToTop={() => {
-          const target = document.getElementById(USER_PROFILE_ACTIVITY_ID);
-          if (!target) return;
-          const top =
-            window.scrollY +
-            target.getBoundingClientRect().top -
-            USER_PROFILE_ACTIVITY_TOP_OFFSET;
-          window.scrollTo({ behavior: "smooth", top: Math.max(0, top) });
-        }}
-        wideRight="max(1.25rem, calc(50vw - 27rem))"
-        wideVisible={hasScrolledPastActivityStart}
-      />
     </>
   );
 }
@@ -454,113 +405,37 @@ function UserProfileTopBar({
     next: Partial<Pick<AccountProfile, "blocking" | "followedBy" | "following" | "requested">>,
   ) => void;
 }) {
+  const t = useT();
   const isSummaryVisible = useTopBarContextVisibility({
     contextKey: account?.id || "loading",
     selector: account ? "[data-user-profile-context-title]" : undefined,
   });
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-      <div className="mx-auto flex h-16 max-w-2xl items-center gap-3">
-        <CloseDetailButton onBeforeClose={onBeforeClose} />
+    <header className={`${topBarStyles.bar} fixed inset-x-0 top-0 z-[60] px-4 sm:px-5`}>
+      <div aria-hidden="true" className={topBarStyles.backdrop} />
+      <div className="relative z-10 mx-auto flex h-16 max-w-2xl items-center justify-between gap-3">
+        <TopBarIsland>
+          <CloseDetailButton onBeforeClose={onBeforeClose} />
+        </TopBarIsland>
         {account ? (
-          <TopBarAccountSummary
-            avatar={account.avatar}
-            displayName={account.displayName}
-            emojis={account.emojis}
+          <TopBarAvatarButton
+            alt={account.displayName}
+            fallback={account.displayName.slice(0, 1)}
             isVisible={isSummaryVisible}
+            label={`${t("timeline.backToTop")} · ${account.displayName}`}
+            src={account.avatar}
           />
-        ) : (
-          <div className="min-w-0 flex-1" />
-        )}
-        {account && (!account.isSelf || account.links.length > 0) ? (
-          <div className="flex shrink-0 items-center gap-1">
-            {!account.isSelf ? (
-              <FollowButton account={account} onChange={onRelationshipChange} />
-            ) : null}
-            <AccountMoreMenu account={account} onChange={onRelationshipChange} />
-          </div>
         ) : null}
+        {account && (!account.isSelf || account.links.length > 0) ? (
+          <TopBarIsland className="flex h-10 items-center">
+            <AccountMoreMenu account={account} onChange={onRelationshipChange} />
+          </TopBarIsland>
+        ) : (
+          <div aria-hidden="true" className="size-10 shrink-0" />
+        )}
       </div>
     </header>
-  );
-}
-
-function TopBarAccountSummary({
-  avatar,
-  displayName,
-  emojis,
-  isVisible,
-}: {
-  avatar: string;
-  displayName: string;
-  emojis: MastodonEmoji[];
-  isVisible: boolean;
-}) {
-  const frameRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLSpanElement>(null);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-
-  useEffect(() => {
-    function measureTitle() {
-      const frame = frameRef.current;
-      const titleNode = titleRef.current;
-
-      if (!frame || !titleNode) {
-        return;
-      }
-
-      setIsOverflowing(titleNode.scrollWidth > frame.clientWidth);
-    }
-
-    measureTitle();
-
-    const observer = new ResizeObserver(measureTitle);
-
-    if (frameRef.current) {
-      observer.observe(frameRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [displayName]);
-
-  const renderedName = renderTextWithEmoji(displayName, emojis);
-
-  return (
-    <div
-      aria-hidden={!isVisible}
-      className={`flex min-w-0 flex-1 items-center gap-2.5 transition-[opacity,transform] duration-200 ease-out ${
-        isVisible
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none -translate-y-2 opacity-0"
-      }`}
-    >
-      <TopBarAvatar avatar={avatar} displayName={displayName} />
-      <div
-        className="relative min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm font-bold text-[#1a1c1e]"
-        ref={frameRef}
-      >
-        {isOverflowing ? (
-          <span className="detail-title-marquee inline-flex">
-            <span className="pr-6">{renderedName}</span>
-            <span aria-hidden="true" className="pr-6">
-              {renderedName}
-            </span>
-          </span>
-        ) : (
-          <span>{renderedName}</span>
-        )}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none invisible absolute whitespace-nowrap"
-          ref={titleRef}
-        >
-          {renderedName}
-        </span>
-      </div>
-    </div>
   );
 }
 
@@ -622,7 +497,7 @@ function AccountMoreMenu({
   return (
     <>
       <ActionMenu
-        buttonClassName="size-8 -mr-4"
+        buttonClassName="size-10"
         items={[
           {
             icon: <ShareIcon />,
@@ -741,32 +616,6 @@ function BlockIcon() {
   );
 }
 
-function TopBarAvatar({
-  avatar,
-  displayName,
-}: {
-  avatar: string;
-  displayName: string;
-}) {
-  const [avatarFailed, setAvatarFailed] = useState(false);
-
-  return (
-    <div className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full border border-white/70 bg-[#dde3eb] text-xs font-bold text-[#333e50]">
-      {avatar && !avatarFailed ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          alt=""
-          className="size-full object-cover"
-          onError={() => setAvatarFailed(true)}
-          src={avatar}
-        />
-      ) : (
-        displayName.slice(0, 1)
-      )}
-    </div>
-  );
-}
-
 function FollowButton({
   account,
   onChange,
@@ -822,7 +671,7 @@ function FollowButton({
     <>
       {account.following ? (
         <button
-          className="h-9 shrink-0 rounded-full border border-[#c5c6cd]/70 bg-white/55 px-4 text-xs font-bold text-[#44474c] transition hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-10 rounded-full border border-white/70 bg-white/60 px-6 text-sm font-bold text-[#44474c] shadow-sm transition hover:bg-white/80 press-control disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isBusy}
           onClick={() => setIsConfirmOpen(true)}
           type="button"
@@ -831,7 +680,7 @@ function FollowButton({
         </button>
       ) : (
         <button
-          className="h-9 shrink-0 rounded-full bg-[var(--theme-primary)] px-4 text-xs font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-10 rounded-full bg-[var(--theme-primary)] px-6 text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-control disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isBusy}
           onClick={() => void submit("follow")}
           type="button"
@@ -862,9 +711,13 @@ function FollowButton({
 function UserProfileHeader({
   account,
   onBioChange,
+  onRelationshipChange,
 }: {
   account: AccountProfile;
   onBioChange: (nextBio: string) => void;
+  onRelationshipChange: (
+    next: Partial<Pick<AccountProfile, "following" | "requested">>,
+  ) => void;
 }) {
   const t = useT();
   const [avatarFailed, setAvatarFailed] = useState(false);
@@ -896,6 +749,11 @@ function UserProfileHeader({
       <p className="mt-1 max-w-sm text-sm font-semibold text-[#75777d]">
         {formatAccountHandle(account.acct || account.username)}
       </p>
+      {account.isSelf ? null : (
+        <div className="mt-5">
+          <FollowButton account={account} onChange={onRelationshipChange} />
+        </div>
+      )}
       {account.bio || account.isSelf ? (
         <p className="mt-4 w-full max-w-full whitespace-pre-line break-words px-4 text-left text-sm leading-6 text-[#44474c] [overflow-wrap:anywhere] sm:px-5">
           {account.bio ? (
@@ -957,7 +815,7 @@ function BioEditButton({
     <>
       <button
         aria-label={t("userProfile.editBio")}
-        className="ml-1.5 inline-grid size-5 place-items-center rounded-full border border-white/70 bg-white/60 align-[-0.18em] text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+        className="ml-1.5 inline-grid size-5 place-items-center rounded-full border border-white/70 bg-white/60 align-[-0.18em] text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
         onClick={() => {
           setDraft(bio);
           setIsOpen(true);
@@ -1022,7 +880,7 @@ function BioDialog({
           </h2>
           <button
             aria-label={t("userProfile.editBioClose")}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
             onClick={onClose}
             type="button"
           >
@@ -1039,7 +897,7 @@ function BioDialog({
         />
 
         <button
-          className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] active:scale-[0.98] disabled:cursor-wait disabled:bg-[#c1c7cf]"
+          className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-control disabled:cursor-wait disabled:bg-[#c1c7cf]"
           disabled={status === "saving"}
           onClick={onSave}
           type="button"

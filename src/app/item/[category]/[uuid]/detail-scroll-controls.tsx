@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { BackToTopButton } from "@/components/back-to-top";
+import { useEffect } from "react";
 import { DETAIL_SCROLL_TOP_PREFIX } from "@/lib/detail-scroll";
 import {
   DETAIL_COMMUNITY_TAB_PREFIX,
@@ -9,9 +8,6 @@ import {
   DETAIL_RESTORE_PREFIX,
   DETAIL_SCROLL_PREFIX,
 } from "./detail-state";
-
-const DETAIL_TOP_BAR_OFFSET = 80;
-const DETAIL_SECTION_VISIBILITY_EPSILON = 2;
 
 export function DetailScrollRestorer({ itemUuid }: { itemUuid: string }) {
   useEffect(() => {
@@ -88,51 +84,6 @@ export function DetailPageStateReset({ itemUuid }: { itemUuid: string }) {
   return null;
 }
 
-export function DetailBackToTop() {
-  const [hasScrolledPastCommentsStart, setHasScrolledPastCommentsStart] =
-    useState(false);
-
-  useEffect(() => {
-    let frame = 0;
-
-    function evaluate() {
-      frame = 0;
-      const target = document.getElementById("comments");
-      setHasScrolledPastCommentsStart(
-        Boolean(
-          target &&
-            target.getBoundingClientRect().top <
-              DETAIL_TOP_BAR_OFFSET - DETAIL_SECTION_VISIBILITY_EPSILON,
-        ),
-      );
-    }
-
-    function onScroll() {
-      if (frame) return;
-      frame = window.requestAnimationFrame(evaluate);
-    }
-
-    queueMicrotask(evaluate);
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  return (
-    <BackToTopButton
-      compactTop="5rem"
-      compactVisible={hasScrolledPastCommentsStart}
-      onBackToTop={scrollToCommentsTop}
-      wideBottom="6.5rem"
-      wideRight="max(1.25rem, calc(50vw - 34rem))"
-      wideVisible={hasScrolledPastCommentsStart}
-    />
-  );
-}
-
 export function saveCurrentDetailScroll(itemUuid: string) {
   saveDetailScroll(itemUuid);
   window.sessionStorage.setItem(`${DETAIL_RESTORE_PREFIX}${itemUuid}`, "1");
@@ -157,18 +108,4 @@ export function saveDetailCommunityTab(
   tab: "comments" | "reviews",
 ) {
   window.sessionStorage.setItem(`${DETAIL_COMMUNITY_TAB_PREFIX}${itemUuid}`, tab);
-}
-
-function scrollToCommentsTop() {
-  const target = document.getElementById("comments");
-
-  if (!target) {
-    window.scrollTo({ behavior: "smooth", top: 0 });
-    return;
-  }
-
-  const targetTop =
-    target.getBoundingClientRect().top + window.scrollY - DETAIL_TOP_BAR_OFFSET;
-
-  window.scrollTo({ behavior: "smooth", top: Math.max(targetTop, 0) });
 }

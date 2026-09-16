@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   performNavigationClose,
   pushNavigationFrame,
@@ -10,7 +10,9 @@ import {
   resolveDetailCloseAction,
 } from "@/components/navigation-history";
 import { PaginationPill } from "@/components/pagination-pill";
-import { useTopBarContextVisibility } from "@/components/use-top-bar-context-visibility";
+import { registerLiquidGlass } from "@/components/liquid-glass-manager";
+import { TopBarTitle } from "@/components/floating-top-bar";
+import topBarStyles from "@/components/floating-top-bar.module.css";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
 import { preserveVersionsScroll } from "./versions-scroll";
 
@@ -30,96 +32,37 @@ export function VersionsTopBar({
   title: string;
 }) {
   const router = useRouter();
-  const isTitleVisible = useTopBarContextVisibility({
-    contextKey: contextKey || title,
-    selector: contextSelector,
-  });
-
   return (
-    <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-      <div className="mx-auto flex h-16 max-w-2xl items-center gap-3 lg:max-w-4xl">
-        <button
-          aria-label="关闭版本页"
-          className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
-          onClick={(event) => {
-            event.currentTarget.disabled = true;
-            performNavigationClose(resolveDetailCloseAction(), router);
-          }}
-          type="button"
+    <header className={`${topBarStyles.bar} fixed inset-x-0 top-0 z-[60] px-4 sm:px-5`}>
+      <div aria-hidden="true" className={topBarStyles.backdrop} />
+      <div className="relative z-10 mx-auto flex h-16 max-w-2xl items-center gap-3 lg:max-w-4xl">
+        <div
+          className={`${topBarStyles.glassIsland} liquid-glass relative shrink-0 rounded-full border border-white/50`}
+          data-lg-cab="2"
+          data-lg-depth="4"
+          data-lg-strength="34"
+          ref={registerLiquidGlass}
         >
-          <CloseIcon />
-        </button>
-        <VersionsTopBarTitle isVisible={isTitleVisible} title={title} />
+          <button
+            aria-label="关闭版本页"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon disabled:cursor-default"
+            onClick={(event) => {
+              event.currentTarget.disabled = true;
+              performNavigationClose(resolveDetailCloseAction(), router);
+            }}
+            type="button"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+        <TopBarTitle
+          contextKey={contextKey}
+          contextSelector={contextSelector}
+          title={title}
+        />
         <div aria-hidden="true" className="size-10 shrink-0" />
       </div>
     </header>
-  );
-}
-
-function VersionsTopBarTitle({
-  isVisible,
-  title,
-}: {
-  isVisible: boolean;
-  title: string;
-}) {
-  const frameRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLSpanElement>(null);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-
-  useEffect(() => {
-    function measureTitle() {
-      const frame = frameRef.current;
-      const titleNode = titleRef.current;
-
-      if (!frame || !titleNode) {
-        return;
-      }
-
-      setIsOverflowing(titleNode.scrollWidth > frame.clientWidth);
-    }
-
-    measureTitle();
-
-    const observer = new ResizeObserver(measureTitle);
-
-    if (frameRef.current) {
-      observer.observe(frameRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [title]);
-
-  return (
-    <div
-      aria-hidden={!isVisible}
-      className={`relative min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base font-bold text-[var(--foreground)] transition-[opacity,transform] duration-200 ease-out ${
-        isVisible
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none -translate-y-2 opacity-0"
-      }`}
-      ref={frameRef}
-    >
-      {isOverflowing ? (
-        <span className="detail-title-marquee inline-flex">
-          <span className="pr-6">{title}</span>
-          <span aria-hidden="true" className="pr-6">
-            {title}
-          </span>
-        </span>
-      ) : (
-        <span>{title}</span>
-      )}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none invisible absolute whitespace-nowrap"
-        ref={titleRef}
-      >
-        {title}
-      </span>
-    </div>
   );
 }
 

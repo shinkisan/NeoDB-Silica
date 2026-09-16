@@ -92,10 +92,10 @@ export function BoostButton({
 
   const buttonClass =
     variant === "icon"
-      ? `inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full px-1.5 text-xs font-semibold transition hover:bg-white/70 hover:text-[var(--foreground)] active:scale-95 aria-disabled:opacity-45 ${
+      ? `inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full px-1.5 text-xs font-semibold transition hover:bg-white/70 hover:text-[var(--foreground)] press-control aria-disabled:opacity-45 ${
           isReblogged ? "text-[var(--theme-primary)]" : "text-[#75777d]"
         }`
-      : `inline-flex min-w-6 items-center gap-1 text-xs font-semibold transition active:scale-95 aria-disabled:opacity-45 ${
+      : `inline-flex min-w-6 items-center gap-1 text-xs font-semibold transition press-control aria-disabled:opacity-45 ${
           isReblogged
             ? "text-[var(--theme-primary)]"
             : "text-[#75777d] hover:text-[#333e50]"

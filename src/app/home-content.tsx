@@ -1028,7 +1028,7 @@ function HomeContent({
             {query ? (
               <button
                 aria-label={t("home.clearSearch")}
-                className="grid size-9 shrink-0 place-items-center rounded-full text-[#75777d] transition hover:bg-white/60 hover:text-[#333e50] active:scale-95"
+                className="grid size-9 shrink-0 place-items-center rounded-full text-[#75777d] transition hover:bg-white/60 hover:text-[#333e50] press-icon"
                 onClick={() => {
                   setQuery("");
                   setHistoryItems(readSearchHistory());
@@ -1114,7 +1114,7 @@ function HomeContent({
           <button
             aria-disabled={isRefreshUnsupported}
             aria-label={t("home.refreshCategory")}
-            className={`grid size-9 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 shadow-sm backdrop-blur transition active:scale-95 disabled:cursor-wait disabled:text-[#a4a6ad] ${
+            className={`grid size-9 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 shadow-sm backdrop-blur transition press-icon disabled:cursor-wait disabled:text-[#a4a6ad] ${
               isRefreshUnsupported
                 ? "cursor-not-allowed text-[#a4a6ad]"
                 : "text-[#44474c] hover:bg-white/80"
@@ -1129,7 +1129,7 @@ function HomeContent({
           </button>
           <button
             aria-label={t("profile.appearance.homeTagOrder.button")}
-            className="grid size-9 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-sm backdrop-blur transition hover:bg-white/80 active:scale-95"
+            className="grid size-9 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-sm backdrop-blur transition hover:bg-white/80 press-icon"
             onClick={() => setIsTagOrderOpen(true)}
             type="button"
           >
@@ -1452,7 +1452,7 @@ function ItemCard({
     const collectionPath = `/collection/${encodeURIComponent(item.id)}`;
 
     return (
-      <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 active:scale-[0.98]">
+      <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 press-card">
         <Link
           className="block"
           href={collectionPath}
@@ -1481,7 +1481,7 @@ function ItemCard({
   const detailPath = `${baseDetailPath}?fromCategory=${encodeURIComponent(returnCategory)}`;
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 active:scale-[0.98]">
+    <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 press-card">
       <Link
         className="block"
         href={detailPath}
@@ -1694,7 +1694,7 @@ function CollectionListRail({ children }: { children: React.ReactNode }) {
       {canScrollLeft ? (
         <button
           aria-label={t("horizontalScroll.scrollLeft")}
-          className="absolute left-2 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/60 bg-white/50 text-[#44474c] shadow-lg shadow-slate-900/10 backdrop-blur-2xl transition hover:bg-white/70 active:scale-95 dark:border-white/15 dark:bg-[#2c2c2c]/70 dark:text-[#f1f1f1]"
+          className="absolute left-2 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/60 bg-white/50 text-[#44474c] shadow-lg shadow-slate-900/10 backdrop-blur-2xl transition hover:bg-white/70 press-icon dark:border-white/15 dark:bg-[#2c2c2c]/70 dark:text-[#f1f1f1]"
           onClick={() => scrollByDirection(-1)}
           type="button"
         >
@@ -1705,7 +1705,7 @@ function CollectionListRail({ children }: { children: React.ReactNode }) {
       {canScrollRight ? (
         <button
           aria-label={t("horizontalScroll.scrollRight")}
-          className="absolute right-2 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/60 bg-white/50 text-[#44474c] shadow-lg shadow-slate-900/10 backdrop-blur-2xl transition hover:bg-white/70 active:scale-95 dark:border-white/15 dark:bg-[#2c2c2c]/70 dark:text-[#f1f1f1]"
+          className="absolute right-2 top-1/2 z-20 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/60 bg-white/50 text-[#44474c] shadow-lg shadow-slate-900/10 backdrop-blur-2xl transition hover:bg-white/70 press-icon dark:border-white/15 dark:bg-[#2c2c2c]/70 dark:text-[#f1f1f1]"
           onClick={() => scrollByDirection(1)}
           type="button"
         >

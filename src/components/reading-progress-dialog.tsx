@@ -351,7 +351,7 @@ export function ReadingProgressDialog({
             <div className="mt-2 flex items-center justify-center gap-1.5">
               <button
                 aria-label={t("mark.readingProgress.decreasePercentage")}
-                className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 press-icon disabled:cursor-not-allowed disabled:opacity-40"
                 disabled={percentageValue <= 0}
                 onClick={() => setValue(String(percentageValue - 1))}
                 type="button"
@@ -392,7 +392,7 @@ export function ReadingProgressDialog({
               </div>
               <button
                 aria-label={t("mark.readingProgress.increasePercentage")}
-                className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex size-8 items-center justify-center rounded-full border border-white/70 bg-white/55 text-lg font-semibold leading-none text-[var(--foreground)] shadow-sm transition hover:bg-white/75 press-icon disabled:cursor-not-allowed disabled:opacity-40"
                 disabled={percentageValue >= 100}
                 onClick={() => setValue(String(percentageValue + 1))}
                 type="button"

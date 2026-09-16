@@ -172,7 +172,7 @@ export default async function CollectionPage({
 
                 return (
                   <article
-                    className="relative rounded-2xl border border-white/70 bg-white/60 p-3 shadow-lg shadow-slate-900/5 transition hover:bg-white/75 active:scale-[0.99]"
+                    className="relative rounded-2xl border border-white/70 bg-white/60 p-3 shadow-lg shadow-slate-900/5 transition hover:bg-white/75 press-card"
                     key={`${item.id}-${index}`}
                   >
                     {canEditCollection ? (

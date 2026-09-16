@@ -23,7 +23,7 @@ export function CacheControlButton() {
   return (
     <div className="relative">
       <button
-        className="rounded-full border border-white/70 bg-white/45 px-4 py-1.5 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 active:scale-95"
+        className="rounded-full border border-white/70 bg-white/45 px-4 py-1.5 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 press-control"
         onClick={() => setIsConfirmOpen(true)}
         type="button"
       >

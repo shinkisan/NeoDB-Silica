@@ -1,13 +1,21 @@
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
+
 export function NotificationsLoading() {
   return (
     <main className="min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)] lg:pl-32 lg:pr-8">
       <section className="mx-auto w-full max-w-2xl">
-        <div className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl lg:pl-32 lg:pr-8">
-          <div className="mx-auto flex h-16 max-w-2xl items-center gap-3">
+        <FloatingTopBar
+          className="fixed inset-x-0 top-0 z-[60] lg:pl-32 lg:pr-8"
+          rowClassName="max-w-2xl"
+        >
+          <TopBarIsland>
             <div className="size-10 rounded-full bg-white/50" />
+          </TopBarIsland>
+          <div className="flex min-w-0 flex-1 justify-center">
             <div className="h-5 w-20 rounded-full bg-white/50" />
           </div>
-        </div>
+          <div aria-hidden="true" className="size-10 shrink-0" />
+        </FloatingTopBar>
         <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/70 shadow-lg shadow-slate-900/5">
           {Array.from({ length: 6 }, (_, index) => (
             <div

@@ -40,7 +40,7 @@ export function LogoutButton() {
   return (
     <>
       <button
-        className="mx-auto inline-flex items-center justify-center px-4 py-2 text-sm font-bold text-red-700 transition hover:text-red-800 active:scale-95 disabled:cursor-wait disabled:text-[#a4a6ad]"
+        className="mx-auto inline-flex items-center justify-center px-4 py-2 text-sm font-bold text-red-700 transition hover:text-red-800 press-control disabled:cursor-wait disabled:text-[#a4a6ad]"
         disabled={isLoggingOut}
         onClick={() => setIsConfirmOpen(true)}
         type="button"

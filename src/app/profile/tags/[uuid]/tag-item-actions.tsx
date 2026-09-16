@@ -61,7 +61,7 @@ export function TagItemActions({
       <div className="absolute right-2 top-2 z-10">
         <button
           aria-label={t("profile.myTags.deleteItem")}
-          className="grid size-9 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/45 active:scale-95"
+          className="grid size-9 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/45 press-icon"
           onClick={() => setIsDeleteOpen(true)}
           type="button"
         >

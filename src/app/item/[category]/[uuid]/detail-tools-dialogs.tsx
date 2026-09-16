@@ -41,7 +41,7 @@ export function TrackListDialog({
           </div>
           <button
             aria-label={t("detail.tools.closeTrackList")}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
             onClick={onClose}
             type="button"
           >
@@ -189,7 +189,7 @@ export function AddToCollectionDialog({
           </div>
           <button
             aria-label={t("detail.tools.closeCollectionDialog")}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
             onClick={onClose}
             type="button"
           >
@@ -210,7 +210,7 @@ export function AddToCollectionDialog({
         </div>
 
         <button
-          className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#c1c7cf]"
+          className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-control disabled:cursor-not-allowed disabled:bg-[#c1c7cf]"
           disabled={status === "loading" || isSaving}
           onClick={addToCollection}
           type="button"

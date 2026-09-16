@@ -30,7 +30,7 @@ export function IsbnScannerButton({
     <>
       <button
         aria-label={t("search.isbnScanner.open")}
-        className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/60 hover:text-[#333e50] active:scale-95"
+        className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/60 hover:text-[#333e50] press-icon"
         onClick={() => setIsOpen(true)}
         type="button"
       >
@@ -207,7 +207,7 @@ function IsbnScannerDialog({
           </div>
           <button
             aria-label={t("search.isbnScanner.close")}
-            className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+            className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
             onClick={onClose}
             type="button"
           >

@@ -179,7 +179,7 @@ export function Dropdown({
         aria-expanded={isOpen && !isClosing}
         aria-haspopup="listbox"
         aria-label={ariaLabel}
-        className={`relative z-[90] inline-flex h-9 items-center gap-2 rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${buttonClassName}`}
+        className={`relative z-[90] inline-flex h-9 items-center gap-2 rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 press-control disabled:cursor-not-allowed disabled:opacity-60 ${buttonClassName}`}
         disabled={disabled}
         onClick={() => {
           if (isOpen) {

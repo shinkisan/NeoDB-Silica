@@ -98,7 +98,7 @@ export function CommentTranslationButton({
     <button
       aria-label={t("community.translate")}
       aria-pressed={isExpanded}
-      className={`grid size-8 cursor-pointer place-items-center rounded-full transition hover:bg-white/70 hover:text-[var(--foreground)] active:scale-95 disabled:cursor-wait ${
+      className={`grid size-8 cursor-pointer place-items-center rounded-full transition hover:bg-white/70 hover:text-[var(--foreground)] press-icon disabled:cursor-wait ${
         isExpanded ? "text-[var(--foreground)]" : "text-[#75777d]"
       }`}
       disabled={isLoading}

@@ -297,7 +297,8 @@
       "badgeLabel": "View stills",
       "close": "Close stills",
       "previous": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "loading": "Loading still"
     },
     "spotify": {
       "title": "Listen on Spotify",
@@ -502,6 +503,7 @@
     "clickHint": "Tap a person to view related works",
     "empty": "No cast or crew information found yet.",
     "worksTitle": "Works by {name}",
+    "closeWorks": "Close person works",
     "noBiography": "No biography yet.",
     "expandBiography": "Show more",
     "collapseBiography": "Show less",

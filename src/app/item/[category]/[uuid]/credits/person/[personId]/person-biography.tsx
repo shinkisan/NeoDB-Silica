@@ -23,7 +23,7 @@ export function PersonBiography({ text }: { text: string }) {
       <div className="mt-4 text-sm leading-7 text-[#44474c]">
         <p className="whitespace-pre-line">{text}</p>
         <button
-          className="ml-auto mt-1 flex cursor-pointer items-center gap-1 text-sm font-bold text-[#75777d] transition hover:text-[var(--foreground)] active:scale-[0.99]"
+          className="ml-auto mt-1 flex cursor-pointer items-center gap-1 text-sm font-bold text-[#75777d] transition hover:text-[var(--foreground)] press-control"
           onClick={() => setIsExpanded(false)}
           type="button"
         >
@@ -38,7 +38,7 @@ export function PersonBiography({ text }: { text: string }) {
     <div className="relative mt-4 text-sm leading-7 text-[#44474c]">
       <p className="line-clamp-4 whitespace-pre-line">{text}</p>
       <button
-        className="ml-auto mt-1 flex cursor-pointer items-center gap-1 text-sm font-bold text-[#75777d] transition hover:text-[var(--foreground)] active:scale-[0.99]"
+        className="ml-auto mt-1 flex cursor-pointer items-center gap-1 text-sm font-bold text-[#75777d] transition hover:text-[var(--foreground)] press-control"
         onClick={() => setIsExpanded(true)}
         type="button"
       >

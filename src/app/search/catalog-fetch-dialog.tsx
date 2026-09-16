@@ -99,7 +99,7 @@ export function SearchCatalogPrompt({ initialUrl }: { initialUrl?: string }) {
   return (
     <>
       <button
-        className="mx-auto mt-4 block cursor-pointer text-center text-sm font-semibold text-[#75777d] transition active:scale-[0.99]"
+        className="mx-auto mt-4 block cursor-pointer text-center text-sm font-semibold text-[#75777d] transition press-control"
         onClick={() => setOpen(true)}
         type="button"
       >
@@ -348,7 +348,7 @@ export function CatalogFetchDialog({
           </h2>
           <button
             aria-label={t("search.catalogFetch.close")}
-            className="grid size-9 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95"
+            className="grid size-9 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon"
             onClick={closeDialog}
             type="button"
           >
@@ -395,7 +395,7 @@ export function CatalogFetchDialog({
                 {t("search.catalogFetch.cancel")}
               </button>
               <button
-                className="rounded-full bg-[var(--theme-primary)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--theme-primary-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full bg-[var(--theme-primary)] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--theme-primary-hover)] press-control disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={!url.trim()}
                 onClick={() => void startFetch()}
                 type="button"

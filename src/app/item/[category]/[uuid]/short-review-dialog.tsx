@@ -211,7 +211,7 @@ export function ShortReviewDialog({
           </h3>
           <button
             aria-label={t("shortReview.close")}
-            className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+            className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
             onClick={onClose}
             type="button"
           >
@@ -238,7 +238,7 @@ export function ShortReviewDialog({
                 return (
                   <button
                     aria-label={`${index + 1} 星`}
-                    className="grid size-11 place-items-center rounded-2xl transition hover:bg-white/70 active:scale-95"
+                    className="grid size-11 place-items-center rounded-2xl transition hover:bg-white/70 press-icon"
                     key={index}
                     onClick={(event) => {
                       onDraftRatingChange(getRatingFromPointer(event, index));
@@ -268,7 +268,7 @@ export function ShortReviewDialog({
         <div className="mt-3 flex items-center justify-between">
           <button
             aria-expanded={isMoreOpen}
-            className="inline-flex h-8 items-center gap-1 text-sm font-semibold text-[#75777d] transition hover:text-[var(--foreground)] active:scale-95"
+            className="inline-flex h-8 items-center gap-1 text-sm font-semibold text-[#75777d] transition hover:text-[var(--foreground)] press-control"
             onClick={() => setIsMoreOpen((value) => !value)}
             type="button"
           >
@@ -288,7 +288,7 @@ export function ShortReviewDialog({
             ) : null}
           </button>
           <button
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#c5c6cd] bg-white px-3 py-1.5 text-xs font-semibold text-[#333e50] shadow-sm transition hover:bg-[#f3f3f6] active:scale-95"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#c5c6cd] bg-white px-3 py-1.5 text-xs font-semibold text-[#333e50] shadow-sm transition hover:bg-[#f3f3f6] press-control"
             onClick={() => {
               const textarea = commentTextareaRef.current;
 
@@ -331,7 +331,7 @@ export function ShortReviewDialog({
                   {draftTags.map((tag) => (
                     <button
                       aria-label={t("shortReview.removeTag").replace("{tag}", tag)}
-                      className="relative inline-flex h-[30px] max-w-[70vw] shrink-0 items-center rounded-full border border-[#b2ccc1]/60 bg-[#cee8dd]/35 px-3 text-xs font-semibold leading-4 text-[var(--foreground)] transition hover:bg-[#cee8dd]/60 active:scale-95"
+                      className="relative inline-flex h-[30px] max-w-[70vw] shrink-0 items-center rounded-full border border-[#b2ccc1]/60 bg-[#cee8dd]/35 px-3 text-xs font-semibold leading-4 text-[var(--foreground)] transition hover:bg-[#cee8dd]/60 press-control"
                       key={tag}
                       onClick={() =>
                         onDraftTagsChange(draftTags.filter((value) => value !== tag))
@@ -348,7 +348,7 @@ export function ShortReviewDialog({
                     </button>
                   ))}
                   <button
-                    className="short-review-add-tag-button inline-flex h-[30px] max-w-[70vw] shrink-0 items-center rounded-full border bg-transparent px-3 text-xs font-semibold leading-4 transition active:scale-95"
+                    className="short-review-add-tag-button inline-flex h-[30px] max-w-[70vw] shrink-0 items-center rounded-full border bg-transparent px-3 text-xs font-semibold leading-4 transition press-control"
                     onClick={() => setIsTagDialogOpen(true)}
                     type="button"
                   >
@@ -395,7 +395,7 @@ export function ShortReviewDialog({
         ) : null}
 
         <button
-          className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#c1c7cf]"
+          className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-control disabled:cursor-not-allowed disabled:bg-[#c1c7cf]"
           disabled={status === "saving" || !hasSubmittableChanges}
           onClick={onSubmit}
           type="button"
@@ -436,7 +436,7 @@ export function ShortReviewDialog({
               </div>
               <button
                 aria-label={t("detail.hashtags.close")}
-                className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+                className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
                 onClick={() => setIsTagDialogOpen(false)}
                 type="button"
               >
@@ -465,7 +465,7 @@ export function ShortReviewDialog({
                 </p>
               ) : null}
               <button
-                className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#c1c7cf]"
+                className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-control disabled:cursor-not-allowed disabled:bg-[#c1c7cf]"
                 disabled={tagLoadStatus === "loading"}
                 onClick={addDraftTag}
                 type="button"

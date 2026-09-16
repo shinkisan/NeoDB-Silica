@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
 import { useT } from "@/components/use-t";
 import {
   DETAIL_EDITOR_RETURN_PREFIX,
@@ -40,18 +41,18 @@ export function ReviewLoadError({
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-4xl items-center">
+      <FloatingTopBar className="fixed inset-x-0 top-0 z-40" rowClassName="max-w-4xl">
+        <TopBarIsland>
           <button
             aria-label={t("reviewEditor.exit")}
-            className="grid size-10 place-items-center rounded-full text-[#75777d] transition hover:bg-white/60 hover:text-[#333e50] active:scale-95"
+            className="grid size-10 place-items-center rounded-full text-[#75777d] transition hover:bg-white/60 hover:text-[#333e50] press-icon"
             onClick={close}
             type="button"
           >
             <CloseIcon />
           </button>
-        </div>
-      </header>
+        </TopBarIsland>
+      </FloatingTopBar>
 
       <section className="mx-auto grid min-h-screen max-w-4xl place-items-center px-5 py-24">
         <div className="flex max-w-sm flex-col items-center text-center">
@@ -59,7 +60,7 @@ export function ReviewLoadError({
             {t("reviewEditor.loadError")}
           </p>
           <button
-            className="mt-5 rounded-full bg-[var(--theme-primary)] px-5 py-2 text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] active:scale-95"
+            className="mt-5 rounded-full bg-[var(--theme-primary)] px-5 py-2 text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-control"
             onClick={() => router.refresh()}
             type="button"
           >

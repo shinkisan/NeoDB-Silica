@@ -70,7 +70,7 @@ export function RatingDistributionBadge({
     <>
       <button
         aria-label={t("detail.ratingDistribution.open")}
-        className="inline-flex cursor-pointer select-none items-center gap-1 rounded-full transition [-webkit-touch-callout:none] hover:scale-[1.02] active:scale-95"
+        className="inline-flex cursor-pointer select-none items-center gap-1 rounded-full transition [-webkit-touch-callout:none] hover:scale-[1.02] press-control"
         onClick={() => {
           if (didLongPressRef.current) {
             didLongPressRef.current = false;
@@ -166,7 +166,7 @@ function RatingDistributionDialog({
           </div>
           <button
             aria-label={t("detail.ratingDistribution.close")}
-            className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/75 active:scale-95"
+            className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/75 press-icon"
             onClick={onClose}
             type="button"
           >

@@ -106,7 +106,7 @@ export function ActionMenu({
       <button
         aria-expanded={isOpen && !isClosing}
         aria-label={label}
-        className={`grid size-10 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-[0.98] ${buttonClassName}`}
+        className={`grid size-10 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon ${buttonClassName}`}
         onClick={() => {
           if (isOpen) {
             closeMenu();

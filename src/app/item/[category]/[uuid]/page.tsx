@@ -9,7 +9,6 @@ import {
   type DetailInitialMark,
 } from "./detail-chrome";
 import {
-  DetailBackToTop,
   DetailPageStateReset,
   DetailScrollRestorer,
 } from "./detail-scroll-controls";
@@ -242,7 +241,6 @@ export default async function DetailPage({ params }: DetailPageProps) {
           </div>
         </main>
         <ShortReviewFloatingButton initialMark={initialMark} itemUuid={item.uuid} />
-        <DetailBackToTop />
       </DetailCoverProvider>
     );
   }

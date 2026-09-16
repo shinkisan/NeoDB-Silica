@@ -1,3 +1,8 @@
+"use client";
+
+import { registerLiquidGlass } from "@/components/liquid-glass-manager";
+import topBarStyles from "@/components/floating-top-bar.module.css";
+
 export default function Loading() {
   return (
     <>
@@ -54,12 +59,18 @@ export default function Loading() {
 
 function PersonWorksLoadingTopBar() {
   return (
-    <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-      <div className="mx-auto flex h-16 max-w-2xl items-center gap-3 lg:max-w-4xl">
-        <div className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c]">
+    <header className={`${topBarStyles.bar} fixed inset-x-0 top-0 z-[60] px-4 sm:px-5`}>
+      <div aria-hidden="true" className={topBarStyles.backdrop} />
+      <div className="relative z-10 mx-auto flex h-16 max-w-2xl items-center justify-between gap-3 lg:max-w-4xl">
+        <div
+          className={`${topBarStyles.glassIsland} liquid-glass relative grid size-10 shrink-0 place-items-center rounded-full border border-white/50 text-[#44474c]`}
+          data-lg-cab="2"
+          data-lg-depth="4"
+          data-lg-strength="34"
+          ref={registerLiquidGlass}
+        >
           <CloseIcon />
         </div>
-        <div className="min-w-0 flex-1" />
         <div aria-hidden="true" className="size-10 shrink-0" />
       </div>
     </header>

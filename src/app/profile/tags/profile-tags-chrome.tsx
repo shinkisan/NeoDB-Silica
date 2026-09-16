@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
 import { useRouter } from "next/navigation";
 import { ActionMenu } from "@/components/action-menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -70,11 +71,11 @@ export function ProfileTagsTopBar({
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-2xl items-center gap-3 lg:max-w-4xl">
+      <FloatingTopBar className="fixed inset-x-0 top-0 z-[60]" rowClassName="max-w-2xl lg:max-w-4xl">
+        <TopBarIsland>
           <button
             aria-label={title}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon disabled:cursor-default"
             onClick={(event) => {
               event.currentTarget.disabled = true;
               router.push(backHref);
@@ -83,13 +84,15 @@ export function ProfileTagsTopBar({
           >
             <CloseIcon />
           </button>
-          <p className="min-w-0 flex-1 truncate text-base font-bold text-[var(--foreground)]">
-            {title}
-          </p>
-          {enableTagJump ? (
+        </TopBarIsland>
+        <p className="min-w-0 flex-1 truncate text-center text-base font-bold text-[var(--foreground)]">
+          {title}
+        </p>
+        {enableTagJump ? (
+          <TopBarIsland>
             <button
               aria-label={t("profile.myTags.jump")}
-              className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95"
+              className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon"
               onClick={() => {
                 setTagTitle("");
                 setTagJumpError("");
@@ -99,7 +102,9 @@ export function ProfileTagsTopBar({
             >
               <RocketIcon />
             </button>
-          ) : showActions ? (
+          </TopBarIsland>
+        ) : showActions ? (
+          <TopBarIsland>
             <ActionMenu
               items={[
                 {
@@ -132,11 +137,11 @@ export function ProfileTagsTopBar({
               ]}
               label={t("profile.myTags.actions")}
             />
-          ) : (
-            <div aria-hidden="true" className="size-10 shrink-0" />
-          )}
-        </div>
-      </header>
+          </TopBarIsland>
+        ) : (
+          <div aria-hidden="true" className="size-10 shrink-0" />
+        )}
+      </FloatingTopBar>
 
       {isTagJumpOpen ? (
         <ConfirmDialog

@@ -41,7 +41,7 @@ export function RelatedLinksDialog({
           </h2>
           <button
             aria-label={resolvedCloseLabel}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
             onClick={onClose}
             type="button"
           >

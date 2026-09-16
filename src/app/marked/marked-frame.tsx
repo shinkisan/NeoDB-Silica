@@ -416,7 +416,7 @@ export function MarkedFrame({
       >
         <button
           aria-label={t("home.refreshCategory")}
-          className="grid size-8 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-sm transition hover:bg-white/80 active:scale-95 disabled:cursor-wait disabled:text-[#a4a6ad]"
+          className="grid size-8 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-sm transition hover:bg-white/80 press-icon disabled:cursor-wait disabled:text-[#a4a6ad]"
           disabled={isDataLoading}
           onClick={onRefresh}
           type="button"
@@ -427,7 +427,7 @@ export function MarkedFrame({
         </button>
         <button
           aria-label={t("profile.appearance.homeTagOrder.button")}
-          className="grid size-8 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-sm transition hover:bg-white/80 active:scale-95"
+          className="grid size-8 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-sm transition hover:bg-white/80 press-icon"
           onClick={() => setIsCategoryOrderOpen(true)}
           type="button"
         >

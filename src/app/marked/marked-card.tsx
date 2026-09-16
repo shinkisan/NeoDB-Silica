@@ -272,7 +272,7 @@ export function MarkedCard({
   return (
     <article className="surface-glow relative rounded-xl border border-white/70 bg-white/55 p-3 shadow-lg shadow-slate-900/5">
       <MarkedCardBody
-        className="grid w-full cursor-pointer grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 rounded-xl text-left transition active:scale-[0.99] sm:grid-cols-[7.5rem_minmax(0,1fr)]"
+        className="grid w-full cursor-pointer grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 rounded-xl text-left transition press-card sm:grid-cols-[7.5rem_minmax(0,1fr)]"
         href={item.detailPath}
         itemUuid={itemUuid}
       >
@@ -308,7 +308,7 @@ export function MarkedCard({
               {mark.item.category === "book" && shelfType === "progress" ? (
                 <button
                   aria-label={t("mark.readingProgress.set")}
-                  className="inline-flex h-7 min-w-0 max-w-36 items-center rounded-full border border-white/70 bg-white/50 px-2.5 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 active:scale-95"
+                  className="inline-flex h-7 min-w-0 max-w-36 items-center rounded-full border border-white/70 bg-white/50 px-2.5 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 press-control"
                   data-card-nav-ignore
                   onClick={(event) => {
                     event.stopPropagation();

@@ -56,6 +56,11 @@ import {
 } from "./detail-scroll-controls";
 import { CloseDetailButton } from "./close-detail-button";
 import { useDetailCover } from "./detail-cover-state";
+import { TopBarIsland } from "@/components/floating-top-bar";
+import topBarStyles from "@/components/floating-top-bar.module.css";
+import detailTopBarStyles from "./detail-top-bar.module.css";
+import { registerLiquidGlass } from "@/components/liquid-glass-manager";
+import { beginPress, isPrimaryPress } from "@/components/press-surface";
 
 type DetailChromeProps = {
   category: string;
@@ -147,7 +152,7 @@ export function DetailTopBar({
 
   return (
     <header
-      className="border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl"
+      className={`${topBarStyles.bar} px-4 sm:px-5`}
       style={{
         left: 0,
         position: "fixed",
@@ -156,19 +161,29 @@ export function DetailTopBar({
         zIndex: 60,
       }}
     >
-      <div className="mx-auto flex h-16 max-w-4xl items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <CloseDetailButton />
-          {closeOnly ? null : (
-            <TopBarItemSummary
-              coverUrl={coverUrl}
-              isVisible={showContext}
-              title={title}
-            />
-          )}
+      <div aria-hidden="true" className={topBarStyles.backdrop} />
+      <div className="relative z-10 mx-auto flex h-16 max-w-4xl items-center justify-between gap-3">
+        <div
+          className={`${topBarStyles.glassIsland} liquid-glass relative shrink-0 rounded-full border border-white/50 shadow-sm shadow-slate-900/5`}
+          data-lg-depth="4"
+          data-press-surface
+          ref={registerLiquidGlass}
+          data-lg-strength="34"
+          data-lg-cab="2"
+        >
+          <CloseDetailButton pulseOnPress />
         </div>
         {closeOnly ? null : (
-          <div className="flex shrink-0 items-center gap-1">
+          <TopBarItemSummary
+            coverUrl={coverUrl}
+            isVisible={showContext}
+            title={title}
+          />
+        )}
+        {closeOnly ? null : (
+          <TopBarIsland
+            className={`${detailTopBarStyles.actions} flex items-center`}
+          >
             <MarkMenu
               category={category}
               isbn={isbn}
@@ -176,6 +191,7 @@ export function DetailTopBar({
               itemUuid={itemUuid}
               progressStorageScope={progressStorageScope}
             />
+            <span aria-hidden="true" className="h-4 w-px shrink-0 bg-[var(--foreground)] opacity-20" />
             <ItemToolsMenu
               category={category}
               externalResources={externalResources}
@@ -185,7 +201,7 @@ export function DetailTopBar({
               title={title}
               trackList={trackList}
             />
-          </div>
+          </TopBarIsland>
         )}
       </div>
     </header>
@@ -202,39 +218,23 @@ function TopBarItemSummary({
   title: string;
 }) {
   const { currentSrc, switchToFallback } = useDetailCover(coverUrl);
-  const frameRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLSpanElement>(null);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-
-  useEffect(() => {
-    function measureTitle() {
-      const frame = frameRef.current;
-      const titleNode = titleRef.current;
-
-      if (!frame || !titleNode) {
-        return;
-      }
-
-      setIsOverflowing(titleNode.scrollWidth > frame.clientWidth);
-    }
-
-    measureTitle();
-
-    const observer = new ResizeObserver(measureTitle);
-
-    if (frameRef.current) {
-      observer.observe(frameRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [title]);
+  const t = useT();
 
   return (
-    <div
+    <button
       aria-hidden={!isVisible}
-      className={`flex min-w-0 flex-1 items-center gap-2.5 transition-[opacity,transform] duration-200 ease-out ${
+      aria-label={`${t("bottomNav.backToTop")} · ${title}`}
+      tabIndex={isVisible ? 0 : -1}
+      onClick={() => window.scrollTo({
+        top: 0,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      })}
+      type="button"
+      data-lg-depth="4"
+      ref={registerLiquidGlass}
+      data-lg-strength="34"
+      data-lg-cab="2"
+      className={`liquid-glass absolute left-1/2 -translate-x-1/2 rounded-full transition-[opacity,transform,scale] duration-200 ease-out press-icon motion-reduce:transition-none ${
         isVisible
           ? "translate-y-0 opacity-100"
           : "pointer-events-none -translate-y-2 opacity-0"
@@ -258,29 +258,7 @@ function TopBarItemSummary({
           <span className="text-xs font-bold text-[#75777d]">B</span>
         )}
       </div>
-      <div
-        className="relative min-w-0 flex-1 overflow-hidden whitespace-nowrap text-sm font-bold text-[#1a1c1e]"
-        ref={frameRef}
-      >
-        {isOverflowing ? (
-          <span className="detail-title-marquee inline-flex">
-            <span className="pr-6">{title}</span>
-            <span aria-hidden="true" className="pr-6">
-              {title}
-            </span>
-          </span>
-        ) : (
-          <span>{title}</span>
-        )}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none invisible absolute whitespace-nowrap"
-          ref={titleRef}
-        >
-          {title}
-        </span>
-      </div>
-    </div>
+    </button>
   );
 }
 
@@ -722,7 +700,7 @@ function MarkMenu({
         className={`mark-button-${selectedShelfType || "none"} inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-bold shadow-sm transition ${
           authState !== "ready"
             ? "cursor-not-allowed border-[#e2e2e5] bg-[#f0f0f2] text-[#a4a6ad] shadow-none"
-            : `active:scale-[0.98] ${markButtonTone}`
+            : `press-control ${markButtonTone}`
         }`}
         disabled={isDisabled}
         onClick={() => {
@@ -732,6 +710,11 @@ function MarkMenu({
           }
 
           setIsOpen((value) => !value);
+        }}
+        onPointerDown={(event) => {
+          if (isOpen) {
+            event.stopPropagation();
+          }
         }}
         type="button"
       >
@@ -1102,7 +1085,7 @@ function ItemToolsMenu({
     <div className="relative">
       <ActionMenu
         items={menuItems}
-        buttonClassName="size-8 -mr-4"
+        buttonClassName="size-10"
         label={t("detail.tools.label")}
       />
       {isCollectionsOpen ? (
@@ -1631,7 +1614,7 @@ export function DetailReviewActions({
     return (
       <button
         aria-disabled={isReviewUnavailable}
-        className={`inline-flex h-10 items-center rounded-full border border-[#c5c6cd] bg-white px-4 text-sm font-bold text-[#333e50] shadow-sm transition active:scale-[0.98] disabled:cursor-not-allowed disabled:text-[#a4a6ad] ${
+        className={`inline-flex h-10 items-center rounded-full border border-[#c5c6cd] bg-white px-4 text-sm font-bold text-[#333e50] shadow-sm transition press-control disabled:cursor-not-allowed disabled:text-[#a4a6ad] ${
           isReviewUnavailable
             ? "cursor-not-allowed text-[#a4a6ad]"
             : "hover:bg-[#f3f3f6]"
@@ -1650,11 +1633,20 @@ export function DetailReviewActions({
         <button
           aria-disabled={isUnavailable || isLoadingState}
           aria-label={comment ? t("mark.actions.editComment") : t("mark.actions.writeComment")}
-          className={`fixed bottom-7 right-5 z-[55] grid size-12 place-items-center rounded-full border border-white/60 bg-white/75 text-[#333e50] shadow-[0_18px_45px_rgba(26,28,30,0.28),0_4px_14px_rgba(26,28,30,0.16)] backdrop-blur-2xl transition active:scale-95 disabled:cursor-not-allowed disabled:text-[#a4a6ad] sm:bottom-8 sm:right-6 sm:size-14 lg:right-[max(1.25rem,calc(50vw-34rem))] ${
-            isUnavailable ? "cursor-not-allowed text-[#a4a6ad]" : "hover:bg-white/90"
+          className={`${topBarStyles.glassIsland} liquid-glass fixed bottom-7 right-5 z-[55] grid size-12 place-items-center rounded-full border border-white/50 text-[#44474c] shadow-sm shadow-slate-900/5 transition disabled:cursor-not-allowed disabled:text-[#a4a6ad] sm:bottom-8 sm:right-6 sm:size-14 lg:right-[max(1.25rem,calc(50vw-34rem))] ${
+            isUnavailable ? "cursor-not-allowed text-[#a4a6ad]" : "hover:bg-white/70"
           }`}
+          ref={registerLiquidGlass}
+          data-lg-depth="4"
+          data-lg-strength="34"
+          data-lg-cab="2"
           disabled={isLoadingState}
           onClick={() => openShortReview()}
+          onPointerDown={(event) => {
+            if (isPrimaryPress(event)) {
+              beginPress(event.currentTarget);
+            }
+          }}
           type="button"
         >
           <EditIcon />
@@ -1669,7 +1661,7 @@ export function DetailReviewActions({
       <div className="flex flex-wrap items-center gap-2">
         <button
           aria-disabled={isUnavailable || isLoadingState}
-          className={`inline-flex h-10 items-center rounded-full border border-[#c5c6cd] bg-white px-4 text-sm font-bold text-[#333e50] shadow-sm transition active:scale-[0.98] disabled:cursor-not-allowed disabled:text-[#a4a6ad] ${
+          className={`inline-flex h-10 items-center rounded-full border border-[#c5c6cd] bg-white px-4 text-sm font-bold text-[#333e50] shadow-sm transition press-control disabled:cursor-not-allowed disabled:text-[#a4a6ad] ${
             isUnavailable ? "cursor-not-allowed text-[#a4a6ad]" : "hover:bg-[#f3f3f6]"
           }`}
           disabled={isLoadingState}

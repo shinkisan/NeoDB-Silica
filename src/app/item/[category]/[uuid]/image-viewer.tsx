@@ -134,7 +134,7 @@ export function ImageViewer({
           {spotifyAlbumUrl ? (
             <button
               aria-label={t("detail.spotify.open")}
-              className="grid size-10 place-items-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              className="grid size-10 place-items-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 press-icon"
               onClick={() => setIsSpotifyOpen(true)}
               title={t("detail.spotify.open")}
               type="button"
@@ -145,7 +145,7 @@ export function ImageViewer({
           {steamAppId ? (
             <button
               aria-label={t("detail.steam.open")}
-              className="grid size-10 place-items-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              className="grid size-10 place-items-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/60 press-icon"
               onClick={() => setIsSteamTrailerOpen(true)}
               title={t("detail.steam.open")}
               type="button"
@@ -156,7 +156,7 @@ export function ImageViewer({
           {stills && stills.length > 0 ? (
             <button
               aria-label={t("detail.stills.badgeLabel")}
-              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/45 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-black/60 press-control"
               onClick={() => setOpenIndex(1)}
               type="button"
             >

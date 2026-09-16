@@ -17,7 +17,7 @@ import { FeatureFlagsProvider } from "@/components/feature-flags";
 import { isCoverImageProxyEnabled } from "@/lib/cover-image";
 import { getServerFeatureFlags } from "@/lib/feature-flags";
 import { getConfiguredNeodbHostname } from "@/lib/neodb-instance";
-import { getDefaultThemeColor } from "@/lib/theme";
+import { getDefaultThemeColor, pageBackgroundColors } from "@/lib/theme";
 import {
   SITE_PUBLIC_ORIGIN,
   getNoIndexRobots,
@@ -59,7 +59,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: getDefaultThemeColor().primary,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: pageBackgroundColors.light },
+    { media: "(prefers-color-scheme: dark)", color: pageBackgroundColors.dark },
+  ],
 };
 
 export default async function RootLayout({

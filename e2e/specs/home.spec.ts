@@ -183,6 +183,30 @@ test("ISBN scanner falls back to WASM when BarcodeDetector is unavailable", asyn
       }
     }
 
+    // Headless Chromium can render canvas-backed camera streams as a 2x2
+    // black video. Present the synthetic barcode canvas as the video frame
+    // so the spec exercises the WASM fallback rather than the GPU stack.
+    for (const dimension of ["videoWidth", "videoHeight"] as const) {
+      Object.defineProperty(HTMLVideoElement.prototype, dimension, {
+        configurable: true,
+        get: () => canvas[dimension === "videoWidth" ? "width" : "height"],
+      });
+    }
+    const originalDrawImage = CanvasRenderingContext2D.prototype.drawImage;
+    Object.defineProperty(CanvasRenderingContext2D.prototype, "drawImage", {
+      configurable: true,
+      value(
+        this: CanvasRenderingContext2D,
+        source: CanvasImageSource,
+        ...args: unknown[]
+      ) {
+        return Reflect.apply(originalDrawImage, this, [
+          source instanceof HTMLVideoElement ? canvas : source,
+          ...args,
+        ]);
+      },
+    });
+
     const stream = canvas.captureStream(5);
     Object.defineProperty(navigator, "mediaDevices", {
       configurable: true,

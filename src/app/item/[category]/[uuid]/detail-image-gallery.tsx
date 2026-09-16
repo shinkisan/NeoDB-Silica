@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { useT } from "@/components/use-t";
+import { MediaLoadingIndicator } from "./media-loading-indicator";
 import { setDetailMediaOverlayState } from "./detail-media-overlay-state";
 
 const SWIPE_THRESHOLD_PX = 48;
@@ -26,7 +27,10 @@ export function DetailImageGallery({
 }: DetailImageGalleryProps) {
   const t = useT();
   const [index, setIndex] = useState(initialIndex);
+  const [direction, setDirection] = useState<-1 | 1 | null>(null);
+  const [loadedIndex, setLoadedIndex] = useState<number | null>(null);
   const [isClosing, setIsClosing] = useState(false);
+  const isLoading = loadedIndex !== index;
   const gestureStartRef = useRef<{ id: number; x: number; y: number } | null>(
     null,
   );
@@ -61,7 +65,14 @@ export function DetailImageGallery({
   }
 
   function goTo(nextIndex: number) {
-    setIndex(Math.max(0, Math.min(images.length - 1, nextIndex)));
+    const clamped = Math.max(0, Math.min(images.length - 1, nextIndex));
+
+    if (clamped === index) {
+      return;
+    }
+
+    setDirection(clamped > index ? 1 : -1);
+    setIndex(clamped);
   }
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -121,7 +132,7 @@ export function DetailImageGallery({
       ) : null}
 
       <div
-        className="flex h-[100dvh] w-screen touch-none select-none items-center justify-center overflow-hidden p-4"
+        className="relative flex h-[100dvh] w-screen touch-none select-none items-center justify-center overflow-hidden p-4"
         onPointerCancel={() => {
           gestureStartRef.current = null;
         }}
@@ -132,11 +143,31 @@ export function DetailImageGallery({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             alt={alt}
-            className="max-h-full max-w-full object-contain"
+            className={`max-h-full max-w-full object-contain ${
+              isLoading
+                ? "opacity-0"
+                : direction === null
+                  ? "gallery-image-initial"
+                  : direction === 1
+                    ? "gallery-slide-next"
+                    : "gallery-slide-prev"
+            }`}
             draggable={false}
-            key={current.url}
+            key={index}
+            onError={() => setLoadedIndex(index)}
+            onLoad={() => setLoadedIndex(index)}
+            // A cached still can finish before React attaches onLoad, which
+            // would otherwise leave the spinner up over a ready image.
+            ref={(element) => {
+              if (element?.complete) {
+                setLoadedIndex(index);
+              }
+            }}
             src={current.url}
           />
+        ) : null}
+        {isLoading ? (
+          <MediaLoadingIndicator label={t("detail.stills.loading")} />
         ) : null}
       </div>
 

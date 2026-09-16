@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { useT } from "@/components/use-t";
+import { registerLiquidGlass } from "@/components/liquid-glass-manager";
 import {
   DEFAULT_HOME_CATEGORY,
   HOME_TAG_ORDER_KEY,
@@ -220,10 +221,11 @@ export function BottomNav() {
         className="pointer-events-none fixed inset-x-0 bottom-6 z-40 px-4 lg:inset-x-auto lg:bottom-auto lg:left-6 lg:top-1/2 lg:-translate-y-1/2 lg:px-0"
       >
       <div
-        className="liquid-glass relative pointer-events-auto mx-auto h-[62px] max-w-sm rounded-[2rem] border border-white/50 bg-white/55 p-1.5 shadow-2xl shadow-slate-900/10 lg:h-auto lg:w-[72px] lg:max-w-none"
-        data-lg-depth="8"
-        data-lg-strength="70"
-        data-lg-cab="4"
+        className="liquid-glass relative pointer-events-auto mx-auto h-[62px] max-w-sm rounded-[2rem] border border-white/50 bg-white/65 p-1.5 shadow-2xl shadow-slate-900/10 lg:h-auto lg:w-[72px] lg:max-w-none"
+        data-lg-depth="4"
+        ref={registerLiquidGlass}
+        data-lg-strength="34"
+        data-lg-cab="2"
       >
         <div
           className="relative grid h-[50px] grid-cols-4 lg:h-[280px] lg:grid-cols-1 lg:grid-rows-4"

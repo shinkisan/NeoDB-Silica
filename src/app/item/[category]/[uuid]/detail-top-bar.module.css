@@ -1,0 +1,79 @@
+.actions {
+  max-width: calc(50% - 1.5rem);
+}
+
+.actions > :first-child {
+  min-width: 0;
+}
+
+.actions > :last-child {
+  flex-shrink: 0;
+}
+
+.actions button[class*="mark-button-"] {
+  max-width: 100%;
+  border: 0;
+  border-radius: 9999px 0 0 9999px;
+  padding-inline: 0.75rem;
+  box-shadow: none;
+  gap: 0.25rem;
+}
+
+:global(:root:not([data-theme="dark"]))
+  .actions
+  button[class*="mark-button-"] {
+  background: transparent !important;
+}
+
+.actions button[class*="mark-button-"] > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(:root:not([data-theme="dark"]))
+  .actions
+  button[class*="mark-button-"]:hover {
+  background: transparent !important;
+}
+
+.actions button[class*="mark-button-"]:disabled {
+  opacity: 0.62;
+}
+
+:global(:root[data-theme="dark"])
+  .actions
+  button[class*="mark-button-"] {
+  --detail-mark-background: transparent;
+  background: linear-gradient(
+    to right,
+    var(--detail-mark-background) 0%,
+    var(--detail-mark-background) 50%,
+    color-mix(in srgb, var(--detail-mark-background) 42%, transparent) 76%,
+    transparent 100%
+  ) !important;
+}
+
+:global(:root[data-theme="dark"])
+  .actions
+  button[class*="mark-button-wishlist"] {
+  --detail-mark-background: rgba(105, 57, 70, 0.46);
+}
+
+:global(:root[data-theme="dark"])
+  .actions
+  button[class*="mark-button-progress"] {
+  --detail-mark-background: rgba(111, 84, 35, 0.42);
+}
+
+:global(:root[data-theme="dark"])
+  .actions
+  button[class*="mark-button-complete"] {
+  --detail-mark-background: rgba(61, 91, 78, 0.48);
+}
+
+:global(:root[data-theme="dark"])
+  .actions
+  button[class*="mark-button-dropped"] {
+  --detail-mark-background: rgba(238, 241, 245, 0.16);
+}

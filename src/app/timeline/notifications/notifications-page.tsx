@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { showToast } from "@/components/app-toast";
@@ -90,11 +91,11 @@ export function NotificationsPage() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl lg:pl-32 lg:pr-8">
-        <div className="mx-auto flex h-16 max-w-2xl items-center gap-3">
+      <FloatingTopBar className="fixed inset-x-0 top-0 z-[60] lg:pl-32 lg:pr-8" rowClassName="max-w-2xl">
+        <TopBarIsland>
           <button
             aria-label={t("notifications.close")}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon disabled:cursor-default"
             onClick={(event) => {
               event.currentTarget.disabled = true;
               router.push(returnHref);
@@ -103,11 +104,12 @@ export function NotificationsPage() {
           >
             <CloseIcon />
           </button>
-          <h1 className="min-w-0 truncate text-base font-bold text-[var(--foreground)]">
-            {t("notifications.title")}
-          </h1>
-        </div>
-      </header>
+        </TopBarIsland>
+        <h1 className="min-w-0 flex-1 truncate text-center text-base font-bold text-[var(--foreground)]">
+          {t("notifications.title")}
+        </h1>
+        <div aria-hidden="true" className="size-10 shrink-0" />
+      </FloatingTopBar>
       <main className="min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)] lg:pl-32 lg:pr-8">
         <section className="mx-auto w-full max-w-2xl">
           {state === "loading" ? <NotificationsInlineSkeleton /> : null}
@@ -185,7 +187,7 @@ function NotificationCard({
     <article className="flex min-w-0 gap-3 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0 sm:p-5">
       <ProfileLink
         accountId={notification.account.id}
-        className="shrink-0 rounded-full transition active:scale-95"
+        className="shrink-0 rounded-full transition press-icon"
         isRemote={notification.account.isRemote}
         url={notification.account.url}
       >

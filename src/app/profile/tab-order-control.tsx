@@ -26,7 +26,7 @@ export function TabOrderButton() {
     <>
       <button
         aria-label={t("profile.tabOrder")}
-        className="inline-flex h-9 items-center rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 active:scale-95"
+        className="inline-flex h-9 items-center rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 press-control"
         onClick={() => setIsOpen(true)}
         type="button"
       >

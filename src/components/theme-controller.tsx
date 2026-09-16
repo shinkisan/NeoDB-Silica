@@ -5,6 +5,7 @@ import { APP_RESET_EVENT } from "@/lib/app-reset";
 import {
   getThemeMode,
   getThemeColor,
+  pageBackgroundColors,
   resolveThemeMode,
   THEME_COLOR_EVENT,
   THEME_COLOR_KEY,
@@ -15,42 +16,40 @@ import {
 export function ThemeController() {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    let activeThemeColor = applyThemeColor(
-      window.localStorage.getItem(THEME_COLOR_KEY),
-    );
-
-    applyThemeMode(
+    applyThemeColor(window.localStorage.getItem(THEME_COLOR_KEY));
+    let activeStatusBarColor = applyThemeMode(
       getThemeMode(window.localStorage.getItem(THEME_MODE_KEY)),
       mediaQuery.matches,
     );
 
     function syncThemeColor(event: Event) {
-      activeThemeColor = applyThemeColor(
-        (event as CustomEvent<string>).detail,
-      );
+      applyThemeColor((event as CustomEvent<string>).detail);
     }
 
     function syncThemeMode(event: Event) {
-      applyThemeMode(
+      activeStatusBarColor = applyThemeMode(
         getThemeMode((event as CustomEvent<string>).detail),
         mediaQuery.matches,
       );
     }
 
     function syncSystemTheme(event: MediaQueryListEvent) {
-      applyThemeMode(
+      activeStatusBarColor = applyThemeMode(
         getThemeMode(window.localStorage.getItem(THEME_MODE_KEY)),
         event.matches,
       );
     }
 
     function syncAppReset() {
-      activeThemeColor = applyThemeColor(null);
-      applyThemeMode(getThemeMode(null), mediaQuery.matches);
+      applyThemeColor(null);
+      activeStatusBarColor = applyThemeMode(
+        getThemeMode(null),
+        mediaQuery.matches,
+      );
     }
 
     const headObserver = new MutationObserver(() => {
-      updateThemeColorMeta(activeThemeColor);
+      updateThemeColorMeta(activeStatusBarColor);
     });
 
     headObserver.observe(document.head, {
@@ -88,8 +87,6 @@ function applyThemeColor(id: string | null | undefined) {
     "--theme-primary-hover",
     themeColor.primaryHover,
   );
-  updateThemeColorMeta(themeColor.primary);
-  return themeColor.primary;
 }
 
 function applyThemeMode(mode: ReturnType<typeof getThemeMode>, prefersDark: boolean) {
@@ -97,6 +94,9 @@ function applyThemeMode(mode: ReturnType<typeof getThemeMode>, prefersDark: bool
 
   document.documentElement.dataset.theme = resolvedMode;
   document.documentElement.dataset.themeMode = mode;
+  updateThemeColorMeta(pageBackgroundColors[resolvedMode]);
+
+  return pageBackgroundColors[resolvedMode];
 }
 
 function updateThemeColorMeta(color: string) {

@@ -43,3 +43,49 @@ test("movie poster shows a skeleton until the image loads", async ({ page }) => 
   );
   await expect(page.locator("[data-detail-poster-skeleton]")).toHaveCount(0);
 });
+
+test("scrolled detail header centers the cover and returns to the top", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto(`/item/book/${BOOK_UUID}`);
+  await expect(page.getByRole("heading", { level: 1, name: BOOK_TITLE })).toBeVisible();
+
+  const coverButton = page.locator("header button").filter({
+    has: page.getByRole("img", { name: BOOK_TITLE, includeHidden: true }),
+  });
+  await expect(coverButton).toHaveAttribute("aria-hidden", "true");
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect(coverButton).toHaveAttribute("aria-hidden", "false");
+  await expect(page.getByRole("button", {
+    name: "回到顶部", exact: true, includeHidden: true,
+  })).toHaveCount(0);
+  const bounds = await coverButton.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(Math.abs(bounds!.x + bounds!.width / 2 - 375 / 2)).toBeLessThan(2);
+
+  await coverButton.click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(coverButton).toHaveAttribute("aria-hidden", "true");
+});
+
+test("detail glass initializes on direct load without hydration errors", async ({ page }) => {
+  const hydrationErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error" && /hydrat/i.test(message.text())) {
+      hydrationErrors.push(message.text());
+    }
+  });
+  page.on("pageerror", (error) => {
+    if (/hydrat/i.test(error.message)) hydrationErrors.push(error.message);
+  });
+
+  await page.goto(`/item/book/${BOOK_UUID}`);
+  await expect(page.getByRole("heading", { level: 1, name: BOOK_TITLE })).toBeVisible();
+  const glass = page.locator("header .liquid-glass");
+  await expect(glass).toHaveCount(3);
+  for (const surface of await glass.all()) {
+    await expect.poll(() => surface.evaluate((element) =>
+      (element as HTMLElement).style.backdropFilter,
+    )).toContain("#displace");
+  }
+  expect(hydrationErrors).toEqual([]);
+});

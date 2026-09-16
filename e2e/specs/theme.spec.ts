@@ -30,6 +30,8 @@ test("Safari keeps the CSS liquid-glass fallback", async ({ page }) => {
 
 // Guards the theme-color storage contract: picking a color must survive a
 // reload (localStorage writer and the boot-time reader must agree on the key).
+// The browser theme-color meta deliberately tracks the page background rather
+// than the brand colour, so the OS status bar has no seam against the top bar.
 test("chosen theme color persists across reloads", async ({ page }) => {
   await page.goto("/profile");
 
@@ -46,6 +48,12 @@ test("chosen theme color persists across reloads", async ({ page }) => {
           'meta[name="theme-color"]',
         )?.content || "",
     );
+  const readBackground = () =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--background")
+        .trim(),
+    );
 
   const initialPrimary = await readPrimary();
 
@@ -54,16 +62,16 @@ test("chosen theme color persists across reloads", async ({ page }) => {
   await page.getByRole("option", { name: "琥珀" }).click();
 
   await expect.poll(readPrimary).toBe("#9f6f2e");
-  await expect.poll(readBrowserThemeColor).toBe("#9f6f2e");
+  await expect.poll(readBrowserThemeColor).toBe(await readBackground());
   expect(initialPrimary).not.toBe("#9f6f2e");
 
   await page.reload();
 
   await expect.poll(readPrimary).toBe("#9f6f2e");
-  await expect.poll(readBrowserThemeColor).toBe("#9f6f2e");
+  await expect.poll(readBrowserThemeColor).toBe(await readBackground());
   await expect(page.getByRole("button", { name: "琥珀" })).toBeVisible();
 
   await page.getByRole("link", { name: "发现" }).click();
   await expect(page).toHaveURL(/\/$/);
-  await expect.poll(readBrowserThemeColor).toBe("#9f6f2e");
+  await expect.poll(readBrowserThemeColor).toBe(await readBackground());
 });

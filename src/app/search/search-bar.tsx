@@ -148,7 +148,7 @@ export function SearchBar({
       {currentQuery ? (
         <button
           aria-label={t("search.clear")}
-          className="grid size-9 shrink-0 place-items-center rounded-full text-[#75777d] transition hover:bg-white/60 hover:text-[#333e50] active:scale-95"
+          className="grid size-9 shrink-0 place-items-center rounded-full text-[#75777d] transition hover:bg-white/60 hover:text-[#333e50] press-icon"
           onClick={() => {
             setCurrentQuery("");
             setHistoryItems(readSearchHistory());

@@ -55,6 +55,10 @@ export function getDisplacementFilter({
   strength = 100,
   chromaticAberration = 0,
 }: DisplacementOptions) {
+  // CSS pill radii (e.g. rounded-full) can exceed the box by many orders of
+  // magnitude. SVG gradients need the used radius, clamped like CSS rendering.
+  radius = Math.max(0, Math.min(radius, width / 2, height / 2));
+  depth = Math.max(0, Math.min(depth, width / 2, height / 2));
   return (
     "data:image/svg+xml;utf8," +
     encodeURIComponent(`<svg height="${height}" width="${width}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">

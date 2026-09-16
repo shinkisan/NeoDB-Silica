@@ -53,7 +53,7 @@ export default function PulseRatingDistributionDialog({
             </div>
             <button
               aria-label={t("detail.ratingDistribution.close")}
-              className="-mr-1 -mt-1 grid size-9 cursor-pointer place-items-center rounded-full text-[#f2f5f8]/85 transition hover:bg-white/10 active:scale-95"
+              className="-mr-1 -mt-1 grid size-9 cursor-pointer place-items-center rounded-full text-[#f2f5f8]/85 transition hover:bg-white/10 press-icon"
               onClick={onClose}
               type="button"
             >
@@ -96,7 +96,7 @@ export default function PulseRatingDistributionDialog({
 
           <footer className="mt-3 flex justify-end">
             <button
-              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] font-semibold text-[#e6ebf0]/60 transition hover:bg-white/10 active:scale-95"
+              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] font-semibold text-[#e6ebf0]/60 transition hover:bg-white/10 press-control"
               onClick={() => setSeed((current) => current + 1)}
               type="button"
             >

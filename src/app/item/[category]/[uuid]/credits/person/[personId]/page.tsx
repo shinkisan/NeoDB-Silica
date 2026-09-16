@@ -8,7 +8,7 @@ import {
   type TmdbMediaType,
 } from "@/lib/tmdb";
 import { getLocale, getT } from "@/i18n/server";
-import { CreditsTopBar } from "../../credits-chrome";
+import { CreditsPersonTopBar } from "../../credits-chrome";
 import { PersonBiography } from "./person-biography";
 import { PersonWorkActionCard } from "./person-work-action-card";
 import { PersonWorksPagination } from "./person-works-pagination";
@@ -92,7 +92,6 @@ export default async function PersonWorksPage({
     t,
     getTmdbLanguage(locale),
   );
-  const pageTitle = t("credits.worksTitle").replace("{name}", person.name);
   const pages = Math.max(
     1,
     Math.ceil(person.works.length / PERSON_WORKS_PAGE_SIZE),
@@ -109,12 +108,14 @@ export default async function PersonWorksPage({
 
   return (
     <>
-      <CreditsTopBar
+      <CreditsPersonTopBar
         contextKey={`${personId}:${page}`}
         contextSelector={
           page === 1 ? "[data-person-works-context-title]" : undefined
         }
-        title={pageTitle}
+        name={person.name}
+        profileUrl={person.profileUrl}
+        showAvatar={page === 1}
       />
       <PersonWorksScrollManager personId={personId} />
       <div aria-hidden="true" className="h-16" />

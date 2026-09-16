@@ -297,7 +297,8 @@
       "badgeLabel": "查看劇照",
       "close": "關閉劇照",
       "previous": "上一張",
-      "next": "下一張"
+      "next": "下一張",
+      "loading": "正在載入劇照"
     },
     "spotify": {
       "title": "Spotify 試聽",
@@ -502,6 +503,7 @@
     "clickHint": "點擊演職員可查看相關作品",
     "empty": "暫時沒有找到演職員資訊。",
     "worksTitle": "{name}的作品",
+    "closeWorks": "關閉演職員作品頁",
     "noBiography": "暫無人物簡介。",
     "expandBiography": "展開簡介",
     "collapseBiography": "收起簡介",

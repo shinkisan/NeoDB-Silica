@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 
 const TOP_BAR_HEIGHT = 64;
+const TITLE_CLASS = "top-bar-context-title";
+const HANDOFF_CLASS = "top-bar-context-handoff";
 
 export function useTopBarContextVisibility({
   contextKey,
@@ -25,12 +27,14 @@ export function useTopBarContextVisibility({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setVisibility({
-          contextKey,
-          isVisible:
-            !entry.isIntersecting &&
-            entry.boundingClientRect.bottom <= TOP_BAR_HEIGHT,
-        });
+        const isVisible =
+          !entry.isIntersecting &&
+          entry.boundingClientRect.bottom <= TOP_BAR_HEIGHT;
+
+        // The bar is translucent, so the heading it takes over from stays
+        // legible underneath it and collides with the bar's own title.
+        contextTitle.classList.toggle(HANDOFF_CLASS, isVisible);
+        setVisibility({ contextKey, isVisible });
       },
       {
         rootMargin: `-${TOP_BAR_HEIGHT}px 0px 0px 0px`,
@@ -38,9 +42,13 @@ export function useTopBarContextVisibility({
       },
     );
 
+    contextTitle.classList.add(TITLE_CLASS);
     observer.observe(contextTitle);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      contextTitle.classList.remove(TITLE_CLASS, HANDOFF_CLASS);
+    };
   }, [contextKey, selector]);
 
   return (

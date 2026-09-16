@@ -110,7 +110,7 @@ export function CollectionBriefEditor({
             {canEdit ? (
               <button
                 aria-label={t("collection.editBrief")}
-                className="ml-1.5 inline-grid size-5 place-items-center rounded-full border border-white/70 bg-white/60 align-[-0.18em] text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+                className="ml-1.5 inline-grid size-5 place-items-center rounded-full border border-white/70 bg-white/60 align-[-0.18em] text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
                 onClick={() => {
                   setDraft(description);
                   setIsOpen(true);
@@ -124,7 +124,7 @@ export function CollectionBriefEditor({
           {canExpand ? (
             <button
               aria-expanded={isExpanded}
-              className="ml-auto mt-1.5 flex cursor-pointer items-center gap-1 rounded-full px-1 py-0.5 text-sm font-bold text-[#75777d] transition-[color,transform] hover:text-[var(--foreground)] active:scale-[0.98]"
+              className="ml-auto mt-1.5 flex cursor-pointer items-center gap-1 rounded-full px-1 py-0.5 text-sm font-bold text-[#75777d] transition-[color,scale] hover:text-[var(--foreground)] press-control"
               onClick={() => {
                 if (!isExpanded) {
                   scrollYBeforeExpandRef.current = window.scrollY;
@@ -197,7 +197,7 @@ function BriefDialog({
           </h2>
           <button
             aria-label={t("collection.closeBriefEditor")}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 active:scale-95"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
             onClick={onClose}
             type="button"
           >
@@ -213,7 +213,7 @@ function BriefDialog({
         />
 
         <button
-          className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] active:scale-[0.98] disabled:cursor-wait disabled:bg-[#c1c7cf]"
+          className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-control disabled:cursor-wait disabled:bg-[#c1c7cf]"
           disabled={status === "saving"}
           onClick={onSave}
           type="button"

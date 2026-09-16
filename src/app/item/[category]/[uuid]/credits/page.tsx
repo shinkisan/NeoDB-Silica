@@ -333,7 +333,7 @@ function CreditCard({
     return (
       <CreditsPersonLink
         category={category}
-        className="relative block cursor-pointer rounded-2xl border border-white/70 bg-white/60 p-4 text-center shadow-lg shadow-slate-900/5 transition hover:bg-white/75 active:scale-[0.99]"
+        className="relative block cursor-pointer rounded-2xl border border-white/70 bg-white/60 p-4 text-center shadow-lg shadow-slate-900/5 transition hover:bg-white/75 press-card"
         href={href}
         itemUuid={itemUuid}
       >

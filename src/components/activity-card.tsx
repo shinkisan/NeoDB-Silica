@@ -612,7 +612,7 @@ function ActivityCollapsibleText({
       </p>
       {canExpand ? (
         <button
-          className="mt-1 flex cursor-pointer items-center gap-1 text-xs font-bold text-[#75777d] transition hover:text-[var(--foreground)] active:scale-[0.99]"
+          className="mt-1 flex cursor-pointer items-center gap-1 text-xs font-bold text-[#75777d] transition hover:text-[var(--foreground)] press-control"
           onClick={() => setIsExpanded((value) => !value)}
           type="button"
         >

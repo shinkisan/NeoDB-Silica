@@ -318,7 +318,7 @@ export function CommentReplies({
         aria-disabled={disabled}
         aria-expanded={isExpanded}
         aria-label={t("community.replies")}
-        className={`relative grid size-8 cursor-pointer place-items-center rounded-full transition hover:bg-white/70 hover:text-[var(--foreground)] active:scale-95 aria-disabled:opacity-45 ${
+        className={`relative grid size-8 cursor-pointer place-items-center rounded-full transition hover:bg-white/70 hover:text-[var(--foreground)] press-icon aria-disabled:opacity-45 ${
           isExpanded ? "text-[var(--foreground)]" : "text-[#75777d]"
         }`}
         onClick={toggleReplies}
@@ -445,7 +445,7 @@ const ReplyItem = memo(function ReplyItem({
         <ProfileLink
           accountId={reply.accountId}
           ariaLabel={reply.name}
-          className="shrink-0 rounded-full transition active:scale-95"
+          className="shrink-0 rounded-full transition press-icon"
           isRemote={reply.isRemote}
           onNavigate={onNavigate}
           url={reply.accountUrl}
@@ -513,7 +513,7 @@ const ReplyItem = memo(function ReplyItem({
             {!(reply.isOwn && reply.hasRelatedItem) ? (
               <button
                 aria-label={t("community.replies")}
-                className={`grid size-8 cursor-pointer place-items-center rounded-full transition hover:bg-white/70 hover:text-[var(--foreground)] active:scale-95 ${
+                className={`grid size-8 cursor-pointer place-items-center rounded-full transition hover:bg-white/70 hover:text-[var(--foreground)] press-icon ${
                   isComposerOpen ? "text-[var(--foreground)]" : "text-[#75777d]"
                 }`}
                 onClick={() => onReply(reply.id)}
@@ -533,7 +533,7 @@ const ReplyItem = memo(function ReplyItem({
             {reply.isOwn ? (
               <button
                 aria-label={t("community.deleteReply")}
-                className="-ml-1.5 grid size-8 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-red-600 active:scale-95 disabled:cursor-wait disabled:opacity-40"
+                className="-ml-1.5 grid size-8 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-red-600 press-icon disabled:cursor-wait disabled:opacity-40"
                 disabled={isDeleting}
                 onClick={() => setIsDeleteOpen(true)}
                 title={t("community.deleteReply")}
@@ -596,7 +596,7 @@ function ReplyComposer({
       />
       <button
         aria-label={t("community.sendReply")}
-        className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full bg-[var(--theme-primary)] text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+        className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full bg-[var(--theme-primary)] text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-icon disabled:cursor-not-allowed disabled:opacity-40"
         disabled={disabled || isSaving || !draft.trim()}
         onClick={onSubmit}
         type="button"

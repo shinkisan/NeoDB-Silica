@@ -148,7 +148,7 @@ export function SteamTrailerPlayer({
     >
       <button
         aria-label={t("detail.steam.close")}
-        className="fixed right-5 top-5 z-[102] grid size-11 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25 active:scale-95"
+        className="fixed right-5 top-5 z-[102] grid size-11 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25 press-icon"
         onClick={onClose}
         ref={closeButtonRef}
         type="button"

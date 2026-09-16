@@ -297,7 +297,8 @@
       "badgeLabel": "查看剧照",
       "close": "关闭剧照",
       "previous": "上一张",
-      "next": "下一张"
+      "next": "下一张",
+      "loading": "正在加载剧照"
     },
     "spotify": {
       "title": "Spotify 试听",
@@ -502,6 +503,7 @@
     "clickHint": "点击演职员可查看相关作品",
     "empty": "暂时没有找到演职员信息。",
     "worksTitle": "{name}的作品",
+    "closeWorks": "关闭演职员作品页",
     "noBiography": "暂无人物简介。",
     "expandBiography": "展开简介",
     "collapseBiography": "收起简介",

@@ -1,7 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  FloatingTopBar,
+  TopBarIsland,
+  TopBarTitle,
+} from "@/components/floating-top-bar";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ActionMenu } from "@/components/action-menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -86,19 +91,20 @@ export function MyNotesDialog({
         isClosing ? "review-reader-exit" : "review-reader-enter"
       }`}
     >
-      <header className="sticky top-0 z-10 w-screen border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-4xl items-center gap-3">
+      <FloatingTopBar className="sticky top-0 z-10 w-screen" rowClassName="max-w-4xl">
+        <TopBarIsland>
           <button
             aria-label={t("detail.notes.close")}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon"
             onClick={closeDialog}
             type="button"
           >
             <CloseIcon />
           </button>
-          <ScrollingTopBarTitle title={dialogTitle} />
-        </div>
-      </header>
+        </TopBarIsland>
+        <TopBarTitle title={dialogTitle} />
+        <div aria-hidden="true" className="size-10 shrink-0" />
+      </FloatingTopBar>
 
       <NotesContent category={category} itemUuid={itemUuid} />
     </div>,
@@ -121,11 +127,11 @@ export function MyNotesPage({
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-4xl items-center gap-3">
+      <FloatingTopBar className="fixed inset-x-0 top-0 z-[60]" rowClassName="max-w-4xl">
+        <TopBarIsland>
           <button
             aria-label={t("detail.notes.close")}
-            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon"
             onClick={(event) => {
               event.currentTarget.disabled = true;
               performNavigationClose(resolveDetailCloseAction(), router);
@@ -134,9 +140,10 @@ export function MyNotesPage({
           >
             <CloseIcon />
           </button>
-          <ScrollingTopBarTitle title={title} />
-        </div>
-      </header>
+        </TopBarIsland>
+        <TopBarTitle title={title} />
+        <div aria-hidden="true" className="size-10 shrink-0" />
+      </FloatingTopBar>
       <div aria-hidden="true" className="h-16" />
       <NotesContent category={category} itemUuid={itemUuid} />
     </>
@@ -280,63 +287,6 @@ function NotesPagination({
         }}
         pages={pages}
       />
-    </div>
-  );
-}
-
-function ScrollingTopBarTitle({ title }: { title: string }) {
-  const frameRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLSpanElement>(null);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-
-  useEffect(() => {
-    const frame = frameRef.current;
-    const titleNode = titleRef.current;
-
-    if (!frame || !titleNode) {
-      return;
-    }
-
-    const frameNode = frame;
-    const measuredTitleNode = titleNode;
-
-    function updateOverflow() {
-      setIsOverflowing(measuredTitleNode.scrollWidth > frameNode.clientWidth);
-    }
-
-    updateOverflow();
-
-    const observer = new ResizeObserver(updateOverflow);
-    observer.observe(frameNode);
-    observer.observe(measuredTitleNode);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [title]);
-
-  return (
-    <div
-      className="relative min-w-0 flex-1 overflow-hidden whitespace-nowrap text-left text-base font-bold text-[var(--foreground)]"
-      ref={frameRef}
-    >
-      {isOverflowing ? (
-        <span className="detail-title-marquee inline-flex">
-          <span className="pr-6">{title}</span>
-          <span aria-hidden="true" className="pr-6">
-            {title}
-          </span>
-        </span>
-      ) : (
-        <span>{title}</span>
-      )}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none invisible absolute whitespace-nowrap"
-        ref={titleRef}
-      >
-        {title}
-      </span>
     </div>
   );
 }

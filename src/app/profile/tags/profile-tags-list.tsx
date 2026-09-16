@@ -145,7 +145,7 @@ function TagRow({
   }
 
   return (
-    <article className="group relative min-w-0 rounded-2xl border border-white/60 bg-white/55 shadow-lg shadow-slate-900/5 backdrop-blur-2xl transition hover:bg-white/75 active:scale-[0.98]">
+    <article className="group relative min-w-0 rounded-2xl border border-white/60 bg-white/55 shadow-lg shadow-slate-900/5 backdrop-blur-2xl transition hover:bg-white/75 press-card">
       <Link
         className="flex min-w-0 items-center justify-between gap-4 px-5 py-4 pr-14"
         href={href}

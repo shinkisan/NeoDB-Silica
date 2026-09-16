@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
 import Link from "next/link";
 import type { AboutLocale } from "../about/about-page";
 import { siteConfig } from "@/site.config";
@@ -133,8 +134,8 @@ export function LicensesPage({
       className="min-h-dvh bg-[var(--background)] pb-24 text-[var(--foreground)]"
       lang={locale}
     >
-      <header className="sticky top-0 z-50 border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-3xl items-center gap-3">
+      <FloatingTopBar className="sticky top-0 z-50" rowClassName="max-w-3xl">
+        <TopBarIsland>
           <Link
             aria-label={content.closeLabel}
             className="grid size-10 shrink-0 place-items-center rounded-full text-[var(--foreground)] transition hover:bg-white/50"
@@ -142,9 +143,12 @@ export function LicensesPage({
           >
             <CloseIcon />
           </Link>
-          <h1 className="truncate text-lg font-bold">{content.title}</h1>
-        </div>
-      </header>
+        </TopBarIsland>
+        <h1 className="min-w-0 flex-1 truncate text-center text-lg font-bold">
+          {content.title}
+        </h1>
+        <div aria-hidden="true" className="size-10 shrink-0" />
+      </FloatingTopBar>
 
       <section className="mx-auto max-w-3xl px-5 py-10">
         <p className="leading-7 text-[#44474c]">{content.description}</p>

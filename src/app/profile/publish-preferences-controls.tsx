@@ -27,7 +27,7 @@ export function DefaultVisibilityButton({ disabled }: { disabled?: boolean }) {
     <>
       <button
         aria-disabled={disabled}
-        className="inline-flex h-9 items-center rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 active:scale-95 aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
+        className="inline-flex h-9 items-center rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 press-control aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
         onClick={() => {
           if (disabled) { showToast(t("profile.publishPreferences.loginRequired")); return; }
           setIsOpen(true);
@@ -51,7 +51,7 @@ export function AutoForwardButton({ disabled }: { disabled?: boolean }) {
     <>
       <button
         aria-disabled={disabled}
-        className="inline-flex h-9 items-center rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 active:scale-95 aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
+        className="inline-flex h-9 items-center rounded-full border border-white/70 bg-white/50 px-3 text-xs font-bold text-[#1a1c1e] shadow-sm transition hover:bg-white/75 press-control aria-disabled:cursor-not-allowed aria-disabled:opacity-40"
         onClick={() => {
           if (disabled) { showToast(t("profile.publishPreferences.loginRequired")); return; }
           setIsOpen(true);

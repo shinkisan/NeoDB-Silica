@@ -5,22 +5,34 @@ import {
   performNavigationClose,
   resolveDetailCloseAction,
 } from "@/components/navigation-history";
+import { beginPress, isPrimaryPress } from "@/components/press-surface";
 
 export function CloseDetailButton({
   onBeforeClose,
+  pulseOnPress = false,
 }: {
   onBeforeClose?: () => void;
+  pulseOnPress?: boolean;
 } = {}) {
   const router = useRouter();
 
   return (
     <button
       aria-label="返回首页"
-      className="grid size-10 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+      className={`grid size-10 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 disabled:cursor-default ${
+        pulseOnPress ? "" : "press-icon"
+      }`}
       onClick={(event) => {
-        event.currentTarget.disabled = true;
+        const button = event.currentTarget;
+
+        button.disabled = true;
         onBeforeClose?.();
         performNavigationClose(resolveDetailCloseAction(), router);
+      }}
+      onPointerDown={(event) => {
+        if (pulseOnPress && isPrimaryPress(event)) {
+          beginPress(event.currentTarget.closest("[data-press-surface]"));
+        }
       }}
       type="button"
     >

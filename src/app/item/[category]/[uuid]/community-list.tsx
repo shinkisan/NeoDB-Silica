@@ -1196,7 +1196,7 @@ const CommunityComment = memo(function CommunityComment({
           {isOwn && comment ? (
             <button
               aria-label={t("community.deleteComment")}
-              className="-ml-1.5 grid size-8 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-red-600 active:scale-95"
+              className="-ml-1.5 grid size-8 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-red-600 press-icon"
               onClick={() => setDeleteTarget("comment")}
               type="button"
             >
@@ -1206,7 +1206,7 @@ const CommunityComment = memo(function CommunityComment({
           {isOwn && review ? (
             <button
               aria-label={t("community.deleteReview")}
-              className="grid size-8 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-red-600 active:scale-95"
+              className="grid size-8 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-red-600 press-icon"
               onClick={() => setDeleteTarget("review")}
               type="button"
             >
@@ -1453,7 +1453,7 @@ const CommunityReview = memo(function CommunityReview({
           <div className="mt-2">
             <button
               aria-label={t("community.deleteReview")}
-              className="grid size-8 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-red-600 active:scale-95"
+              className="grid size-8 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-red-600 press-icon"
               onClick={() => setIsDeleteOpen(true)}
               type="button"
             >

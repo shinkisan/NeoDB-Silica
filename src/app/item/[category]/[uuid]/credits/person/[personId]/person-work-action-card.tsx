@@ -56,7 +56,7 @@ export function PersonWorkActionCard({
   return (
     <article className="relative rounded-2xl border border-white/70 bg-white/60 shadow-lg shadow-slate-900/5 transition hover:bg-white/75">
       <button
-        className="block w-full cursor-pointer p-3 pr-12 text-left transition active:scale-[0.99]"
+        className="block w-full cursor-pointer p-3 pr-12 text-left transition press-card"
         onClick={openMenu}
         type="button"
       >
@@ -65,7 +65,7 @@ export function PersonWorkActionCard({
       <button
         aria-expanded={isOpen}
         aria-label={t("credits.workActions")}
-        className="absolute right-3 top-3 grid size-9 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-[#44474c] active:scale-95"
+        className="absolute right-3 top-3 grid size-9 cursor-pointer place-items-center rounded-full text-[#75777d] transition hover:bg-white/70 hover:text-[#44474c] press-icon"
         onClick={(event) => {
           event.stopPropagation();
           openMenu();

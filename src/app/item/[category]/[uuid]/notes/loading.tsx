@@ -1,16 +1,20 @@
 import { getT } from "@/i18n/server";
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
 
 export default async function Loading() {
   const t = await getT();
 
   return (
     <div className="min-h-dvh bg-[var(--background)] text-[var(--foreground)]">
-      <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-4xl items-center gap-3">
+      <FloatingTopBar className="fixed inset-x-0 top-0 z-[60]" rowClassName="max-w-4xl">
+        <TopBarIsland>
           <div className="size-10 shrink-0 rounded-full bg-[#e2e2e5]" />
+        </TopBarIsland>
+        <div className="flex min-w-0 flex-1 justify-center">
           <div className="h-5 w-40 animate-pulse rounded-full bg-[#e2e2e5]" />
         </div>
-      </header>
+        <div aria-hidden="true" className="size-10 shrink-0" />
+      </FloatingTopBar>
       <div aria-hidden="true" className="h-16" />
       <main className="px-5 pb-32 pt-8">
         <section className="mx-auto max-w-2xl lg:max-w-4xl">

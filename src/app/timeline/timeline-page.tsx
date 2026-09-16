@@ -840,7 +840,7 @@ export function TimelinePage() {
           </nav>
           <Link
             aria-label={t("notifications.title")}
-            className="relative grid size-[46px] shrink-0 place-items-center rounded-full border border-white/50 bg-white/55 text-[#44474c] shadow-[0_14px_28px_rgba(15,23,42,0.08)] backdrop-blur-3xl transition hover:bg-white/75 hover:text-[var(--foreground)] active:scale-95 sm:absolute sm:right-0 sm:top-0"
+            className="relative grid size-[46px] shrink-0 place-items-center rounded-full border border-white/50 bg-white/55 text-[#44474c] shadow-[0_14px_28px_rgba(15,23,42,0.08)] backdrop-blur-3xl transition hover:bg-white/75 hover:text-[var(--foreground)] press-icon sm:absolute sm:right-0 sm:top-0"
             href={notificationsHref}
           >
             <BellIcon />
@@ -1074,7 +1074,7 @@ function FollowingTimeline({
       {hasMore ? (
         <div className="flex justify-center">
           <button
-            className="h-10 rounded-full border border-white/70 bg-white/60 px-5 text-sm font-bold text-[#44474c] shadow-sm transition hover:bg-white/80 active:scale-95 disabled:cursor-wait disabled:text-[#a4a6ad]"
+            className="h-10 rounded-full border border-white/70 bg-white/60 px-5 text-sm font-bold text-[#44474c] shadow-sm transition hover:bg-white/80 press-control disabled:cursor-wait disabled:text-[#a4a6ad]"
             disabled={isLoadingMore}
             onClick={loadMore}
             type="button"
@@ -1157,7 +1157,7 @@ function MineTimeline({
       {hasMore ? (
         <div className="flex justify-center">
           <button
-            className="h-10 rounded-full border border-white/70 bg-white/60 px-5 text-sm font-bold text-[#44474c] shadow-sm transition hover:bg-white/80 active:scale-95 disabled:cursor-wait disabled:text-[#a4a6ad]"
+            className="h-10 rounded-full border border-white/70 bg-white/60 px-5 text-sm font-bold text-[#44474c] shadow-sm transition hover:bg-white/80 press-control disabled:cursor-wait disabled:text-[#a4a6ad]"
             disabled={isLoadingMore}
             onClick={loadMore}
             type="button"

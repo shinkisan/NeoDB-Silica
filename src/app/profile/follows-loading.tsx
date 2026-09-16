@@ -1,16 +1,19 @@
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
+
 export function ProfileFollowsLoading({ title }: { title: string }) {
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-2xl items-center gap-3">
+      <FloatingTopBar className="fixed inset-x-0 top-0 z-[60]" rowClassName="max-w-2xl">
+        <TopBarIsland>
           <div className="grid size-10 place-items-center rounded-full text-[#44474c]">
             <CloseIcon />
           </div>
-          <p className="min-w-0 flex-1 truncate text-base font-bold text-[var(--foreground)]">
-            {title}
-          </p>
-        </div>
-      </header>
+        </TopBarIsland>
+        <p className="min-w-0 flex-1 truncate text-center text-base font-bold text-[var(--foreground)]">
+          {title}
+        </p>
+        <div aria-hidden="true" className="size-10 shrink-0" />
+      </FloatingTopBar>
       <main className="min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)]">
         <section className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-white/60 bg-white/60 shadow-xl shadow-slate-900/5 backdrop-blur-2xl">
           {Array.from({ length: 8 }, (_, index) => (

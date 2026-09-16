@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -104,42 +105,46 @@ export function ReviewReader({
       }`}
       onClick={(event) => event.stopPropagation()}
     >
-      <header className="sticky top-0 z-10 w-screen border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-4xl items-center gap-3">
+      <FloatingTopBar className="sticky top-0 z-10 w-screen" rowClassName="max-w-4xl">
+        <TopBarIsland>
           <button
             aria-label={t("reviewReader.close")}
-            className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95"
+            className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon"
             onClick={onClose}
             type="button"
           >
             <CloseIcon />
           </button>
-          <div
-            className="relative min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base font-bold text-[var(--foreground)]"
-            ref={titleFrameRef}
-          >
-            {isTitleOverflowing ? (
-              <span className="detail-title-marquee inline-flex">
-                <span className="pr-6">{title || t("reviewReader.fallbackTitle")}</span>
-                <span aria-hidden="true" className="pr-6">
-                  {title || t("reviewReader.fallbackTitle")}
-                </span>
+        </TopBarIsland>
+        <div
+          className={`relative min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base font-bold text-[var(--foreground)] ${
+            isTitleOverflowing ? "text-left" : "text-center"
+          }`}
+          ref={titleFrameRef}
+        >
+          {isTitleOverflowing ? (
+            <span className="detail-title-marquee inline-flex">
+              <span className="pr-6">{title || t("reviewReader.fallbackTitle")}</span>
+              <span aria-hidden="true" className="pr-6">
+                {title || t("reviewReader.fallbackTitle")}
               </span>
-            ) : (
-              <span>{title || t("reviewReader.fallbackTitle")}</span>
-            )}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none invisible absolute whitespace-nowrap"
-              ref={titleRef}
-            >
-              {title || t("reviewReader.fallbackTitle")}
             </span>
-          </div>
-          {showShare ? (
+          ) : (
+            <span>{title || t("reviewReader.fallbackTitle")}</span>
+          )}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none invisible absolute whitespace-nowrap"
+            ref={titleRef}
+          >
+            {title || t("reviewReader.fallbackTitle")}
+          </span>
+        </div>
+        {showShare ? (
+          <TopBarIsland>
             <button
               aria-label={t("detail.tools.share")}
-              className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95"
+              className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon"
               onClick={async () => {
                 try {
                   const shared = await shareContent({
@@ -156,9 +161,11 @@ export function ReviewReader({
             >
               <ShareIcon />
             </button>
-          ) : null}
-        </div>
-      </header>
+          </TopBarIsland>
+        ) : (
+          <div aria-hidden="true" className="size-10 shrink-0" />
+        )}
+      </FloatingTopBar>
 
       <main className="mx-auto max-w-3xl px-5 pb-16 pt-8">
         {isLoading ? (

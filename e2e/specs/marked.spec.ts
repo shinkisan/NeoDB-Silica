@@ -140,11 +140,13 @@ test("arriving from elsewhere defaults to the user's first reordered tag", async
 
   await page.getByRole("button", { name: "排序", exact: true }).click();
   await expect(page.getByText("标记分类排序").first()).toBeVisible();
-  const allRow = page.locator("div").filter({ hasText: "全部" }).last();
+  const allRow = page.getByRole("button", {
+    name: "全部 · 上移 / 下移",
+  });
 
   // Move "全部" (All) from first to last (7 categories after it).
   for (let step = 0; step < 7; step += 1) {
-    await allRow.getByRole("button", { name: "下移" }).click();
+    await allRow.press("ArrowDown");
   }
 
   await page.getByRole("button", { name: "关闭" }).click();

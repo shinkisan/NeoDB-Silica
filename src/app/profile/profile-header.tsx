@@ -264,7 +264,7 @@ function ProfileStat({
 
   return href ? (
     <Link
-      className="rounded-xl transition hover:bg-white/35 active:scale-95"
+      className="rounded-xl transition hover:bg-white/35 press-card"
       href={href}
     >
       {content}

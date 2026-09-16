@@ -184,7 +184,7 @@ function SearchResultCard({
     item.detailPath || `/item/${item.category}/${encodeURIComponent(item.id)}`;
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 active:scale-[0.98]">
+    <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 press-card">
       <SearchResultLink href={detailPath}>
         <div className="relative aspect-[3/4] bg-[#e2e2e5]">
           {item.coverUrl ? (

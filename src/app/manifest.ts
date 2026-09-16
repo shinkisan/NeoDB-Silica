@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { resolveRequestLocale } from "@/i18n/resolve-locale";
-import { getDefaultThemeColor } from "@/lib/theme";
 import { siteConfig } from "@/site.config";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
@@ -15,8 +14,12 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     id: "/",
     start_url: "/",
     display: "standalone",
+    // No theme_color on purpose. Android reads it for the status bar of an
+    // installed app and it can only hold one value, fetched at install time,
+    // so any choice here is wrong in one of the two themes. Leaving it out
+    // lets the platform pick, and the theme-color meta still drives browser
+    // tabs. iOS is unaffected either way: it uses its own status bar style.
     background_color: siteConfig.backgroundColor,
-    theme_color: getDefaultThemeColor().primary,
     shortcuts: [
       {
         icons: [

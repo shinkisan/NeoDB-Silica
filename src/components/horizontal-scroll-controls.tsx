@@ -52,7 +52,7 @@ export function HorizontalScrollControls({
       />
       <button
         aria-label={t("horizontalScroll.scrollLeft")}
-        className={`absolute left-0 top-0 z-20 grid size-9 place-items-center rounded-full bg-transparent text-[#44474c] transition hover:bg-white/45 active:scale-95 ${controlClassName}`}
+        className={`absolute left-0 top-0 z-20 grid size-9 place-items-center rounded-full bg-transparent text-[#44474c] transition hover:bg-white/45 press-icon ${controlClassName}`}
         onClick={() => scrollByDirection(-1)}
         type="button"
       >
@@ -70,7 +70,7 @@ export function HorizontalScrollControls({
       />
       <button
         aria-label={t("horizontalScroll.scrollRight")}
-        className={`absolute right-0 top-0 z-20 grid size-9 place-items-center rounded-full bg-transparent text-[#44474c] transition hover:bg-white/45 active:scale-95 ${controlClassName}`}
+        className={`absolute right-0 top-0 z-20 grid size-9 place-items-center rounded-full bg-transparent text-[#44474c] transition hover:bg-white/45 press-icon ${controlClassName}`}
         onClick={() => scrollByDirection(1)}
         type="button"
       >

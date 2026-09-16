@@ -48,7 +48,7 @@ export function DetailDescription({ text }: { text: string }) {
       {canExpand ? (
         <button
           aria-expanded={isExpanded}
-          className="ml-auto mt-1.5 flex cursor-pointer items-center gap-1 rounded-full px-1 py-0.5 text-sm font-bold text-[#75777d] transition-[color,transform] hover:text-[var(--foreground)] active:scale-[0.98]"
+          className="ml-auto mt-1.5 flex cursor-pointer items-center gap-1 rounded-full px-1 py-0.5 text-sm font-bold text-[#75777d] transition-[color,scale] hover:text-[var(--foreground)] press-control"
           onClick={() => {
             if (!isExpanded) {
               scrollYBeforeExpandRef.current = window.scrollY;

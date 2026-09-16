@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { getDisplacementFilter } from "@/lib/liquid-glass";
 
-// App-level driver for the liquid-glass effect. Any element with the
-// `liquid-glass` class is given a size-aware edge-refraction `backdrop-filter`
+// App-level driver for the liquid-glass effect. Elements register through a
+// React ref after hydration, then receive a size-aware edge-refraction filter
 // (see src/lib/liquid-glass.ts), recomputed on resize. Per-surface tuning comes
 // from optional data attributes:
 //   data-lg-depth, data-lg-strength, data-lg-cab (chromatic aberration),
@@ -13,6 +13,21 @@ import { getDisplacementFilter } from "@/lib/liquid-glass";
 // fallback defined on `.liquid-glass`.
 
 let cachedSupport: boolean | null = null;
+
+const surfaces = new Set<HTMLElement>();
+const registrations = new Set<(element: HTMLElement, mounted: boolean) => void>();
+
+// Scanning streamed HTML can mutate a Suspense boundary before React hydrates
+// it. Ref callbacks run after React commits the element, and clean up on unmount.
+export function registerLiquidGlass(element: HTMLElement | null) {
+  if (!element) return;
+  surfaces.add(element);
+  registrations.forEach((notify) => notify(element, true));
+  return () => {
+    surfaces.delete(element);
+    registrations.forEach((notify) => notify(element, false));
+  };
+}
 
 type NavigatorWithUserAgentData = Navigator & {
   userAgentData?: {
@@ -73,9 +88,9 @@ export function LiquidGlassManager() {
     const resizeObservers = new Map<HTMLElement, ResizeObserver>();
 
     function apply(element: HTMLElement) {
-      const rect = element.getBoundingClientRect();
-      const width = Math.round(rect.width);
-      const height = Math.round(rect.height);
+      // Transforms animate these controls; filters use their unscaled box.
+      const width = element.offsetWidth;
+      const height = element.offsetHeight;
       if (!width || !height) return;
 
       const styles = getComputedStyle(element);
@@ -90,7 +105,7 @@ export function LiquidGlassManager() {
         radius,
         depth: readNumber(element.dataset.lgDepth, 6),
         strength: readNumber(element.dataset.lgStrength, 44),
-        chromaticAberration: readNumber(element.dataset.lgCab, 3),
+        chromaticAberration: readNumber(element.dataset.lgCab, 1.5),
       });
       const value = `blur(${blur / 2}px) url('${filter}') blur(${blur}px) brightness(${brightness}) saturate(${saturate})`;
       element.style.backdropFilter = value;
@@ -110,36 +125,20 @@ export function LiquidGlassManager() {
       if (!observer) return;
       observer.disconnect();
       resizeObservers.delete(element);
+      element.style.removeProperty("backdrop-filter");
+      element.style.removeProperty("-webkit-backdrop-filter");
     }
 
-    document
-      .querySelectorAll<HTMLElement>(".liquid-glass")
-      .forEach(attach);
-
-    const mutationObserver = new MutationObserver((records) => {
-      for (const record of records) {
-        record.addedNodes.forEach((node) => {
-          if (!(node instanceof HTMLElement)) return;
-          if (node.classList.contains("liquid-glass")) attach(node);
-          node
-            .querySelectorAll<HTMLElement>(".liquid-glass")
-            .forEach(attach);
-        });
-        record.removedNodes.forEach((node) => {
-          if (!(node instanceof HTMLElement)) return;
-          if (node.classList.contains("liquid-glass")) detach(node);
-          node
-            .querySelectorAll<HTMLElement>(".liquid-glass")
-            .forEach(detach);
-        });
-      }
-    });
-    mutationObserver.observe(document.body, { childList: true, subtree: true });
+    function onRegistration(element: HTMLElement, mounted: boolean) {
+      if (mounted) attach(element);
+      else detach(element);
+    }
+    registrations.add(onRegistration);
+    surfaces.forEach(attach);
 
     return () => {
-      mutationObserver.disconnect();
-      resizeObservers.forEach((observer) => observer.disconnect());
-      resizeObservers.clear();
+      registrations.delete(onRegistration);
+      resizeObservers.forEach((_, element) => detach(element));
     };
   }, []);
 

@@ -16,6 +16,14 @@ export type ThemeColor = {
   primaryHover: string;
 };
 
+/** Drives the OS status bar so it matches the page rather than the brand
+ * color, which leaves a hard seam above the top bar. Must stay in sync with
+ * `--background` in globals.css. */
+export const pageBackgroundColors = {
+  dark: "#101214",
+  light: "#f9f9fc",
+};
+
 export const themeColors: ThemeColor[] = [
   { id: "slate", label: "石墨", primary: "#333e50", primaryHover: "#273142" },
   { id: "rose", label: "蔷薇", primary: "#8f4e5d", primaryHover: "#7a4651" },

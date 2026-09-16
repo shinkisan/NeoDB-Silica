@@ -1,0 +1,164 @@
+/* Deliberately no `isolation: isolate` here. Every bar is positioned with an
+   explicit z-index, so it already forms a stacking context; isolation would
+   add nothing but a backdrop root, and the blur layers below would then sample
+   only what is painted inside the bar — that is, nothing.
+
+   Never hand-write `-webkit-backdrop-filter` beside the standard property
+   either: the build treats the prefixed copy as superseding the standard one
+   and emits only the prefix, which Chromium does not support, so the blur
+   silently disappears there. Declaring the standard property alone lets the
+   build add the prefix Safari needs. */
+.bar {
+  /* How far the blur and tint reach past the bar's own 4rem — negative, so the
+     haze stops short of the bar's bottom edge rather than trailing past it.
+     This is the knob for the zone's height; the stops below are shares of it. */
+  --top-bar-haze: 0rem;
+  /* One pass carries the weight; the depth pass is here to be dialled up. */
+  --top-bar-blur: 18px;
+  --top-bar-blur-depth: 0px;
+  /* Where each layer stops being at full strength. Lower values keep the
+     weight close to the bar; raising them starts the build-up further down,
+     so content begins blurring earlier on its way up. */
+  --top-bar-ramp: 20%;
+  --top-bar-ramp-depth: 40%;
+}
+
+.glassIsland {
+  background-color: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 5px 16px rgba(30, 41, 59, 0.09),
+    0 1px 2px rgba(30, 41, 59, 0.08);
+}
+
+/* The island itself supplies the held press feedback. Do not let a trigger's
+   legacy active scale pull its icon in the opposite direction at the same
+   time. */
+.glassIsland button:active,
+.glassIsland a:active,
+.glassIsland [role="button"]:active {
+  scale: 1;
+  transform: none;
+}
+
+.glassIsland:global(.liquid-glass)::after {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.58) 0%,
+      rgba(255, 255, 255, 0.18) 28%,
+      transparent 52%
+    ),
+    linear-gradient(
+      315deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      transparent 38%
+    );
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.94),
+    inset 1px 0 1px rgba(255, 255, 255, 0.42);
+  opacity: 1;
+}
+
+:global(:root[data-theme="dark"]) .glassIsland {
+  background-color: color-mix(in srgb, var(--surface) 80%, var(--surface-strong));
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.28),
+    0 1px 2px rgba(0, 0, 0, 0.22);
+}
+
+:global(:root[data-theme="dark"])
+  .glassIsland:global(.liquid-glass)::after {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(255, 255, 255, 0.055) 30%,
+      transparent 54%
+    ),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.2) 0%, transparent 40%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 1px 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Overlapping masked layers soften both the blur and tint towards the content.
+   The tint reaches full page background at the very top so the strip meeting
+   the OS status bar is opaque, leaving no seam between the two. */
+.backdrop {
+  position: absolute;
+  inset: 0 0 calc(var(--top-bar-haze) * -1);
+  /* Above .bar's blur pseudo-elements. Underneath them Safari's backdrop
+     filter samples past the opaque run and drags covered content colour up
+     into the strip that is supposed to match the status bar. */
+  z-index: 1;
+  pointer-events: none;
+  /* The opaque run is a fixed few pixels rather than a share of the box: it
+     only has to cover the seam itself, and a percentage reads as a band. */
+  background: linear-gradient(
+    to bottom,
+    var(--background) 0,
+    var(--background) 3px,
+    color-mix(in srgb, var(--background) 46%, transparent) 26%,
+    color-mix(in srgb, var(--background) 14%, transparent) 54%,
+    transparent 100%
+  );
+  backdrop-filter: blur(4px);
+  mask-image: linear-gradient(to bottom, black 80%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent);
+}
+
+/* Two passes in the same box: the primary carries the weight over the longer
+   falloff, the depth pass concentrates nearer the bar. Both read their radius
+   from a variable so the pair can be rebalanced without touching the shape. */
+.bar::before,
+.bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 calc(var(--top-bar-haze) * -1);
+  z-index: 0;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    to bottom,
+    black var(--top-bar-ramp),
+    rgba(0, 0, 0, 0.58) calc(var(--top-bar-ramp) + 15%),
+    rgba(0, 0, 0, 0.24) calc(var(--top-bar-ramp) + 30%),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black var(--top-bar-ramp),
+    rgba(0, 0, 0, 0.58) calc(var(--top-bar-ramp) + 15%),
+    rgba(0, 0, 0, 0.24) calc(var(--top-bar-ramp) + 30%),
+    transparent 100%
+  );
+}
+
+/* The depth layer's tighter falloff, so it concentrates towards the bar. */
+.bar::after {
+  mask-image: linear-gradient(
+    to bottom,
+    black var(--top-bar-ramp-depth),
+    rgba(0, 0, 0, 0.62) calc(var(--top-bar-ramp-depth) + 16%),
+    rgba(0, 0, 0, 0.3) calc(var(--top-bar-ramp-depth) + 34%),
+    rgba(0, 0, 0, 0.09) calc(var(--top-bar-ramp-depth) + 46%),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black var(--top-bar-ramp-depth),
+    rgba(0, 0, 0, 0.62) calc(var(--top-bar-ramp-depth) + 16%),
+    rgba(0, 0, 0, 0.3) calc(var(--top-bar-ramp-depth) + 34%),
+    rgba(0, 0, 0, 0.09) calc(var(--top-bar-ramp-depth) + 46%),
+    transparent 100%
+  );
+}
+
+.bar::before {
+  backdrop-filter: blur(var(--top-bar-blur));
+}
+
+.bar::after {
+  backdrop-filter: blur(var(--top-bar-blur-depth));
+}

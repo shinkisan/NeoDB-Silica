@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -57,11 +58,11 @@ function ProfileFollowsTopBar({
   const router = useRouter();
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[60] border-b border-white/30 bg-white/60 px-5 shadow-sm shadow-slate-900/5 backdrop-blur-2xl">
-      <div className="mx-auto flex h-16 max-w-2xl items-center gap-3">
+    <FloatingTopBar className="fixed inset-x-0 top-0 z-[60]" rowClassName="max-w-2xl">
+      <TopBarIsland>
         <button
           aria-label={title}
-          className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 active:scale-95 disabled:cursor-default"
+          className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon disabled:cursor-default"
           onClick={(event) => {
             event.currentTarget.disabled = true;
             router.push("/profile");
@@ -70,11 +71,12 @@ function ProfileFollowsTopBar({
         >
           <CloseIcon />
         </button>
-        <p className="min-w-0 flex-1 truncate text-base font-bold text-[var(--foreground)]">
-          {title}
-        </p>
-      </div>
-    </header>
+      </TopBarIsland>
+      <p className="min-w-0 flex-1 truncate text-center text-base font-bold text-[var(--foreground)]">
+        {title}
+      </p>
+      <div aria-hidden="true" className="size-10 shrink-0" />
+    </FloatingTopBar>
   );
 }
 

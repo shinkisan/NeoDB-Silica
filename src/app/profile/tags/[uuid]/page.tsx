@@ -254,7 +254,7 @@ function TagItemCard({
   const href = `${item.detailPath}?fromCategory=tag`;
 
   return (
-    <article className="relative rounded-2xl border border-white/70 bg-white/60 p-3 shadow-lg shadow-slate-900/5 transition hover:bg-white/75 active:scale-[0.99]">
+    <article className="relative rounded-2xl border border-white/70 bg-white/60 p-3 shadow-lg shadow-slate-900/5 transition hover:bg-white/75 press-card">
       <TagItemActions itemTitle={item.title} itemUuid={item.id} tagUuid={tagUuid} />
       <Link className="block" href={href}>
         <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 pr-8 sm:grid-cols-[7rem_minmax(0,1fr)]">

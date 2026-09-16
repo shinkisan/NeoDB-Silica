@@ -220,7 +220,7 @@ function VersionCard({
   const meta = getVersionMeta(item, pageCountLabel);
 
   return (
-    <article className="overflow-hidden rounded-xl border border-white/70 bg-white/60 shadow-lg shadow-slate-900/5 transition hover:bg-white/75 active:scale-[0.99]">
+    <article className="overflow-hidden rounded-xl border border-white/70 bg-white/60 shadow-lg shadow-slate-900/5 transition hover:bg-white/75 press-card">
       <VersionItemLink href={detailPath}>
         <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-3 p-3 sm:grid-cols-[104px_minmax(0,1fr)]">
           <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-[#e2e2e5]">
