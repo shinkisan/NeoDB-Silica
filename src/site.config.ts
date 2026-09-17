@@ -38,9 +38,12 @@ export const siteConfig = {
   /**
    * Default theme color, picked from the same presets visitors can choose
    * from in Settings (`themeColors` in `src/lib/theme.ts`): "amber", "indigo",
-   * "rose", "sage", or "slate". Applies to the PWA manifest, the browser
-   * chrome color, and the app UI itself for any visitor who hasn't picked
-   * their own color.
+   * "rose", "sage", or "slate". Applies to the app UI's accent (active
+   * navigation, selected tabs, primary actions) for any visitor who hasn't
+   * picked their own color. It does not tint the browser chrome or the
+   * installed app's status bar: the theme-color meta follows the page
+   * background, and the PWA manifest leaves `theme_color` out on purpose
+   * (see `src/app/manifest.ts`).
    */
   themeColorId: "slate" as ThemeColorId,
   /** PWA splash background color. */
