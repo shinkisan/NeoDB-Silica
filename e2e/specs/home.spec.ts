@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { BOOK_TITLE, BOOK_UUID } from "../helpers/env";
+import { BOOK_TITLE, BOOK_UUID, MOVIE_TITLE } from "../helpers/env";
+import { signIn } from "../helpers/session";
 
 test("home renders trending items from the instance", async ({ page }) => {
   const pageErrors: Error[] = [];
   page.on("pageerror", (error) => pageErrors.push(error));
 
-  await page.goto("/");
+  await page.goto("/?category=book");
 
   // Trending rail populated from the mock instance.
   await expect(page.getByText(BOOK_TITLE).first()).toBeVisible();
@@ -14,7 +15,7 @@ test("home renders trending items from the instance", async ({ page }) => {
 });
 
 test("home trending card opens the item's detail page", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?category=book");
 
   await page
     .getByRole("link", { name: new RegExp(BOOK_TITLE) })
@@ -25,6 +26,44 @@ test("home trending card opens the item's detail page", async ({ page }) => {
   await expect(
     page.getByRole("heading", { level: 1, name: BOOK_TITLE }),
   ).toBeVisible();
+});
+
+test("a guest gets the public feed, without the personal tag", async ({
+  page,
+}) => {
+  await page.goto("/?category=forYou");
+
+  // The personal feed needs a session, so it is neither offered nor routable:
+  // the category falls back to a public one.
+  await expect(
+    page.getByRole("button", { name: "推荐", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText(BOOK_TITLE).first()).toBeVisible();
+});
+
+test("an expired session falls back to the log-in notice", async ({
+  context,
+  page,
+}) => {
+  await signIn(context, { accessToken: "expired-token" });
+  await page.goto("/?category=forYou");
+
+  await expect(page.getByRole("link", { name: "登录 NeoDB" })).toBeVisible();
+});
+
+test("the personal feed shows recommendations once signed in", async ({
+  context,
+  page,
+}) => {
+  await signIn(context);
+  await page.goto("/?category=forYou");
+
+  // Seeded picks land in 为你推荐 …
+  await expect(page.getByText(BOOK_TITLE).first()).toBeVisible();
+
+  // … and unseeded ones in 来自关注的人.
+  await page.getByRole("button", { name: "来自关注的人" }).click();
+  await expect(page.getByText(MOVIE_TITLE).first()).toBeVisible();
 });
 
 test("PWA shortcuts expose scan, search, and reading-book destinations", async ({
@@ -84,6 +123,43 @@ test("home PWA search shortcut focuses the search field once", async ({
   const input = page.locator('input[name="app-home-search-query"]');
   await expect(input).toBeFocused();
   await expect(page).toHaveURL("/");
+});
+
+test("a supported site link is submitted for fetching, a plain URL is searched", async ({
+  page,
+}) => {
+  const fetches: string[] = [];
+
+  page.on("request", (request) => {
+    if (request.url().includes("/api/neodb/catalog-fetch")) {
+      fetches.push(request.url());
+    }
+  });
+
+  // MyAnimeList is a site NeoDB supports and the old hostname list never
+  // listed, so this only reaches the fetch route because the site patterns —
+  // generated from NeoDB's own source — decide it does.
+  await page.goto("/?shortcut=search");
+  await page
+    .locator('input[name="app-home-search-query"]')
+    .fill("https://myanimelist.net/anime/21");
+  await page.locator('input[name="app-home-search-query"]').press("Enter");
+
+  await expect
+    .poll(() => fetches.some((url) => url.includes("myanimelist")))
+    .toBe(true);
+  await expect(page).toHaveURL(/\/search\?/);
+
+  // A URL no site claims is searched as text, without asking NeoDB about it.
+  fetches.length = 0;
+  await page.goto("/?shortcut=search");
+  await page
+    .locator('input[name="app-home-search-query"]')
+    .fill("https://example.com/post/1");
+  await page.locator('input[name="app-home-search-query"]').press("Enter");
+
+  await expect(page).toHaveURL(/\/search\?/);
+  expect(fetches).toEqual([]);
 });
 
 test("home PWA scan shortcut opens and closes the ISBN scanner", async ({

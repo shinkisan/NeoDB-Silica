@@ -2,12 +2,16 @@ import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 export type HomeTag = {
   id: string;
   label: string;
+  /** Served to the signed-in visitor only, so it is not prefetched like the
+   * public category feeds and is not offered as a search scope. */
+  personal?: boolean;
 };
 
 export const HOME_TAG_ORDER_EVENT = "app:home-tag-order";
 export const HOME_TAG_ORDER_KEY = `${STORAGE_PREFIX}v1:home-tag-order`;
 
 export const homeTags: HomeTag[] = [
+  { id: "forYou", label: "为你推荐", personal: true },
   { id: "book", label: "图书" },
   { id: "movie", label: "电影" },
   { id: "tv", label: "剧集" },
@@ -16,6 +20,20 @@ export const homeTags: HomeTag[] = [
   { id: "podcast", label: "播客" },
   { id: "collection", label: "收藏单" },
 ];
+
+export const personalHomeTagIds = homeTags
+  .filter((tag) => tag.personal)
+  .map((tag) => tag.id);
+
+export function isPersonalHomeTag(id: string) {
+  return personalHomeTagIds.includes(id);
+}
+
+/** Whether this visitor can open the tag at all: the personal feed needs a
+ * session, so guests never see it. */
+export function isHomeTagAvailable(id: string, isSignedIn: boolean) {
+  return isSignedIn || !isPersonalHomeTag(id);
+}
 
 export const DEFAULT_HOME_CATEGORY = homeTags[0].id;
 

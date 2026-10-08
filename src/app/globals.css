@@ -763,6 +763,31 @@ select:disabled {
   animation: page-fade-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+.home-dismiss-enter {
+  animation: home-dismiss-in 160ms ease-out both;
+}
+
+/* Sharp poster on top, fading out so only the lower half shows the frost. */
+.home-dismiss-sharp {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 42%,
+    transparent 68%
+  );
+  mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 68%);
+}
+
+.home-dismiss-frost {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 36%,
+    #000 64%,
+    #000 100%
+  );
+  mask-image: linear-gradient(to bottom, transparent 36%, #000 64%, #000 100%);
+}
+
 .review-editor-enter {
   animation: review-editor-pop-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   transform-origin: center 80%;
@@ -858,6 +883,16 @@ select:disabled {
 @keyframes page-fade-in {
   from {
     opacity: 0.82;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes home-dismiss-in {
+  from {
+    opacity: 0;
   }
 
   to {
@@ -997,6 +1032,7 @@ select:disabled {
 @media (prefers-reduced-motion: reduce) {
   .detail-page-enter,
   .search-page-enter,
+  .home-dismiss-enter,
   .review-editor-enter,
   .review-reader-enter,
   .review-reader-exit,

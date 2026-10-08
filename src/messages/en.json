@@ -117,6 +117,25 @@
     "refreshUnsupported": "Manual refresh isn't available for this list",
     "empty": "No content yet.",
     "endOfList": "You've reached the end",
+    "dismiss": {
+      "close": "Close",
+      "action": "Not interested",
+      "toast": "This item won't be shown here anymore",
+      "error": "Couldn't hide this item. Please try again later",
+      "loginRequired": "Log in to hide items"
+    },
+    "forYou": {
+      "guestTitle": "Log in to see your recommendations",
+      "guestDescription": "Connect your NeoDB account and picks based on your marks and collections show up here.",
+      "login": "Log in to NeoDB",
+      "emptyTitle": "No recommendations yet",
+      "emptyDescription": "Mark and collect a few things and the picks get sharper.",
+      "error": "Couldn't load your recommendations. Please try again later"
+    },
+    "forYouSubtab": {
+      "forYou": "For You",
+      "friends": "From people you follow"
+    },
     "movieSubtab": {
       "trending": "Trending",
       "nowPlaying": "Now Playing",
@@ -944,6 +963,7 @@
     "error": "Like failed."
   },
   "homeTags": {
+    "forYou": "Recommendations",
     "book": "Books", "movie": "Movies", "tv": "TV", "music": "Music", "game": "Games", "podcast": "Podcasts", "collection": "Collections"
   },
   "tmdbDiscovery": {

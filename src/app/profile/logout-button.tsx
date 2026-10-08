@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useT } from "@/components/use-t";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { clearPersonalHomeFeedCache } from "@/lib/home-feed-cache";
 import { clearMarkedListCache } from "@/lib/marked-list-cache";
 import { clearTimelineCache } from "@/lib/timeline-cache";
 import { STORAGE_PREFIX } from "@/lib/runtime-ids";
@@ -29,6 +30,7 @@ export function LogoutButton() {
     try {
       await fetch("/api/auth/neodb/logout", { method: "POST" });
       clearProfileCache();
+      clearPersonalHomeFeedCache();
       clearMarkedListCache();
       clearTimelineCache();
       router.refresh();

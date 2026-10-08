@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { useT } from "@/components/use-t";
 import { parseCatalogDetailPath, parseNeodbDetailPath } from "@/lib/catalog-link";
+import { matchCatalogSite } from "@/lib/catalog-sites";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
 
 type CatalogFetchDialogProps = {
@@ -29,50 +30,15 @@ const POLL_INTERVAL_MS = 15_000;
 const FETCH_TIMEOUT_MS = 120_000;
 const MIN_POLL_INTERVAL_MS = 1_000;
 
-const SUPPORTED_LINK_HOSTS = [
-  "archiveofourown.org",
-  "bandcamp.com",
-  "bgm.tv",
-  "bibliotek.dk",
-  "boardgamegeek.com",
-  "books.com.tw",
-  "imdb.com",
-  "igdb.com",
-  "itch.io",
-  "jjwxc.net",
-  "douban.com",
-  "goodreads.com",
-  "musicbrainz.org",
-  "mobygames.com",
-  "music.apple.com",
-  "music.youtube.com",
-  "openlibrary.org",
-  "podcasts.apple.com",
-  "qidian.com",
-  "discogs.com",
-  "google.com",
-  "google.co.jp",
-  "google.co.uk",
-  "google.com.hk",
-  "google.com.tw",
-  "rss.com",
-  "spotify.com",
-  "thestorygraph.com",
-  "themoviedb.org",
-  "tmdb.org",
-  "letterboxd.com",
-  "bangumi.tv",
-  "store.steampowered.com",
-  "steamcommunity.com",
-  "wikidata.org",
-  "worldcat.org",
-  "ypshuo.com",
-];
+const MOCK_CATALOG_FETCH_HOST = "mock.app.local";
 
-if (process.env.NODE_ENV !== "production") {
-  SUPPORTED_LINK_HOSTS.push("mock.app.local");
-}
-
+/**
+ * Whether NeoDB would handle this input as a link to fetch, rather than as
+ * keywords to search. The verdict comes from the site patterns NeoDB itself
+ * uses (`src/lib/catalog-sites.ts`), so a supported link is never mistaken for
+ * a search term — but only NeoDB can say whether a URL it supports is actually
+ * fetchable, so a match here means "ask it", not "it will work".
+ */
 export function isSupportedCatalogLink(value: string) {
   const parsed = parseUrl(value);
 
@@ -84,11 +50,16 @@ export function isSupportedCatalogLink(value: string) {
     return true;
   }
 
-  const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+  // The manual mock harness (`MOCK_CATALOG_FETCH=1`, `ref/mock/catalog-fetch`)
+  // answers for this host, which no real site knows about.
+  if (
+    process.env.NODE_ENV !== "production" &&
+    parsed.hostname === MOCK_CATALOG_FETCH_HOST
+  ) {
+    return true;
+  }
 
-  return SUPPORTED_LINK_HOSTS.some(
-    (supportedHost) => host === supportedHost || host.endsWith(`.${supportedHost}`),
-  );
+  return matchCatalogSite(parsed.href) !== null;
 }
 
 export function SearchCatalogPrompt({ initialUrl }: { initialUrl?: string }) {
@@ -471,7 +442,7 @@ function isValidCatalogUrl(value: string) {
 function getPollInterval(targetUrl: string) {
   const parsed = parseUrl(targetUrl);
 
-  if (parsed?.hostname !== "mock.app.local") {
+  if (parsed?.hostname !== MOCK_CATALOG_FETCH_HOST) {
     return POLL_INTERVAL_MS;
   }
 

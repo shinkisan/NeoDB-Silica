@@ -117,6 +117,25 @@
     "refreshUnsupported": "该目录暂不支持手动刷新",
     "empty": "暂无瀑布流内容。",
     "endOfList": "已经到底了",
+    "dismiss": {
+      "close": "关闭",
+      "action": "不喜欢",
+      "toast": "以后不会显示该条目",
+      "error": "暂时无法隐藏该条目，请稍后再试",
+      "loginRequired": "登录后可隐藏条目"
+    },
+    "forYou": {
+      "guestTitle": "登录后查看为你推荐",
+      "guestDescription": "连接 NeoDB 账号后，这里会根据你的标记和收藏给出推荐。",
+      "login": "登录 NeoDB",
+      "emptyTitle": "暂时没有推荐",
+      "emptyDescription": "多标记、收藏一些作品，推荐会更贴切。",
+      "error": "暂时无法读取为你推荐，请稍后再试"
+    },
+    "forYouSubtab": {
+      "forYou": "为你推荐",
+      "friends": "来自关注的人"
+    },
     "movieSubtab": {
       "trending": "站内热门",
       "nowPlaying": "近期上映",
@@ -972,6 +991,7 @@
     "me": "我"
   },
   "homeTags": {
+    "forYou": "推荐",
     "book": "图书",
     "movie": "电影",
     "tv": "剧集",

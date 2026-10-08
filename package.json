@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "catalog-sites:generate": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/catalog-sites/generate.ts",
+    "catalog-sites:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/catalog-sites/check.ts",
     "licenses:generate": "node scripts/generate-third-party-notices.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"

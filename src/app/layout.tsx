@@ -1,7 +1,7 @@
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { I18nProvider } from "@/components/i18n-provider";
 import { loadMessages } from "@/i18n/messages";
 import { type Locale, type Messages, locales } from "@/i18n/config";
@@ -18,6 +18,11 @@ import { isCoverImageProxyEnabled } from "@/lib/cover-image";
 import { getServerFeatureFlags } from "@/lib/feature-flags";
 import { getConfiguredNeodbHostname } from "@/lib/neodb-instance";
 import { getDefaultThemeColor, pageBackgroundColors } from "@/lib/theme";
+import {
+  openCookie,
+  SESSION_COOKIE,
+  type NeodbSessionCookie,
+} from "@/lib/neodb-auth";
 import {
   SITE_PUBLIC_ORIGIN,
   getNoIndexRobots,
@@ -76,6 +81,10 @@ export default async function RootLayout({
   const messages = await loadMessages(locale);
   const featureFlags = getServerFeatureFlags();
   const defaultThemeColor = getDefaultThemeColor();
+  const session = openCookie<NeodbSessionCookie>(
+    (await cookies()).get(SESSION_COOKIE)?.value,
+  );
+  const isSignedIn = Boolean(session?.accessToken);
 
   return (
     <html
@@ -94,6 +103,7 @@ export default async function RootLayout({
             <HomeTrendingBootstrap
               coverHost={getConfiguredNeodbHostname()}
               isCoverProxyEnabled={isCoverImageProxyEnabled()}
+              isSignedIn={isSignedIn}
             />
             <GlassFilterDefs />
             <LiquidGlassManager />

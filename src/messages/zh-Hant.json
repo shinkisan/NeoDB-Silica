@@ -117,6 +117,25 @@
     "refreshUnsupported": "該目錄暫不支援手動重新整理",
     "empty": "暫無內容。",
     "endOfList": "已經到底了",
+    "dismiss": {
+      "close": "關閉",
+      "action": "不喜歡",
+      "toast": "以後不會顯示該條目",
+      "error": "暫時無法隱藏該條目，請稍後再試",
+      "loginRequired": "登入後可隱藏條目"
+    },
+    "forYou": {
+      "guestTitle": "登入後查看為你推薦",
+      "guestDescription": "連結 NeoDB 帳號後，這裡會依你的標記與收藏給出推薦。",
+      "login": "登入 NeoDB",
+      "emptyTitle": "暫時沒有推薦",
+      "emptyDescription": "多標記、收藏一些作品，推薦會更貼切。",
+      "error": "暫時無法讀取為你推薦，請稍後再試"
+    },
+    "forYouSubtab": {
+      "forYou": "為你推薦",
+      "friends": "來自關注的人"
+    },
     "movieSubtab": {
       "trending": "站內熱門",
       "nowPlaying": "近期上映",
@@ -943,6 +962,7 @@
     "error": "點讚失敗。"
   },
   "homeTags": {
+    "forYou": "推薦",
     "book": "圖書", "movie": "電影", "tv": "劇集", "music": "音樂", "game": "遊戲", "podcast": "播客", "collection": "收藏單"
   },
   "tmdbDiscovery": {

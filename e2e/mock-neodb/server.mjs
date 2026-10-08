@@ -112,6 +112,27 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // --- Personal recommendations ---
+  if (path === "/api/me/recommendations" && method === "GET") {
+    // A session the instance no longer accepts: the app should fall back to its
+    // log-in notice rather than to an error.
+    if ((req.headers.authorization || "").includes("expired")) {
+      json(res, { message: "Login required" }, 401);
+      return;
+    }
+
+    // The seeds map is what separates the two groups: an item listed in it was
+    // picked for the viewer's own marks, anything else came from the people
+    // they follow.
+    json(res, {
+      data: [items.book, items.movie],
+      pages: 1,
+      count: 2,
+      seeds: { [items.book.uuid]: [items.movie.uuid] },
+    });
+    return;
+  }
+
   // --- Catalog search ---
   if (path === "/api/catalog/search" && method === "GET") {
     const query = url.searchParams.get("query") || "";

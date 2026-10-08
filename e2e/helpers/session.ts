@@ -10,12 +10,18 @@ import { APP_ORIGIN, MOCK_ORIGIN, TEST_SESSION_SECRET } from "./env";
  * injects it into the browser context, bypassing the OAuth dance entirely.
  * The payload's `instance` points at the mock server — authenticated proxy
  * routes read the upstream base URL from the session, not from env.
+ *
+ * `accessToken` is overridable for the case where the cookie is still there
+ * but the instance no longer accepts it.
  */
-export async function signIn(context: BrowserContext) {
+export async function signIn(
+  context: BrowserContext,
+  options: { accessToken?: string } = {},
+) {
   process.env.NEODB_SESSION_SECRET = TEST_SESSION_SECRET;
 
   const payload: NeodbSessionCookie = {
-    accessToken: "e2e-test-token",
+    accessToken: options.accessToken ?? "e2e-test-token",
     createdAt: Date.now(),
     instance: MOCK_ORIGIN,
     scope: "read write",

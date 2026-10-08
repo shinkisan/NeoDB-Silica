@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { MouseEvent, PointerEvent } from "react";
+import type { MouseEvent, PointerEvent, ReactNode } from "react";
 import {
   lazy,
   Suspense,
@@ -36,6 +36,11 @@ import { parseCatalogDetailPath, parseNeodbDetailPath } from "@/lib/catalog-link
 import { getCoverProxySrc } from "@/lib/cover-image";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
 import {
+  HOME_FEED_CACHE_PREFIX,
+  getHomeFeedCacheKey,
+  getPersonalHomeFeedCacheKey,
+} from "@/lib/home-feed-cache";
+import {
   noteSearchEntry,
   pushNavigationFrame,
   replaceNavigationFrame,
@@ -45,6 +50,8 @@ import {
   HOME_TAG_ORDER_EVENT,
   HOME_TAG_ORDER_KEY,
   homeTags,
+  isHomeTagAvailable,
+  isPersonalHomeTag,
   normalizeHomeTagOrder,
   sortHomeTags,
 } from "@/lib/home-tags";
@@ -73,6 +80,7 @@ const CACHE_TTL = 60 * 60 * 1000;
 const HOME_CATEGORY_KEY = `${STORAGE_PREFIX}v1:home:category`;
 const HOME_MOVIE_SUBTAB_KEY = `${STORAGE_PREFIX}v1:home-movie-subtab`;
 const HOME_COLLECTION_SUBTAB_KEY = `${STORAGE_PREFIX}v1:home-collection-subtab`;
+const HOME_PERSONAL_SUBTAB_KEY = `${STORAGE_PREFIX}v1:home-personal-subtab`;
 const HOME_LEAVING_KEY = `${STORAGE_PREFIX}v1:home:leaving`;
 const HOME_RESTORE_KEY = `${STORAGE_PREFIX}v1:home:restore`;
 const HOME_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:home:scroll:`;
@@ -81,18 +89,29 @@ const LAST_NON_SEARCH_PATH_KEY = `${STORAGE_PREFIX}v1:last-non-search-path`;
 const INITIAL_RENDER_COUNT = 18;
 const RENDER_BATCH_SIZE = 12;
 const HOME_SWIPE_EXIT_MS = 160;
+const DISMISS_LONG_PRESS_MS = 420;
+const DISMISS_LONG_PRESS_MOVE_PX = 12;
+
+/** Raised when the personal feed needs a session the visitor doesn't have. */
+class PersonalFeedLoginRequired extends Error {}
 
 let hasHandledHomeReload = false;
 
 type CachePayload = {
   cachedAt: number;
   items: HomeCardItem[];
+  /** The personal feed caches both of its groups in one entry. */
+  friendItems?: HomeCardItem[];
 };
 
 type TrendingResponse = {
   items: HomeCardItem[];
   fetchedAt: string;
   source: string;
+};
+
+type RecommendationsResponse = TrendingResponse & {
+  friendItems?: HomeCardItem[];
 };
 
 type FeaturedCollectionSection = {
@@ -135,19 +154,24 @@ type SwipeTransition = {
 
 type MovieSubtab = "trending" | "now_playing" | "upcoming";
 type CollectionSubtab = "trending" | "lists";
+type PersonalSubtab = "forYou" | "friends";
+type HomeFeedStatus = "loading" | "ready" | "error" | "guest";
 
 export default function HomeContentRoot({
   featuredCollectionsEnabled,
   isCoverProxyEnabled,
+  personalFeedScope,
 }: {
   featuredCollectionsEnabled: boolean;
   isCoverProxyEnabled: boolean;
+  personalFeedScope: string | null;
 }) {
   return (
     <Suspense fallback={<HomeSkeleton />}>
       <HomeContent
         featuredCollectionsEnabled={featuredCollectionsEnabled}
         isCoverProxyEnabled={isCoverProxyEnabled}
+        personalFeedScope={personalFeedScope}
       />
     </Suspense>
   );
@@ -156,13 +180,18 @@ export default function HomeContentRoot({
 function HomeContent({
   featuredCollectionsEnabled: initialFeaturedCollectionsEnabled,
   isCoverProxyEnabled,
+  personalFeedScope,
 }: {
   featuredCollectionsEnabled: boolean;
   isCoverProxyEnabled: boolean;
+  personalFeedScope: string | null;
 }) {
   const router = useRouter();
+  const canUsePersonalFeed = personalFeedScope !== null;
   const searchParams = useSearchParams();
-  const [filters, setFilters] = useState(homeTags);
+  const [filters, setFilters] = useState(() =>
+    homeTags.filter((tag) => isHomeTagAvailable(tag.id, canUsePersonalFeed)),
+  );
   const defaultHomeCategory = filters[0]?.id || DEFAULT_HOME_CATEGORY;
   const categoryParam = searchParams.get("category") || defaultHomeCategory;
   const activeFilter = isHomeFilter(categoryParam, filters)
@@ -173,7 +202,7 @@ function HomeContent({
   const searchScopes = [
     { id: "all", label: t("search.category.all") },
     ...filters
-      .filter((f) => f.id !== "collection")
+      .filter((f) => f.id !== "collection" && !isPersonalHomeTag(f.id))
       .map((f) => ({ id: f.id, label: t(`homeTags.${f.id}`) })),
   ];
   const [searchScope, setSearchScope] = useState("all");
@@ -188,8 +217,9 @@ function HomeContent({
     url: string;
   } | null>(null);
   const [items, setItems] = useState<HomeCardItem[]>([]);
+  const [dismissPreviewId, setDismissPreviewId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(INITIAL_RENDER_COUNT);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<HomeFeedStatus>("loading");
   const [error, setError] = useState("");
   const [refreshRequest, setRefreshRequest] = useState<{
     category: string;
@@ -203,6 +233,12 @@ function HomeContent({
   const [movieSubtab, setMovieSubtab] = useState<MovieSubtab>("trending");
   const [collectionSubtab, setCollectionSubtab] =
     useState<CollectionSubtab>("trending");
+  const [personalSubtab, setPersonalSubtab] = useState<PersonalSubtab>("forYou");
+  const [personalFeed, setPersonalFeed] = useState<{
+    forYou: HomeCardItem[];
+    friends: HomeCardItem[];
+  } | null>(null);
+  const personalSubtabRef = useRef<PersonalSubtab>("forYou");
   const [featuredCollectionSections, setFeaturedCollectionSections] = useState<
     FeaturedCollectionSection[]
   >([]);
@@ -307,6 +343,42 @@ function HomeContent({
     }
   }, [featuredCollectionsEnabled]);
 
+  useEffect(() => {
+    if (!canUsePersonalFeed) {
+      return;
+    }
+
+    const stored = window.localStorage.getItem(HOME_PERSONAL_SUBTAB_KEY);
+
+    if (stored === "forYou" || stored === "friends") {
+      queueMicrotask(() => {
+        personalSubtabRef.current = stored;
+        setPersonalSubtab(stored);
+      });
+    }
+  }, [canUsePersonalFeed]);
+
+  /** Shows one of the personal feed's two groups, switching the visitor's
+   * sub-tab only when theirs would show nothing while the other has items. */
+  function applyPersonalGroups(groups: {
+    forYou: HomeCardItem[];
+    friends: HomeCardItem[];
+  }) {
+    const currentTab = personalSubtabRef.current;
+    const hasAnything = groups.forYou.length + groups.friends.length > 0;
+    const resolvedTab =
+      groups[currentTab].length > 0 || !hasAnything
+        ? currentTab
+        : groups.forYou.length > 0
+          ? "forYou"
+          : "friends";
+
+    personalSubtabRef.current = resolvedTab;
+    setPersonalSubtab(resolvedTab);
+    setPersonalFeed(groups);
+    setItems(groups[resolvedTab]);
+  }
+
   function selectMovieSubtab(nextSubtab: MovieSubtab) {
     setMovieSubtab(nextSubtab);
     window.localStorage.setItem(HOME_MOVIE_SUBTAB_KEY, nextSubtab);
@@ -315,6 +387,18 @@ function HomeContent({
   function selectCollectionSubtab(nextSubtab: CollectionSubtab) {
     setCollectionSubtab(nextSubtab);
     window.localStorage.setItem(HOME_COLLECTION_SUBTAB_KEY, nextSubtab);
+  }
+
+  function selectPersonalSubtab(nextSubtab: PersonalSubtab) {
+    personalSubtabRef.current = nextSubtab;
+    setPersonalSubtab(nextSubtab);
+    window.localStorage.setItem(HOME_PERSONAL_SUBTAB_KEY, nextSubtab);
+
+    // Both groups arrived in one response, so switching is a swap.
+    if (personalFeed) {
+      setItems(personalFeed[nextSubtab]);
+      setVisibleCount(INITIAL_RENDER_COUNT);
+    }
   }
 
   function changeTmdbRegion(nextRegion: string) {
@@ -351,7 +435,11 @@ function HomeContent({
         }
       }
 
-      setFilters(sortHomeTags(normalizeHomeTagOrder(order)));
+      setFilters(
+        sortHomeTags(normalizeHomeTagOrder(order)).filter((tag) =>
+          isHomeTagAvailable(tag.id, canUsePersonalFeed),
+        ),
+      );
     }
 
     syncHomeTags();
@@ -362,7 +450,7 @@ function HomeContent({
       window.removeEventListener(HOME_TAG_ORDER_EVENT, syncHomeTags);
       window.removeEventListener(APP_RESET_EVENT, syncHomeTags);
     };
-  }, [router]);
+  }, [canUsePersonalFeed, router]);
 
   useEffect(() => {
     if (hasHandledHomeReload) {
@@ -388,6 +476,7 @@ function HomeContent({
     let cancelled = false;
     const isCollectionListsView =
       activeFilter === "collection" && collectionSubtab === "lists";
+    const isPersonal = isPersonalHomeTag(activeFilter);
 
     if (isCollectionListsView) {
       queueMicrotask(() => {
@@ -451,11 +540,20 @@ function HomeContent({
       };
     }
 
-    const cacheKey = getCacheKey(activeFilter, locale);
+    // Personal picks are cached too, but under a key scoped to this session so
+    // a shared device never hands one account's picks to the next.
+    const cacheKey =
+      isPersonal && personalFeedScope
+        ? getPersonalHomeFeedCacheKey(personalFeedScope, locale)
+        : getHomeFeedCacheKey(activeFilter, locale);
+    const isCacheable = !isPersonal || Boolean(personalFeedScope);
     const shouldRefresh = refreshRequest?.category === activeFilter;
     const bootstrap = window.__appHomeTrendingBootstrap;
 
-    const cached = shouldRefresh ? null : readCache(cacheKey, { allowStale: true });
+    const cached =
+      !isCacheable || shouldRefresh
+        ? null
+        : readCache(cacheKey, { allowStale: true });
 
     if (cached && !isCacheExpired(cached)) {
       queueMicrotask(() => {
@@ -463,7 +561,12 @@ function HomeContent({
           return;
         }
 
-        setItems(cached.items);
+        if (isPersonal) {
+          applyPersonalGroups(toPersonalGroups(cached));
+        } else {
+          setItems(cached.items);
+        }
+
         setVisibleCount(INITIAL_RENDER_COUNT);
         setStatus("ready");
         setSwipeTransition(null);
@@ -483,10 +586,16 @@ function HomeContent({
     });
 
     const params = new URLSearchParams({
-      category: activeFilter,
-      limit: "42",
+      // The personal feed splits one blended response into two groups, and the
+      // blend interleaves its two sources, so each group can only ever be
+      // about half of what we ask for. Ask for the endpoint's maximum.
+      limit: isPersonal ? "60" : "42",
       locale,
     });
+
+    if (!isPersonal) {
+      params.set("category", activeFilter);
+    }
 
     if (shouldRefresh && refreshRequest) {
       params.set("refresh", String(refreshRequest.nonce));
@@ -497,19 +606,29 @@ function HomeContent({
       bootstrap?.category === activeFilter
         ? bootstrap
         : null;
-    const trendingRequest =
+    const feedRequest =
       matchingBootstrap?.promise ||
-      fetch(`/api/neodb/trending?${params.toString()}`).then(
-        async (response) => {
-          if (!response.ok) {
-            throw new Error("NeoDB 热门内容请求失败。");
-          }
+      fetch(
+        `${
+          isPersonal ? "/api/neodb/recommendations" : "/api/neodb/trending"
+        }?${params.toString()}`,
+      ).then(async (response) => {
+        if (isPersonal && response.status === 401) {
+          throw new PersonalFeedLoginRequired();
+        }
 
-          return (await response.json()) as TrendingResponse;
-        },
-      );
+        if (!response.ok) {
+          throw new Error(
+            isPersonal
+              ? "NeoDB 为你推荐请求失败。"
+              : "NeoDB 热门内容请求失败。",
+          );
+        }
 
-    trendingRequest
+        return (await response.json()) as RecommendationsResponse;
+      });
+
+    feedRequest
       .then(async (response) => {
         const data = response;
 
@@ -517,12 +636,24 @@ function HomeContent({
           return;
         }
 
-        setItems(data.items);
+        const personalGroups = isPersonal
+          ? toPersonalGroups(data as RecommendationsResponse)
+          : null;
+
+        if (personalGroups) {
+          applyPersonalGroups(personalGroups);
+        } else {
+          setItems(data.items);
+        }
+
         setVisibleCount(INITIAL_RENDER_COUNT);
         setStatus("ready");
         setSwipeTransition(null);
         setIsRefreshing(false);
-        writeCache(cacheKey, data.items);
+
+        if (isCacheable) {
+          writeCache(cacheKey, data.items, personalGroups?.friends);
+        }
 
         if (shouldRefresh) {
           setRefreshRequest(null);
@@ -533,8 +664,27 @@ function HomeContent({
         return;
       }
 
-      if (cached?.items.length) {
-        setItems(cached.items);
+      if (requestError instanceof PersonalFeedLoginRequired) {
+        setItems([]);
+        setVisibleCount(INITIAL_RENDER_COUNT);
+        setStatus("guest");
+        setSwipeTransition(null);
+        setIsRefreshing(false);
+        setRefreshRequest(null);
+        setError("");
+        return;
+      }
+
+      if (
+        cached &&
+        (cached.items.length > 0 || (cached.friendItems?.length ?? 0) > 0)
+      ) {
+        if (isPersonal) {
+          applyPersonalGroups(toPersonalGroups(cached));
+        } else {
+          setItems(cached.items);
+        }
+
         setVisibleCount(INITIAL_RENDER_COUNT);
         setStatus("ready");
         setSwipeTransition(null);
@@ -549,16 +699,25 @@ function HomeContent({
       setIsRefreshing(false);
       setRefreshRequest(null);
         setError(
-          requestError instanceof Error
-            ? requestError.message
-            : "无法加载 NeoDB 内容。",
+          isPersonal
+            ? ""
+            : requestError instanceof Error
+              ? requestError.message
+              : "无法加载 NeoDB 内容。",
         );
       });
 
     return () => {
       cancelled = true;
     };
-  }, [activeFilter, collectionSubtab, locale, refreshRequest, searchParams]);
+  }, [
+    activeFilter,
+    collectionSubtab,
+    locale,
+    personalFeedScope,
+    refreshRequest,
+    searchParams,
+  ]);
 
   useEffect(() => {
     if (status !== "ready" || visibleCount >= items.length) {
@@ -872,6 +1031,7 @@ function HomeContent({
     filterId: string,
     options: { swipeDirection?: "left" | "right" } = {},
   ) {
+    setDismissPreviewId(null);
     setPendingFilter(filterId);
     window.sessionStorage.setItem(HOME_CATEGORY_KEY, filterId);
     window.sessionStorage.setItem(getHomeScrollKey(filterId), "0");
@@ -945,9 +1105,17 @@ function HomeContent({
     }, 0);
   }
 
+  /** The cache key the feed on screen reads and writes. */
+  function getActiveFeedCacheKey() {
+    return isPersonalHomeTag(activeFilter) && personalFeedScope
+      ? getPersonalHomeFeedCacheKey(personalFeedScope, locale)
+      : getHomeFeedCacheKey(activeFilter, locale);
+  }
+
   function refreshCurrentFilter() {
+    setDismissPreviewId(null);
     clearOtherTrendingCaches(activeFilter, locale);
-    window.localStorage.removeItem(getCacheKey(activeFilter, locale));
+    window.localStorage.removeItem(getActiveFeedCacheKey());
 
     window.sessionStorage.setItem(getHomeScrollKey(activeFilter), "0");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -967,7 +1135,66 @@ function HomeContent({
     refreshCurrentFilter();
   }
 
+  /** Records the dismissal, then reflows the grid in place. No refetch. */
+  async function dismissItem(item: HomeCardItem) {
+    try {
+      const response = await fetch("/api/neodb/dismiss", {
+        body: JSON.stringify({ itemId: item.id }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+
+      if (response.status === 401) {
+        showToast(t("home.dismiss.loginRequired"), "error");
+        return false;
+      }
+
+      if (!response.ok) {
+        showToast(t("home.dismiss.error"), "error");
+        return false;
+      }
+    } catch {
+      showToast(t("home.dismiss.error"), "error");
+      return false;
+    }
+
+    const nextItems = items.filter((candidate) => candidate.id !== item.id);
+    const isPersonalActive = isPersonalHomeTag(activeFilter);
+    const activeCacheKey = getActiveFeedCacheKey();
+
+    setItems(nextItems);
+    setVisibleCount((count) => Math.min(count, nextItems.length));
+
+    if (isPersonalActive) {
+      const withoutItem = (list: HomeCardItem[] | undefined) =>
+        (list ?? []).filter((candidate) => candidate.id !== item.id);
+      const nextGroups = {
+        forYou:
+          personalSubtab === "forYou"
+            ? nextItems
+            : withoutItem(personalFeed?.forYou),
+        friends:
+          personalSubtab === "friends"
+            ? nextItems
+            : withoutItem(personalFeed?.friends),
+      };
+
+      setPersonalFeed(nextGroups);
+      writeCache(activeCacheKey, nextGroups.forYou, nextGroups.friends);
+    } else {
+      writeCache(activeCacheKey, nextItems);
+    }
+
+    // The other rails' cached copies go too, or switching tags brings it back.
+    stripDismissedItemFromTrendingCaches(item.id, activeCacheKey);
+
+    setDismissPreviewId(null);
+    showToast(t("home.dismiss.toast"));
+    return true;
+  }
+
   const contentAnimationClass = getHomeSwipeClass(swipeTransition);
+  const isPersonalFeed = isPersonalHomeTag(activeFilter);
   const isCollectionListsView =
     activeFilter === "collection" && collectionSubtab === "lists";
   const isRefreshUnsupported =
@@ -1164,10 +1391,14 @@ function HomeContent({
             <LazyCategoryOrderDialog
               closeLabel={t("profile.appearance.homeTagOrder.close")}
               eventName={HOME_TAG_ORDER_EVENT}
-              items={homeTags.map((tag) => ({
-                id: tag.id,
-                label: t(`homeTags.${tag.id}`),
-              }))}
+              items={homeTags
+                .filter((tag) =>
+                  isHomeTagAvailable(tag.id, canUsePersonalFeed),
+                )
+                .map((tag) => ({
+                  id: tag.id,
+                  label: t(`homeTags.${tag.id}`),
+                }))}
               moveDownLabel={t("profile.appearance.homeTagOrder.moveDown")}
               moveUpLabel={t("profile.appearance.homeTagOrder.moveUp")}
               onClose={() => setIsTagOrderOpen(false)}
@@ -1176,6 +1407,25 @@ function HomeContent({
               title={t("profile.appearance.homeTagOrder.dialogTitle")}
             />
           </Suspense>
+        ) : null}
+
+        {isPersonalFeed ? (
+          <div className="mb-4 flex items-center gap-1">
+            {(["forYou", "friends"] as PersonalSubtab[]).map((subtab) => (
+              <button
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  personalSubtab === subtab
+                    ? "bg-[#f3f3f6] text-[#44474c]"
+                    : "text-[#75777d] hover:bg-[#f3f3f6] hover:text-[#44474c]"
+                }`}
+                key={subtab}
+                onClick={() => selectPersonalSubtab(subtab)}
+                type="button"
+              >
+                {t(`home.forYouSubtab.${subtab}`)}
+              </button>
+            ))}
+          </div>
         ) : null}
 
         {activeFilter === "movie" && tmdbEnabled ? (
@@ -1301,14 +1551,36 @@ function HomeContent({
 
           {status === "error" ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
-              {error}
+              {isPersonalFeed ? t("home.forYou.error") : error}
             </div>
           ) : null}
 
+          {status === "guest" ? (
+            <HomeNotice
+              action={
+                <a
+                  className="mt-5 inline-flex h-11 items-center rounded-full bg-[var(--theme-primary)] px-6 text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)]"
+                  href="/api/auth/neodb/login"
+                >
+                  {t("home.forYou.login")}
+                </a>
+              }
+              description={t("home.forYou.guestDescription")}
+              title={t("home.forYou.guestTitle")}
+            />
+          ) : null}
+
           {status === "ready" && items.length === 0 ? (
-            <div className="rounded-2xl border border-[#e2e2e5] bg-white/70 p-6 text-center text-sm text-[#44474c]">
-              {t("home.empty")}
-            </div>
+            isPersonalFeed ? (
+              <HomeNotice
+                description={t("home.forYou.emptyDescription")}
+                title={t("home.forYou.emptyTitle")}
+              />
+            ) : (
+              <div className="rounded-2xl border border-[#e2e2e5] bg-white/70 p-6 text-center text-sm text-[#44474c]">
+                {t("home.empty")}
+              </div>
+            )
           ) : null}
 
           {status === "ready" && items.length > 0 ? (
@@ -1321,6 +1593,14 @@ function HomeContent({
                     isCoverProxyEnabled={isCoverProxyEnabled}
                     item={item}
                     key={`${item.id}-${index}`}
+                    dismissPreviewOpen={dismissPreviewId === item.id}
+                    onDismiss={() => dismissItem(item)}
+                    onDismissPreviewClose={() => {
+                      setDismissPreviewId((current) =>
+                        current === item.id ? null : current,
+                      );
+                    }}
+                    onDismissPreviewOpen={() => setDismissPreviewId(item.id)}
                     returnCategory={activeFilter}
                   />
                 ))}
@@ -1437,18 +1717,119 @@ function GlobeIcon() {
 
 function ItemCard({
   activeFilter,
+  dismissPreviewOpen = false,
   index,
   isCoverProxyEnabled,
   item,
+  onDismiss,
+  onDismissPreviewClose,
+  onDismissPreviewOpen,
   returnCategory,
 }: {
   activeFilter: string;
+  dismissPreviewOpen?: boolean;
   index: number;
   isCoverProxyEnabled: boolean;
   item: HomeCardItem;
+  onDismiss?: () => Promise<boolean>;
+  onDismissPreviewClose?: () => void;
+  onDismissPreviewOpen?: () => void;
   returnCategory: string;
 }) {
-  if (item.kind === "collection" || item.category === "collection") {
+  const t = useT();
+  const isCollection = item.kind === "collection" || item.category === "collection";
+  const canDismiss = Boolean(onDismiss) && !isCollection;
+  const isDismissOpen = canDismiss && dismissPreviewOpen;
+  const [isDismissing, setIsDismissing] = useState(false);
+  if (!isDismissOpen && isDismissing) {
+    setIsDismissing(false);
+  }
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressClickRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current !== null) {
+        window.clearTimeout(longPressTimerRef.current);
+      }
+    };
+  }, []);
+
+  function cancelLongPress() {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+
+    longPressStartRef.current = null;
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLElement>) {
+    if (isDismissOpen || !event.isPrimary || event.button !== 0) {
+      return;
+    }
+
+    longPressStartRef.current = { x: event.clientX, y: event.clientY };
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTimerRef.current = null;
+      longPressStartRef.current = null;
+      suppressClickRef.current = true;
+      onDismissPreviewOpen?.();
+    }, DISMISS_LONG_PRESS_MS);
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLElement>) {
+    const start = longPressStartRef.current;
+
+    if (!start || longPressTimerRef.current === null) {
+      return;
+    }
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+
+    if (deltaX * deltaX + deltaY * deltaY > DISMISS_LONG_PRESS_MOVE_PX ** 2) {
+      cancelLongPress();
+    }
+  }
+
+  function handleClickCapture(event: MouseEvent<HTMLElement>) {
+    const pending = suppressClickRef.current;
+
+    suppressClickRef.current = false;
+
+    if (!pending) {
+      return;
+    }
+
+    // The release that ends a long press resolves its click target from the
+    // touch point at press time — the card link — even though the preview is
+    // covering it by then. Only that stale click is swallowed; a real tap on
+    // the preview's own controls must go through on the first try.
+    if ((event.target as HTMLElement | null)?.closest("[data-dismiss-preview]")) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  async function confirmDismiss() {
+    if (!onDismiss || isDismissing) {
+      return;
+    }
+
+    setIsDismissing(true);
+
+    const dismissed = await onDismiss();
+
+    if (!dismissed) {
+      setIsDismissing(false);
+    }
+  }
+
+  if (isCollection) {
     const collectionPath = `/collection/${encodeURIComponent(item.id)}`;
 
     return (
@@ -1479,9 +1860,28 @@ function ItemCard({
   const baseDetailPath =
     item.detailPath || `/item/${item.category}/${encodeURIComponent(item.id)}`;
   const detailPath = `${baseDetailPath}?fromCategory=${encodeURIComponent(returnCategory)}`;
+  const coverSrc = getCoverProxySrc(item.coverUrl, isCoverProxyEnabled);
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 press-card">
+    <article
+      className={`group relative overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 ${
+        isDismissOpen
+          ? ""
+          : "transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 press-card"
+      } ${canDismiss ? "select-none [-webkit-touch-callout:none]" : ""}`}
+      onClickCapture={canDismiss ? handleClickCapture : undefined}
+      onContextMenu={
+        canDismiss
+          ? (event) => {
+              event.preventDefault();
+            }
+          : undefined
+      }
+      onPointerCancel={canDismiss ? cancelLongPress : undefined}
+      onPointerDown={canDismiss ? handlePointerDown : undefined}
+      onPointerMove={canDismiss ? handlePointerMove : undefined}
+      onPointerUp={canDismiss ? cancelLongPress : undefined}
+    >
       <Link
         className="block"
         href={detailPath}
@@ -1492,20 +1892,112 @@ function ItemCard({
         }}
       >
         <HomeCardVisual
+          hideTitleCard={isDismissOpen}
           index={index}
           isCoverProxyEnabled={isCoverProxyEnabled}
           item={item}
         />
       </Link>
+      {canDismiss && isDismissOpen ? (
+        <DismissPreview
+          actionLabel={t("home.dismiss.action")}
+          busy={isDismissing}
+          closeLabel={t("home.dismiss.close")}
+          coverSrc={coverSrc}
+          onClose={() => {
+            if (!isDismissing) {
+              onDismissPreviewClose?.();
+            }
+          }}
+          onConfirm={() => void confirmDismiss()}
+        />
+      ) : null}
     </article>
   );
 }
 
+function DismissPreview({
+  actionLabel,
+  busy,
+  closeLabel,
+  coverSrc,
+  onClose,
+  onConfirm,
+}: {
+  actionLabel: string;
+  busy: boolean;
+  closeLabel: string;
+  coverSrc: string | null;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="home-dismiss-enter absolute inset-0 z-20 overflow-hidden rounded-xl"
+      data-dismiss-preview=""
+      onPointerDown={(event) => event.stopPropagation()}
+    >
+      {coverSrc ? (
+        <>
+          <div aria-hidden="true" className="home-dismiss-frost absolute inset-0">
+            <Image
+              alt=""
+              className="object-cover blur-xl"
+              decoding="async"
+              fill
+              quality={75}
+              sizes="320px"
+              src={coverSrc}
+              unoptimized
+            />
+          </div>
+          <div aria-hidden="true" className="home-dismiss-sharp absolute inset-0">
+            <Image
+              alt=""
+              className="object-cover"
+              decoding="async"
+              fill
+              quality={75}
+              sizes="320px"
+              src={coverSrc}
+              unoptimized
+            />
+          </div>
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-[#b7b8bd]" />
+      )}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-black/0 to-black/35" />
+      <button
+        aria-label={closeLabel}
+        className="absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-full border border-white/50 bg-black/35 text-white shadow-sm backdrop-blur-md transition hover:bg-black/50"
+        disabled={busy}
+        onClick={onClose}
+        type="button"
+      >
+        <ClearIcon />
+      </button>
+      <div className="absolute inset-x-3 bottom-4">
+        <button
+          className="w-full rounded-full bg-[var(--theme-primary)] px-4 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] disabled:cursor-wait disabled:opacity-70"
+          disabled={busy}
+          onClick={onConfirm}
+          type="button"
+        >
+          {actionLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function HomeCardVisual({
+  hideTitleCard = false,
   index,
   isCoverProxyEnabled,
   item,
 }: {
+  hideTitleCard?: boolean;
   index: number;
   isCoverProxyEnabled: boolean;
   item: HomeCardItem;
@@ -1525,7 +2017,11 @@ function HomeCardVisual({
       {coverSrc ? (
         <Image
           alt={item.title}
-          className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"
+          className={`h-full w-full object-cover ${
+            hideTitleCard
+              ? ""
+              : "transition duration-700 ease-out group-hover:scale-105"
+          }`}
           decoding="async"
           fetchPriority={index === 0 ? "high" : "auto"}
           fill
@@ -1540,23 +2036,25 @@ function HomeCardVisual({
           {item.title}
         </div>
       )}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent p-2 pt-16">
-        <div className="translate-y-2 rounded-2xl border border-white/30 bg-white/20 p-2.5 text-white opacity-95 backdrop-blur-md transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          <p className="line-clamp-2 text-sm font-bold leading-snug drop-shadow">
-            {typeof item.rating === "number" ? (
-              <span className="mr-1.5 inline-flex rounded-full border border-white/25 bg-white/35 px-1.5 pt-[3px] pb-0.5 align-[0.125em] text-[10px] font-semibold backdrop-blur-sm">
-                {item.rating.toFixed(1)}
-              </span>
-            ) : null}
-            {item.title}
-          </p>
-          {creatorLabel ? (
-            <p className="mt-1 truncate text-xs text-white/80">
-              {creatorLabel}
+      {hideTitleCard ? null : (
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent p-2 pt-16">
+          <div className="translate-y-2 rounded-2xl border border-white/30 bg-white/20 p-2.5 text-white opacity-95 backdrop-blur-md transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <p className="line-clamp-2 text-sm font-bold leading-snug drop-shadow">
+              {typeof item.rating === "number" ? (
+                <span className="mr-1.5 inline-flex rounded-full border border-white/25 bg-white/35 px-1.5 pt-[3px] pb-0.5 align-[0.125em] text-[10px] font-semibold backdrop-blur-sm">
+                  {item.rating.toFixed(1)}
+                </span>
+              ) : null}
+              {item.title}
             </p>
-          ) : null}
+            {creatorLabel ? (
+              <p className="mt-1 truncate text-xs text-white/80">
+                {creatorLabel}
+              </p>
+            ) : null}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -1580,7 +2078,7 @@ function CollectionListsGrid({
   onPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
   onPointerUp: (event: PointerEvent<HTMLDivElement>) => void;
   sections: FeaturedCollectionSection[];
-  status: "loading" | "ready" | "error";
+  status: HomeFeedStatus;
 }) {
   return (
     <div
@@ -1737,6 +2235,30 @@ function CollectionRailChevronIcon({ direction }: { direction: "left" | "right" 
   );
 }
 
+/** Centred notice for the states a feed can be in before it has cards:
+ * signed out, or an empty personal feed. */
+function HomeNotice({
+  action,
+  description,
+  title,
+}: {
+  action?: ReactNode;
+  description?: string;
+  title: string;
+}) {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-[#e2e2e5] bg-white/70 p-8 text-center">
+      <p className="text-base font-bold text-[var(--foreground)]">{title}</p>
+      {description ? (
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-[#44474c]">
+          {description}
+        </p>
+      ) : null}
+      {action}
+    </div>
+  );
+}
+
 function WaterfallSkeleton() {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -1768,10 +2290,6 @@ function getHomeSwipeClass(transition: SwipeTransition | null) {
     : "home-swipe-enter-left";
 }
 
-function getCacheKey(category: string, locale: string) {
-  return `${STORAGE_PREFIX}v1:neodb:trending:${category}:${locale}`;
-}
-
 function getHomeHref(category: string) {
   if (category === DEFAULT_HOME_CATEGORY) {
     return "/";
@@ -1781,12 +2299,12 @@ function getHomeHref(category: string) {
 }
 
 function clearOtherTrendingCaches(activeCategory: string, locale: string) {
-  const activeKey = getCacheKey(activeCategory, locale);
+  const activeKey = getHomeFeedCacheKey(activeCategory, locale);
 
   for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
     const key = window.localStorage.key(index);
 
-    if (key?.startsWith(`${STORAGE_PREFIX}v1:neodb:trending:`) && key !== activeKey) {
+    if (key?.startsWith(HOME_FEED_CACHE_PREFIX) && key !== activeKey) {
       window.localStorage.removeItem(key);
     }
   }
@@ -1844,6 +2362,13 @@ function writeTmdbRegionCookie(region: TmdbRegion) {
   )}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
+function toPersonalGroups(payload: {
+  items: HomeCardItem[];
+  friendItems?: HomeCardItem[];
+}) {
+  return { forYou: payload.items, friends: payload.friendItems ?? [] };
+}
+
 function readCache(
   key: string,
   options: { allowStale?: boolean } = {},
@@ -1876,7 +2401,51 @@ function readCache(
   }
 }
 
-function writeCache(key: string, itemsToCache: HomeCardItem[]) {
+function stripDismissedItemFromTrendingCaches(itemId: string, exceptKey: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+
+    if (!key?.startsWith(HOME_FEED_CACHE_PREFIX) || key === exceptKey) {
+      continue;
+    }
+
+    const cached = readCache(key, { allowStale: true });
+
+    if (!cached) {
+      continue;
+    }
+
+    const holdsItem = [...cached.items, ...(cached.friendItems ?? [])].some(
+      (item) => item.id === itemId,
+    );
+
+    if (!holdsItem) {
+      continue;
+    }
+
+    const payload: CachePayload = {
+      cachedAt: cached.cachedAt,
+      items: cached.items.filter((item) => item.id !== itemId),
+      ...(cached.friendItems
+        ? {
+            friendItems: cached.friendItems.filter((item) => item.id !== itemId),
+          }
+        : {}),
+    };
+
+    window.localStorage.setItem(key, JSON.stringify(payload));
+  }
+}
+
+function writeCache(
+  key: string,
+  itemsToCache: HomeCardItem[],
+  friendItems?: HomeCardItem[],
+) {
   if (typeof window === "undefined") {
     return;
   }
@@ -1884,6 +2453,7 @@ function writeCache(key: string, itemsToCache: HomeCardItem[]) {
   const payload: CachePayload = {
     cachedAt: Date.now(),
     items: itemsToCache,
+    ...(friendItems ? { friendItems } : {}),
   };
 
   window.localStorage.setItem(key, JSON.stringify(payload));

@@ -7,11 +7,17 @@ import {
   hasConfiguredFeaturedCollections,
 } from "@/lib/featured-collections";
 import {
+  openCookie,
+  SESSION_COOKIE,
+  type NeodbSessionCookie,
+} from "@/lib/neodb-auth";
+import {
   SITE_NAME,
   SITE_PRODUCT_DESCRIPTION,
   SITE_PRODUCT_TITLE,
   getIndexableRobots,
 } from "@/lib/seo";
+import { createHash } from "node:crypto";
 import HomeContentRoot from "../home-content";
 import { HomeShellSkeleton } from "./home-shell-skeleton";
 
@@ -40,12 +46,24 @@ export default async function HomePage() {
   const featuredCollectionsEnabled =
     hasConfiguredFeaturedCollections() &&
     cookieStore.get(FEATURED_COLLECTIONS_EMPTY_COOKIE)?.value !== "1";
+  const session = openCookie<NeodbSessionCookie>(
+    cookieStore.get(SESSION_COOKIE)?.value,
+  );
+  // Scopes the client's cached personal feed to this session, so a shared
+  // browser never serves one account's picks to the next.
+  const personalFeedScope = session?.accessToken
+    ? createHash("sha256")
+        .update(`${session.instance}:${session.accessToken}`)
+        .digest("hex")
+        .slice(0, 16)
+    : null;
 
   return (
     <Suspense fallback={<HomeShellSkeleton />}>
       <HomeContentRoot
         featuredCollectionsEnabled={featuredCollectionsEnabled}
         isCoverProxyEnabled={isCoverProxyEnabled}
+        personalFeedScope={personalFeedScope}
       />
     </Suspense>
   );
