@@ -762,6 +762,19 @@
       "deleteError": "刪除長評失敗",
       "deleting": "刪除中"
     },
+    "dismissed": {
+      "item": "屏蔽的條目",
+      "title": "屏蔽的條目",
+      "loginRequired": "登入後可以查看屏蔽的條目。",
+      "empty": "本地還沒有屏蔽過條目，",
+      "emptyLink": "查看完整列表",
+      "footerNote": "本地清單可能不完全，",
+      "openNeodb": "在 {server} 查看",
+      "restore": "取消屏蔽",
+      "restored": "已取消屏蔽",
+      "restoreError": "暫時無法取消屏蔽，請稍後再試",
+      "actions": "屏蔽的條目操作"
+    },
     "myTags": {
       "item": "我的標籤",
       "title": "我的標籤",

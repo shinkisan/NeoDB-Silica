@@ -577,10 +577,12 @@ select:disabled {
   background-color: var(--surface-strong) !important;
 }
 
-/* Menus and dropdowns are opaque in light mode: the blanket bg-white remap is
-   what makes them see-through here, and nothing blurs behind them, so bright
-   covers read straight through the labels. */
-:root[data-theme="dark"] .action-menu-popover {
+/* Menus, dropdowns and the search popovers are opaque in light mode: the
+   blanket bg-white remap is what makes them see-through here, and nothing blurs
+   behind them, so bright covers read straight through the labels. */
+:root[data-theme="dark"] .action-menu-popover,
+:root[data-theme="dark"] .search-history-popover,
+:root[data-theme="dark"] .search-suggestions-popover {
   background-color: var(--surface-solid) !important;
 }
 

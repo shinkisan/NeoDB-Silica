@@ -25,6 +25,7 @@ type ProfileTagItemsPageProps = {
     uuid: string;
   }>;
   searchParams: Promise<{
+    fromPage?: string;
     page?: string;
     title?: string;
   }>;
@@ -53,6 +54,8 @@ export default async function ProfileTagItemsPage({
   const { uuid } = await params;
   const query = await searchParams;
   const page = Math.max(1, Number(query.page || 1));
+  // The list page this detail was opened from, so closing returns to it.
+  const fromPage = Math.max(1, Number(query.fromPage) || 1);
   const t = await getT();
   const result = await fetchTagItems(uuid, page);
   const tagTitle = query.title?.trim() || "";
@@ -65,7 +68,7 @@ export default async function ProfileTagItemsPage({
   return (
     <>
       <ProfileTagsTopBar
-        backHref="/profile/tags"
+        backHref={fromPage > 1 ? `/profile/tags?page=${fromPage}` : "/profile/tags"}
         neodbUrl={neodbUrl}
         showActions
         title={title}

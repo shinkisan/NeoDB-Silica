@@ -13,6 +13,7 @@ import {
 } from "@/lib/neodb-auth";
 import { normalizeNeodbItem, type NeodbItem } from "@/lib/neodb";
 import { configureServerFetchProxy, fetchWithTimeout } from "@/lib/server-fetch";
+import { ScrollTopOnEntry } from "@/components/scroll-top-on-entry";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,7 @@ export default async function ProfileReviewsPage({
 
   return (
     <>
+      <ScrollTopOnEntry scope="reviews" />
       <ProfileReviewsTopBar title={t("profile.myReviews.title")} />
       <main
         className="detail-page-enter min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)]"

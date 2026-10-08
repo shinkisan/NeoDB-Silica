@@ -1,30 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { rememberScroll } from "@/lib/page-scroll";
+import type { ReactNode } from "react";
+import { requestScrollTopOnEntry, rememberScroll } from "@/lib/page-scroll";
 
-export function AboutProfileLink({
+/** One row of the profile page's "mine" group. The row, not the target page,
+ * knows the navigation is a forward entry, so it asks for the top there — and
+ * remembers where this page was, for the way back. */
+export function ProfileMineRow({
   href,
+  icon,
   label,
 }: {
   href: string;
+  icon: ReactNode;
   label: string;
 }) {
-  function saveProfileScroll() {
+  function prepareNavigation() {
     rememberScroll("profile");
+    requestScrollTopOnEntry();
   }
 
   return (
     <Link
       className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
       href={href}
-      onClick={saveProfileScroll}
-      onPointerDown={saveProfileScroll}
+      onClick={prepareNavigation}
+      onPointerDown={prepareNavigation}
     >
       <div className="flex min-w-0 items-center gap-4">
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#eef0ea] text-[#364046]">
-          <InformationIcon />
-        </span>
+        {icon}
         <span className="truncate text-base font-semibold text-[var(--foreground)]">
           {label}
         </span>
@@ -47,25 +52,6 @@ function ChevronRightIcon() {
       viewBox="0 0 24 24"
     >
       <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function InformationIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-5"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 11v6" />
-      <path d="M12 7h.01" />
     </svg>
   );
 }

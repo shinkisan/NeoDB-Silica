@@ -35,6 +35,7 @@ import { APP_RESET_EVENT } from "@/lib/app-reset";
 import { parseCatalogDetailPath, parseNeodbDetailPath } from "@/lib/catalog-link";
 import { getCoverProxySrc } from "@/lib/cover-image";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
+import { addDismissedItem } from "@/lib/dismissed-items";
 import {
   HOME_FEED_CACHE_PREFIX,
   getHomeFeedCacheKey,
@@ -1164,6 +1165,10 @@ function HomeContent({
 
     setItems(nextItems);
     setVisibleCount((count) => Math.min(count, nextItems.length));
+
+    // Mirrored into the local record the profile page lists: NeoDB can dismiss
+    // and restore an item, but has no endpoint that enumerates dismissals.
+    addDismissedItem(item);
 
     if (isPersonalActive) {
       const withoutItem = (list: HomeCardItem[] | undefined) =>

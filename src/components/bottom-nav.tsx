@@ -10,6 +10,7 @@ import {
   DEFAULT_HOME_CATEGORY,
   HOME_TAG_ORDER_KEY,
   homeTags,
+  isHomeTagAvailable,
   normalizeHomeTagOrder,
 } from "@/lib/home-tags";
 import { resetNavigationStackRoot } from "@/components/navigation-history";
@@ -42,7 +43,7 @@ const BACK_TO_TOP_MIN_DISTANCE = 360;
 let hasClearedHomeMemoryForPageLoad = false;
 let hasPrefetchedRootLoadingShells = false;
 
-export function BottomNav() {
+export function BottomNav({ isSignedIn }: { isSignedIn: boolean }) {
   const t = useT();
   const pathname = usePathname();
   const router = useRouter();
@@ -83,6 +84,7 @@ export function BottomNav() {
   const tabs = tabOrder.map((id) => tabDefinitions[id]);
   const shouldHide =
     pathname.startsWith("/profile/collections") ||
+    pathname.startsWith("/profile/dismissed") ||
     pathname.startsWith("/profile/reviews") ||
     pathname.startsWith("/profile/tags") ||
     pathname.startsWith("/profile/followers") ||
@@ -274,14 +276,14 @@ export function BottomNav() {
 
                     const targetHref =
                       href === "/"
-                        ? getStoredHomeHref()
+                        ? getStoredHomeHref(isSignedIn)
                         : href === "/marked" && !pathname.startsWith("/marked")
                           ? getMarkedHref()
                           : href;
                     const stackRootHref = href === "/marked" ? "/marked" : targetHref;
 
                     if (href !== "/" && pathname === "/") {
-                      saveCurrentHomeScroll();
+                      saveCurrentHomeScroll(isSignedIn);
                     }
 
                     setPendingIndex(index);
@@ -392,9 +394,9 @@ function BackToTopIcon() {
   );
 }
 
-function getStoredHomeHref() {
+function getStoredHomeHref(isSignedIn: boolean) {
   const category = window.sessionStorage.getItem(HOME_CATEGORY_KEY);
-  const defaultCategory = getDefaultHomeCategory();
+  const defaultCategory = getDefaultHomeCategory(isSignedIn);
 
   if (!category || category === defaultCategory) {
     return "/";
@@ -456,8 +458,8 @@ function clearHomeNavigationMemory() {
   }
 }
 
-function saveCurrentHomeScroll() {
-  const category = getCurrentHomeCategory();
+function saveCurrentHomeScroll(isSignedIn: boolean) {
+  const category = getCurrentHomeCategory(isSignedIn);
 
   window.sessionStorage.setItem(HOME_CATEGORY_KEY, category);
   window.sessionStorage.setItem(
@@ -467,8 +469,8 @@ function saveCurrentHomeScroll() {
   window.sessionStorage.setItem(HOME_LEAVING_KEY, "1");
 }
 
-function getCurrentHomeCategory() {
-  const defaultCategory = getDefaultHomeCategory();
+function getCurrentHomeCategory(isSignedIn: boolean) {
+  const defaultCategory = getDefaultHomeCategory(isSignedIn);
 
   if (window.location.pathname !== "/") {
     return window.sessionStorage.getItem(HOME_CATEGORY_KEY) || defaultCategory;
@@ -553,13 +555,17 @@ function ProfileIcon() {
   );
 }
 
-function getDefaultHomeCategory() {
+function getDefaultHomeCategory(isSignedIn: boolean) {
   try {
     const order = normalizeHomeTagOrder(
       JSON.parse(window.localStorage.getItem(HOME_TAG_ORDER_KEY) || "[]"),
     );
+    // The personal feed is hidden unless there is a session, so the default is
+    // the first tag this visitor can actually open — the same rule the home
+    // page applies to its own filters.
+    const available = order.filter((id) => isHomeTagAvailable(id, isSignedIn));
 
-    return order[0] || DEFAULT_HOME_CATEGORY;
+    return available[0] || DEFAULT_HOME_CATEGORY;
   } catch {
     return DEFAULT_HOME_CATEGORY;
   }

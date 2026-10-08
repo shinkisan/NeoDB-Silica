@@ -7,6 +7,7 @@ import { ActionMenu } from "@/components/action-menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { showToast } from "@/components/app-toast";
 import { useT } from "@/components/use-t";
+import { rememberScroll } from "@/lib/page-scroll";
 
 type ProfileTagItem = {
   count: number | null;
@@ -23,7 +24,8 @@ type ProfileTagsListProps = {
 export function ProfileTagsList({
   countLabel,
   items: initialItems,
-}: ProfileTagsListProps) {
+  page,
+}: ProfileTagsListProps & { page: number }) {
   const [items, setItems] = useState(initialItems);
 
   if (items.length === 0) {
@@ -48,6 +50,7 @@ export function ProfileTagsList({
               ),
             )
           }
+          page={page}
           tag={tag}
         />
       ))}
@@ -59,11 +62,13 @@ function TagRow({
   countLabel,
   onDelete,
   onRename,
+  page,
   tag,
 }: {
   countLabel: string;
   onDelete: () => void;
   onRename: (title: string) => void;
+  page: number;
   tag: ProfileTagItem;
 }) {
   const router = useRouter();
@@ -72,7 +77,10 @@ function TagRow({
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [renameTitle, setRenameTitle] = useState(tag.title);
   const [status, setStatus] = useState<"idle" | "saving">("idle");
-  const href = `/profile/tags/${encodeURIComponent(tag.uuid)}?title=${encodeURIComponent(tag.title)}`;
+  // Carries the list's page along, so the detail can come back to it.
+  const href = `/profile/tags/${encodeURIComponent(tag.uuid)}?title=${encodeURIComponent(tag.title)}${
+    page > 1 ? `&fromPage=${page}` : ""
+  }`;
 
   async function renameTag() {
     const nextTitle = renameTitle.trim();
@@ -149,6 +157,8 @@ function TagRow({
       <Link
         className="flex min-w-0 items-center justify-between gap-4 px-5 py-4 pr-14"
         href={href}
+        onClick={() => rememberScroll("tags")}
+        onPointerDown={() => rememberScroll("tags")}
       >
         <div className="flex min-w-0 items-center gap-4">
           <span className="grid size-10 shrink-0 place-items-center text-[var(--foreground)]">

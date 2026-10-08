@@ -22,10 +22,8 @@ import { LogoutButton } from "./logout-button";
 import { ProfileHeader } from "./profile-header";
 import { ProfileHeatmapBackdrop } from "./profile-heatmap";
 import { TabOrderButton } from "./tab-order-control";
-import {
-  AboutProfileLink,
-  ProfileAboutScrollRestorer,
-} from "./about-profile-link";
+import { AboutProfileLink } from "./about-profile-link";
+import { RestoreScroll } from "@/components/restore-scroll";
 import { NEODB_GITHUB_URL, SILICA_GITHUB_URL } from "@/lib/attribution-links";
 import {
   getConfiguredNeodbHostname,
@@ -34,6 +32,7 @@ import {
 import { configureServerFetchProxy } from "@/lib/server-fetch";
 import { siteConfig } from "@/site.config";
 import { SortIcon } from "@/components/sort-icon";
+import { ProfileMineRow } from "./profile-mine-row";
 
 export const dynamic = "force-dynamic";
 
@@ -75,55 +74,49 @@ export default async function ProfilePage() {
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-[var(--background)] px-5 pb-32 pt-8 text-[var(--foreground)]">
-      <ProfileAboutScrollRestorer />
+      <RestoreScroll scope="profile" />
       <ProfileHeatmapBackdrop hasSession={hasSession} initialUser={initialUser} />
       <section className="relative z-10 mx-auto flex max-w-2xl flex-col gap-10">
         <ProfileHeader hasSession={hasSession} initialUser={initialUser} />
 
         <div className="space-y-8">
           <SettingsGroup title={t("profile.mine")}>
-            <Link
-              className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
+            <ProfileMineRow
               href="/profile/collections"
-            >
-              <div className="flex min-w-0 items-center gap-4">
+              icon={
                 <IconBubble tone="collection">
                   <CollectionIcon />
                 </IconBubble>
-                <span className="truncate text-base font-semibold text-[var(--foreground)]">
-                  {t("profile.myCollections.item")}
-                </span>
-              </div>
-              <ChevronRightIcon />
-            </Link>
-            <Link
-              className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
+              }
+              label={t("profile.myCollections.item")}
+            />
+            <ProfileMineRow
               href="/profile/reviews"
-            >
-              <div className="flex min-w-0 items-center gap-4">
+              icon={
                 <IconBubble tone="review">
                   <ReviewIcon />
                 </IconBubble>
-                <span className="truncate text-base font-semibold text-[var(--foreground)]">
-                  {t("profile.myReviews.item")}
-                </span>
-              </div>
-              <ChevronRightIcon />
-            </Link>
-            <Link
-              className="flex w-full items-center justify-between border-b border-[#c5c6cd]/30 p-4 transition last:border-0 hover:bg-white/30"
+              }
+              label={t("profile.myReviews.item")}
+            />
+            <ProfileMineRow
               href="/profile/tags"
-            >
-              <div className="flex min-w-0 items-center gap-4">
+              icon={
                 <IconBubble tone="tag">
                   <TagIcon />
                 </IconBubble>
-                <span className="truncate text-base font-semibold text-[var(--foreground)]">
-                  {t("profile.myTags.item")}
-                </span>
-              </div>
-              <ChevronRightIcon />
-            </Link>
+              }
+              label={t("profile.myTags.item")}
+            />
+            <ProfileMineRow
+              href="/profile/dismissed"
+              icon={
+                <IconBubble tone="tag">
+                  <HiddenIcon />
+                </IconBubble>
+              }
+              label={t("profile.dismissed.item")}
+            />
           </SettingsGroup>
 
           <SettingsGroup title={t("profile.settings")}>
@@ -576,6 +569,26 @@ function TagIcon() {
   );
 }
 
+function HiddenIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m3 3 18 18" />
+      <path d="M10.6 5.2A9.9 9.9 0 0 1 12 5c5 0 9 4.5 9 7 0 .8-.4 1.8-1.1 2.8" />
+      <path d="M6.3 6.6C4 8.2 3 10.4 3 12c0 2.3 4 7 9 7 1.6 0 3-.4 4.3-1.1" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
+  );
+}
+
 function MailIcon() {
   return (
     <svg
@@ -590,23 +603,6 @@ function MailIcon() {
     >
       <path d="M4 6h16v12H4z" />
       <path d="m4 7 8 6 8-6" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-5 shrink-0 text-[#75777d]"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="m9 18 6-6-6-6" />
     </svg>
   );
 }

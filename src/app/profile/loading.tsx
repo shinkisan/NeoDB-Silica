@@ -20,9 +20,9 @@ export default function ProfileLoading() {
         </header>
 
         <div className="space-y-8">
-          <SkeletonGroup titleWidth="w-20" rows={3} />
+          <SkeletonGroup titleWidth="w-20" rows={4} />
           <SkeletonGroup titleWidth="w-12" rows={8} />
-          <SkeletonGroup titleWidth="w-12" rows={5} />
+          <SkeletonGroup titleWidth="w-12" rows={3} />
         </div>
       </section>
     </main>

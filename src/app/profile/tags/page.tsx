@@ -11,6 +11,8 @@ import {
   type NeodbSessionCookie,
 } from "@/lib/neodb-auth";
 import { configureServerFetchProxy, fetchWithTimeout } from "@/lib/server-fetch";
+import { ScrollTopOnEntry } from "@/components/scroll-top-on-entry";
+import { RestoreScroll } from "@/components/restore-scroll";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +49,8 @@ export default async function ProfileTagsPage({
 
   return (
     <>
+      <ScrollTopOnEntry scope="tags" />
+      <RestoreScroll scope="tags" />
       <ProfileTagsTopBar
         enableTagJump={result.status !== "guest"}
         title={t("profile.myTags.title")}
@@ -84,6 +88,7 @@ export default async function ProfileTagsPage({
                   countLabel={t("profile.myTags.itemCount")}
                   items={result.items}
                   key={page}
+                  page={page}
                 />
               </ProfileTagsContentFrame>
               <ProfileTagsPagination currentPage={page} pages={result.pages} />

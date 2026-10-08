@@ -133,6 +133,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // --- Recommendation dismissal / restore ---
+  const dismiss = path.match(/^\/api\/me\/recommendations\/([^/]+)\/dismiss$/);
+  if (dismiss && (method === "POST" || method === "DELETE")) {
+    json(res, { message: method === "DELETE" ? "Restored" : "Dismissed" });
+    return;
+  }
+
   // --- Catalog search ---
   if (path === "/api/catalog/search" && method === "GET") {
     const query = url.searchParams.get("query") || "";

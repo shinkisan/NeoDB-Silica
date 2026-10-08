@@ -15,6 +15,7 @@ import {
 } from "@/lib/neodb";
 import { applyCollectionFallbackCover } from "@/lib/collection-fallback-cover";
 import { configureServerFetchProxy, fetchWithTimeout } from "@/lib/server-fetch";
+import { ScrollTopOnEntry } from "@/components/scroll-top-on-entry";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,7 @@ export default async function ProfileCollectionsPage({
 
   return (
     <>
+      <ScrollTopOnEntry scope="collections" />
       <ProfileCollectionsTopBar title={t("collection.title")} />
       <main
         className="detail-page-enter min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)]"

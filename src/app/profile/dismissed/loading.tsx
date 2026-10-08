@@ -4,8 +4,11 @@ import { ScrollTopOnEntry } from "@/components/scroll-top-on-entry";
 export default function Loading() {
   return (
     <main className="min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)]">
-      <ScrollTopOnEntry scope="collections" />
-      <FloatingTopBar className="fixed inset-x-0 top-0 z-[60]" rowClassName="max-w-2xl lg:max-w-4xl">
+      <ScrollTopOnEntry scope="dismissed" />
+      <FloatingTopBar
+        className="fixed inset-x-0 top-0 z-[60]"
+        rowClassName="max-w-2xl lg:max-w-4xl"
+      >
         <TopBarIsland>
           <div className="grid size-10 place-items-center rounded-full text-[#44474c]">
             <CloseIcon />
@@ -16,18 +19,19 @@ export default function Loading() {
         </div>
         <div aria-hidden="true" className="size-10 shrink-0" />
       </FloatingTopBar>
-      <section className="mx-auto grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-3">
-        {Array.from({ length: 9 }, (_, index) => (
+      <section className="mx-auto max-w-2xl space-y-3 lg:max-w-4xl">
+        <div className="h-16 animate-pulse rounded-2xl border border-[#e2e2e5] bg-white/70" />
+        {Array.from({ length: 4 }, (_, index) => (
           <div
-            className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[#e2e2e5]"
+            className="flex items-center gap-3 rounded-2xl border border-[#e2e2e5] bg-white/70 p-3"
             key={index}
           >
-            <div className="absolute inset-x-0 bottom-0 p-2">
-              <div className="flex items-center gap-2 rounded-2xl bg-white/35 p-2.5">
-                <div className="h-4 min-w-0 flex-1 animate-pulse rounded-full bg-white/55" />
-                <div className="size-9 shrink-0 animate-pulse rounded-full bg-white/55" />
-              </div>
+            <div className="h-16 w-12 shrink-0 animate-pulse rounded-lg bg-[#e2e2e5]" />
+            <div className="min-w-0 flex-1">
+              <div className="h-4 w-3/5 animate-pulse rounded-full bg-[#e2e2e5]" />
+              <div className="mt-2 h-3 w-2/5 animate-pulse rounded-full bg-[#e2e2e5]" />
             </div>
+            <div className="h-7 w-20 shrink-0 animate-pulse rounded-full bg-[#e2e2e5]" />
           </div>
         ))}
       </section>

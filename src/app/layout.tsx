@@ -113,7 +113,7 @@ export default async function RootLayout({
             {children}
             <Analytics />
             <SpeedInsights />
-            <BottomNav />
+            <BottomNav isSignedIn={isSignedIn} />
             <AppToast />
           </FeatureFlagsProvider>
         </I18nProvider>

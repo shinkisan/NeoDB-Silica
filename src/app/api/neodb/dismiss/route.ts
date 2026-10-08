@@ -11,11 +11,33 @@ type DismissRequest = {
   itemId?: string;
 };
 
-/**
- * Hides a catalog item from the signed-in user's recommendations.
- * Mirrors NeoDB `POST /api/me/recommendations/{item_uuid}/dismiss`.
- */
+/** Hides a catalog item from the signed-in user's recommendations. */
 export async function POST(request: Request) {
+  const body = (await request.json().catch(() => null)) as DismissRequest | null;
+
+  return handleDismiss(request, "POST", body?.itemId);
+}
+
+/** Lets a dismissed item be recommended again. */
+export async function DELETE(request: Request) {
+  // A DELETE body is not always carried through, so the query string is the
+  // documented way in for this direction. The body is still accepted.
+  const body = (await request.json().catch(() => null)) as DismissRequest | null;
+  const itemId =
+    new URL(request.url).searchParams.get("itemId") ?? body?.itemId ?? undefined;
+
+  return handleDismiss(request, "DELETE", itemId);
+}
+
+/**
+ * Both directions of NeoDB's `…/recommendations/{item_uuid}/dismiss`: POST
+ * hides the item, DELETE restores it.
+ */
+async function handleDismiss(
+  request: Request,
+  method: "POST" | "DELETE",
+  rawItemId: string | undefined,
+) {
   const cookieStore = await cookies();
   const session = openCookie<NeodbSessionCookie>(
     cookieStore.get(SESSION_COOKIE)?.value,
@@ -25,11 +47,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "请先登录 NeoDB。" }, { status: 401 });
   }
 
-  const body = (await request.json().catch(() => null)) as DismissRequest | null;
-  const itemId = body?.itemId?.trim();
+  const itemId = rawItemId?.trim();
 
   if (!itemId || !/^[^/\\?#]+$/.test(itemId)) {
-    return NextResponse.json({ error: "隐藏条目参数无效。" }, { status: 400 });
+    return NextResponse.json(
+      { error: method === "POST" ? "隐藏条目参数无效。" : "恢复条目参数无效。" },
+      { status: 400 },
+    );
   }
 
   configureServerFetchProxy();
@@ -42,7 +66,7 @@ export async function POST(request: Request) {
           Accept: "application/json",
           Authorization: `${session.tokenType || "Bearer"} ${session.accessToken}`,
         },
-        method: "POST",
+        method,
       },
       8_000,
     );
@@ -57,16 +81,28 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: "NeoDB 隐藏条目请求失败。" },
+        {
+          error:
+            method === "POST"
+              ? "NeoDB 隐藏条目请求失败。"
+              : "NeoDB 恢复条目请求失败。",
+        },
         { status: response.status },
       );
     }
 
-    return NextResponse.json({ dismissed: true, itemId });
+    return NextResponse.json(
+      method === "POST" ? { dismissed: true, itemId } : { itemId, restored: true },
+    );
   } catch (error) {
     console.error("[neodb] dismiss failed", error);
     return NextResponse.json(
-      { error: "无法连接 NeoDB 隐藏条目接口。" },
+      {
+        error:
+          method === "POST"
+            ? "无法连接 NeoDB 隐藏条目接口。"
+            : "无法连接 NeoDB 恢复条目接口。",
+      },
       { status: 502 },
     );
   }

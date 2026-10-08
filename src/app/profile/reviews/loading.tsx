@@ -1,8 +1,10 @@
 import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
+import { ScrollTopOnEntry } from "@/components/scroll-top-on-entry";
 
 export default function Loading() {
   return (
     <main className="min-h-dvh bg-[var(--background)] px-5 pb-32 pt-24 text-[var(--foreground)]">
+      <ScrollTopOnEntry scope="reviews" />
       <FloatingTopBar className="fixed inset-x-0 top-0 z-[60]" rowClassName="max-w-2xl lg:max-w-4xl">
         <TopBarIsland>
           <div className="grid size-10 place-items-center rounded-full text-[#44474c]">

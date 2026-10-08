@@ -132,7 +132,7 @@ export function SearchSuggestionsPopover({
 
   return (
     <div
-      className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[85] overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-2 shadow-xl shadow-slate-900/10"
+      className="search-suggestions-popover absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[85] overflow-hidden rounded-2xl border border-[#e2e2e5] bg-white p-2 shadow-xl shadow-slate-900/10"
       ref={popoverRef}
     >
       <div className="space-y-1">

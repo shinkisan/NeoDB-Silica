@@ -763,6 +763,19 @@
       "deleteError": "Failed to delete review",
       "deleting": "Deleting"
     },
+    "dismissed": {
+      "item": "Hidden items",
+      "title": "Hidden items",
+      "loginRequired": "Log in to see the items you've hidden.",
+      "empty": "Nothing is hidden on this device yet,",
+      "emptyLink": "see the full list",
+      "footerNote": "This list may be incomplete,",
+      "openNeodb": "View on {server}",
+      "restore": "Unhide",
+      "restored": "Unhidden",
+      "restoreError": "Couldn't unhide this item. Please try again later",
+      "actions": "Hidden items actions"
+    },
     "myTags": {
       "item": "My Tags",
       "title": "My Tags",
