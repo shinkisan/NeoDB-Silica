@@ -2,16 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { showToast } from "@/components/app-toast";
+import { PaginationPill } from "@/components/pagination-pill";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { useT } from "@/components/use-t";
 import { getCoverProxySrc } from "@/lib/cover-image";
-import {
-  readDismissedItems,
-  removeDismissedItem,
-  type DismissedItem,
-} from "@/lib/dismissed-items";
+import type { HomeItem } from "@/lib/neodb";
+
+type DismissedItem = Pick<
+  HomeItem,
+  | "category"
+  | "coverUrl"
+  | "creator"
+  | "detailPath"
+  | "id"
+  | "kind"
+  | "rating"
+  | "title"
+>;
 
 /** Categories the home feed can hold, mapped to a label we know exists. */
 const CATEGORY_LABEL_KEYS: Record<string, string> = {
@@ -25,22 +34,54 @@ const CATEGORY_LABEL_KEYS: Record<string, string> = {
 };
 
 export function ProfileDismissedList({
-  hiddenListHref,
   isCoverProxyEnabled,
 }: {
-  hiddenListHref: string | null;
   isCoverProxyEnabled: boolean;
 }) {
   const t = useT();
-  // Null until the record has been read in the browser.
+  // Null while a page is loading.
   const [items, setItems] = useState<DismissedItem[] | null>(null);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [hasError, setHasError] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Deferred so the server can render the same empty state: the record only
-    // exists in this browser.
-    queueMicrotask(() => setItems(readDismissedItems()));
+  const load = useCallback(async (targetPage: number) => {
+    setItems(null);
+    setHasError(false);
+
+    try {
+      const response = await fetch(`/api/neodb/dismissed?page=${targetPage}`, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("dismissed list failed");
+      }
+
+      const payload = (await response.json()) as {
+        items?: DismissedItem[];
+        pages?: number;
+      };
+      const nextPages = payload.pages ?? 1;
+
+      // Restoring the last item of a trailing page leaves it empty.
+      if (!payload.items?.length && targetPage > 1) {
+        setPage(Math.min(targetPage - 1, nextPages));
+        return;
+      }
+
+      setItems(payload.items ?? []);
+      setPages(nextPages);
+    } catch {
+      setHasError(true);
+      setItems([]);
+    }
   }, []);
+
+  useEffect(() => {
+    queueMicrotask(() => void load(page));
+  }, [load, page]);
 
   async function restore(item: DismissedItem) {
     if (restoringId) {
@@ -59,11 +100,8 @@ export function ProfileDismissedList({
         throw new Error("restore failed");
       }
 
-      removeDismissedItem(item.id);
-      setItems((current) =>
-        (current ?? []).filter((entry) => entry.id !== item.id),
-      );
       showToast(t("profile.dismissed.restored"));
+      await load(page);
     } catch {
       showToast(t("profile.dismissed.restoreError"), "error");
     } finally {
@@ -75,17 +113,7 @@ export function ProfileDismissedList({
     <>
       {items?.length === 0 ? (
         <div className="rounded-2xl border border-[#e2e2e5] bg-white/70 p-6 text-center text-sm font-semibold text-[#44474c]">
-          {t("profile.dismissed.empty")}{" "}
-          {hiddenListHref ? (
-            <a
-              className="text-[#2563eb] hover:underline"
-              href={hiddenListHref}
-              rel="noreferrer"
-              target="_blank"
-            >
-              {t("profile.dismissed.emptyLink")}
-            </a>
-          ) : null}
+          {hasError ? t("profile.dismissed.loadError") : t("profile.dismissed.empty")}
         </div>
       ) : null}
 
@@ -104,23 +132,24 @@ export function ProfileDismissedList({
         </div>
       ) : null}
 
-      {/* The record is local, so the page says so where the list ends. Styled
-          like the search page's "submit this link instead" prompt. */}
-      {items && items.length > 0 ? (
-        <p className="mt-4 text-center text-sm font-semibold text-[#75777d]">
-          {t("profile.dismissed.footerNote")}{" "}
-          {hiddenListHref ? (
-            <a
-              className="text-[#2563eb] hover:underline"
-              href={hiddenListHref}
-              rel="noreferrer"
-              target="_blank"
-            >
-              {t("profile.dismissed.emptyLink")}
-            </a>
-          ) : null}
-        </p>
+      {items === null ? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {Array.from({ length: 6 }, (_, index) => (
+            <div
+              className="aspect-[3/4] animate-pulse rounded-xl bg-[#e2e2e5]"
+              key={index}
+            />
+          ))}
+        </div>
       ) : null}
+
+      <div className="mt-6 flex justify-center">
+        <PaginationPill
+          activePage={page}
+          onPageChange={setPage}
+          pages={pages}
+        />
+      </div>
     </>
   );
 }

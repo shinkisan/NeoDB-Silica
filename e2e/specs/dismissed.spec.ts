@@ -39,7 +39,7 @@ test("hiding an item from the feed is recorded, and the profile page can undo it
     .poll(() => requests.some((request) => request.startsWith("POST")))
     .toBe(true);
 
-  // The record is what the profile page lists.
+  // The profile page lists what the instance reports as hidden.
   await page.goto("/profile/dismissed");
 
   await expect(page.getByText(BOOK_TITLE)).toBeVisible();
@@ -50,7 +50,7 @@ test("hiding an item from the feed is recorded, and the profile page can undo it
     .poll(() => requests.some((request) => request.startsWith("DELETE")))
     .toBe(true);
   await expect(page.getByText(BOOK_TITLE)).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "查看完整列表" })).toBeVisible();
+  await expect(page.getByText("没有屏蔽的条目")).toBeVisible();
 });
 
 test("the hidden list asks a guest to log in", async ({ page }) => {

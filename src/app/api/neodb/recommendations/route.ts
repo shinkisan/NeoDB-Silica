@@ -64,47 +64,56 @@ export async function GET(request: Request) {
   configureServerFetchProxy();
 
   try {
-    const response = await fetchWithTimeout(
-      `${session.instance}/api/me/recommendations?limit=${encodeURIComponent(limit)}`,
-      {
-        cache: "no-store",
-        headers: {
-          Accept: "application/json",
-          Authorization: `${session.tokenType || "Bearer"} ${session.accessToken}`,
-          ...(acceptLanguage ? { "Accept-Language": acceptLanguage } : {}),
-        },
-      },
-      8_000,
+    // NeoDB filters by source before applying the limit, so each group is
+    // ranked and capped on its own.
+    const [selfResponse, followingResponse] = await Promise.all(
+      (["self", "following"] as const).map((source) =>
+        fetchWithTimeout(
+          `${session.instance}/api/me/recommendations?limit=${encodeURIComponent(limit)}&source=${source}`,
+          {
+            cache: "no-store",
+            headers: {
+              Accept: "application/json",
+              Authorization: `${session.tokenType || "Bearer"} ${session.accessToken}`,
+              ...(acceptLanguage ? { "Accept-Language": acceptLanguage } : {}),
+            },
+          },
+          8_000,
+        ),
+      ),
     );
 
-    if (response.status === 401) {
+    if (selfResponse.status === 401 || followingResponse.status === 401) {
       return NextResponse.json(
         { error: "请先登录 NeoDB。", requiresLogin: true },
         { status: 401 },
       );
     }
 
-    if (!response.ok) {
+    const failed = [selfResponse, followingResponse].find(
+      (response) => !response.ok,
+    );
+
+    if (failed) {
       return NextResponse.json(
         { error: "NeoDB 为你推荐请求失败。" },
-        { status: response.status },
+        { status: failed.status },
       );
     }
 
-    const payload = (await response.json()) as {
-      data?: NeodbItem[];
-      seeds?: Record<string, string[]> | null;
-    } | null;
-    const seeds = payload?.seeds ?? null;
-    const rawItems = (Array.isArray(payload?.data) ? payload.data : []).filter(
-      (item) => Boolean(item?.uuid),
-    );
-    // A seeds entry means the item was picked for the visitor's own marks;
-    // items without one came from the people they follow. The blend
-    // interleaves the two sources by rank, so each group keeps its own
-    // ranking once split.
-    const forYou = rawItems.filter((item) => Boolean(seeds?.[item.uuid]));
-    const friends = rawItems.filter((item) => !seeds?.[item.uuid]);
+    const readItems = async (response: Response) => {
+      const payload = (await response.json().catch(() => null)) as {
+        data?: NeodbItem[];
+      } | null;
+
+      return (Array.isArray(payload?.data) ? payload.data : []).filter(
+        (item) => Boolean(item?.uuid),
+      );
+    };
+    const [forYou, friends] = await Promise.all([
+      readItems(selfResponse),
+      readItems(followingResponse),
+    ]);
 
     return NextResponse.json(
       {

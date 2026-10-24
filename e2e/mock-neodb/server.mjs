@@ -40,6 +40,8 @@ const repliesByPostId = new Map();
 let nextReplyId = 800000000000000001n;
 
 // Item posts (the item detail community section), keyed by uuid.
+const dismissedUuids = new Set();
+
 const itemPosts = new Map([
   [items.book.uuid, { comment: [otherCommentStatus, ownCommentStatus], review: [] }],
 ]);
@@ -121,21 +123,40 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // The seeds map is what separates the two groups: an item listed in it was
-    // picked for the viewer's own marks, anything else came from the people
-    // they follow.
-    json(res, {
-      data: [items.book, items.movie],
-      pages: 1,
-      count: 2,
-      seeds: { [items.book.uuid]: [items.movie.uuid] },
-    });
+    // `source` keeps one group only: `self` is the viewer's own For you list,
+    // `following` is what people they follow marked.
+    const source = url.searchParams.get("source");
+    const data =
+      source === "self"
+        ? [items.book]
+        : source === "following"
+          ? [items.movie]
+          : [items.book, items.movie];
+
+    json(res, { data, pages: 1, count: data.length });
+    return;
+  }
+
+  // --- Dismissed recommendations ---
+  if (path === "/api/me/recommendations/dismissed" && method === "GET") {
+    const data = [...dismissedUuids]
+      .map((uuid) => itemsByUuid.get(uuid))
+      .filter(Boolean)
+      .map((item) => ({ item, created_time: "2026-01-01T00:00:00Z" }));
+
+    json(res, { data, pages: 1, count: data.length });
     return;
   }
 
   // --- Recommendation dismissal / restore ---
   const dismiss = path.match(/^\/api\/me\/recommendations\/([^/]+)\/dismiss$/);
   if (dismiss && (method === "POST" || method === "DELETE")) {
+    if (method === "DELETE") {
+      dismissedUuids.delete(dismiss[1]);
+    } else {
+      dismissedUuids.add(dismiss[1]);
+    }
+
     json(res, { message: method === "DELETE" ? "Restored" : "Dismissed" });
     return;
   }

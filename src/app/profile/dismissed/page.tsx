@@ -37,7 +37,6 @@ export default async function ProfileDismissedPage() {
         <section className="mx-auto max-w-2xl">
           {session?.accessToken ? (
             <ProfileDismissedList
-              hiddenListHref={`${session.instance}/recommendations/hidden`}
               isCoverProxyEnabled={isCoverImageProxyEnabled()}
             />
           ) : (
