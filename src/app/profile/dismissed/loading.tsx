@@ -19,21 +19,15 @@ export default function Loading() {
         </div>
         <div aria-hidden="true" className="size-10 shrink-0" />
       </FloatingTopBar>
-      <section className="mx-auto max-w-2xl space-y-3 lg:max-w-4xl">
-        <div className="h-16 animate-pulse rounded-2xl border border-[#e2e2e5] bg-white/70" />
-        {Array.from({ length: 4 }, (_, index) => (
-          <div
-            className="flex items-center gap-3 rounded-2xl border border-[#e2e2e5] bg-white/70 p-3"
-            key={index}
-          >
-            <div className="h-16 w-12 shrink-0 animate-pulse rounded-lg bg-[#e2e2e5]" />
-            <div className="min-w-0 flex-1">
-              <div className="h-4 w-3/5 animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="mt-2 h-3 w-2/5 animate-pulse rounded-full bg-[#e2e2e5]" />
-            </div>
-            <div className="h-7 w-20 shrink-0 animate-pulse rounded-full bg-[#e2e2e5]" />
-          </div>
-        ))}
+      <section className="mx-auto max-w-2xl">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {Array.from({ length: 6 }, (_, index) => (
+            <div
+              className="aspect-[3/4] animate-pulse rounded-xl bg-[#e2e2e5]"
+              key={index}
+            />
+          ))}
+        </div>
       </section>
     </main>
   );
