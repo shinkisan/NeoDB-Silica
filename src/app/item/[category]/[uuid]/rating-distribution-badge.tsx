@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { createPortal } from "react-dom";
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
 import { RatingBadge } from "@/components/mark-badges";
 import { useT } from "@/components/use-t";
 
@@ -28,35 +28,6 @@ export function RatingDistributionBadge({
   const longPressTimerRef = useRef<number | null>(null);
   const didLongPressRef = useRef(false);
   const canOpen = Boolean(value);
-
-  useEffect(() => {
-    if (!isOpen && !isPulseOpen) {
-      return;
-    }
-
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-        setIsPulseOpen(false);
-      }
-    }
-
-    document.addEventListener("keydown", closeOnEscape);
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [isOpen, isPulseOpen]);
 
   useEffect(() => {
     return () => clearLongPressTimer(longPressTimerRef);
@@ -96,28 +67,22 @@ export function RatingDistributionBadge({
         <RatingBadge value={value} />
         <ChevronRightIcon />
       </button>
-      {isOpen && typeof document !== "undefined"
-        ? createPortal(
-            <RatingDistributionDialog
-              count={count}
-              distribution={distribution}
-              onClose={() => setIsOpen(false)}
-              value={value}
-            />,
-            document.body,
-          )
-        : null}
-      {isPulseOpen && typeof document !== "undefined"
-        ? createPortal(
-            <PulseRatingDistributionDialog
-              count={count}
-              distribution={distribution}
-              onClose={() => setIsPulseOpen(false)}
-              value={value}
-            />,
-            document.body,
-          )
-        : null}
+      {isOpen && (
+        <RatingDistributionDialog
+          count={count}
+          distribution={distribution}
+          onClose={() => setIsOpen(false)}
+          value={value}
+        />
+      )}
+      {isPulseOpen && (
+        <PulseRatingDistributionDialog
+          count={count}
+          distribution={distribution}
+          onClose={() => setIsPulseOpen(false)}
+          value={value}
+        />
+      )}
     </>
   );
 }
@@ -133,6 +98,7 @@ function RatingDistributionDialog({
   onClose: () => void;
   value: number | null;
 }) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
   const rows = useMemo(() => normalizeDistribution(distribution), [distribution]);
   const hasDistribution = rows.some((row) => row.value > 0);
@@ -142,13 +108,14 @@ function RatingDistributionDialog({
       : null;
 
   return (
-    <div
-      className="fixed inset-0 z-[120] grid place-items-center bg-[#1a1c1e]/20 px-5 backdrop-blur-sm"
+    <DialogShell
+      {...dialog}
+      backdropClassName="bg-[#1a1c1e]/20 backdrop-blur-sm"
+      className="fixed inset-0 z-[120] grid place-items-center px-5"
+      closeOnBackdrop={false}
     >
       <section
-        aria-modal="true"
-        className="w-full max-w-sm rounded-[2rem] border border-white/60 bg-white/85 p-5 text-[var(--foreground)] shadow-2xl shadow-slate-900/15 backdrop-blur-2xl"
-        role="dialog"
+        className="dialog-panel w-full max-w-sm rounded-[2rem] border border-white/60 bg-white/85 p-5 text-[var(--foreground)] shadow-2xl shadow-slate-900/15 backdrop-blur-2xl"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -167,7 +134,7 @@ function RatingDistributionDialog({
           <button
             aria-label={t("detail.ratingDistribution.close")}
             className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/75 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -209,7 +176,7 @@ function RatingDistributionDialog({
           )}
         </div>
       </section>
-    </div>
+    </DialogShell>
   );
 }
 

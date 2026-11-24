@@ -1,3 +1,4 @@
+import { LoadingMotion } from "@/components/page-motion";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -59,12 +60,14 @@ export default async function HomePage() {
     : null;
 
   return (
-    <Suspense fallback={<HomeShellSkeleton />}>
-      <HomeContentRoot
-        featuredCollectionsEnabled={featuredCollectionsEnabled}
-        isCoverProxyEnabled={isCoverProxyEnabled}
-        personalFeedScope={personalFeedScope}
-      />
+    <Suspense fallback={<LoadingMotion pending><HomeShellSkeleton /></LoadingMotion>}>
+      <LoadingMotion>
+        <HomeContentRoot
+          featuredCollectionsEnabled={featuredCollectionsEnabled}
+          isCoverProxyEnabled={isCoverProxyEnabled}
+          personalFeedScope={personalFeedScope}
+        />
+      </LoadingMotion>
     </Suspense>
   );
 }

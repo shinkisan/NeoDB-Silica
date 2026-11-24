@@ -1,5 +1,6 @@
 "use client";
 
+import { markMotionBack } from "@/components/motion-controller";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import {
@@ -43,6 +44,7 @@ export function LoadingTopBar() {
 
   return (
     <header
+      data-motion-top-bar
       className={`${topBarStyles.bar} px-4 sm:px-5`}
       style={{
         left: 0,
@@ -64,6 +66,7 @@ export function LoadingTopBar() {
             data-lg-cab="2"
             onClick={(event) => {
               event.currentTarget.disabled = true;
+              markMotionBack();
               performNavigationClose(resolveDetailCloseAction(), router);
             }}
             onPointerDown={(event) => {
@@ -83,7 +86,7 @@ export function LoadingTopBar() {
           data-lg-strength="34"
           data-lg-cab="2"
         >
-          <div className="mx-3 h-4 w-14 animate-pulse rounded-full bg-[#d9dde5]" />
+          <div className="mx-3 h-4 w-14 skeleton rounded-full" />
           <span aria-hidden="true" className="h-4 w-px bg-[var(--foreground)] opacity-20" />
           <div className="grid size-10 shrink-0 place-items-center text-[#a4a6ad]">
             <VerticalDotsIcon />

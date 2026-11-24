@@ -1,5 +1,7 @@
 "use client";
 
+import { AnimatedCount } from "@/components/animated-count";
+
 import { useEffect, useState } from "react";
 import { showToast } from "@/components/app-toast";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -126,8 +128,8 @@ export function BoostButton({
         }}
         type="button"
       >
-        <BoostIcon />
-        {currentCount > 0 ? currentCount : null}
+        <span className={isReblogged ? "motion-confirm" : undefined}><BoostIcon /></span>
+        {currentCount > 0 ? <AnimatedCount count={currentCount} /> : null}
       </button>
 
       {isConfirmOpen ? (

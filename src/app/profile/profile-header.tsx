@@ -132,11 +132,11 @@ function blobToDataUrl(blob: Blob) {
 function ProfileHeaderSkeleton() {
   return (
     <header className="flex flex-col items-center pt-8 text-center">
-      <div className="mb-6 size-32 animate-pulse rounded-full border border-white/80 bg-white/55 shadow-[0_18px_48px_-18px_rgba(74,85,104,0.45)] backdrop-blur-2xl" />
-      <div className="h-7 w-36 animate-pulse rounded-full bg-[#e2e2e5]" />
-      <div className="mt-3 h-4 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
+      <div className="mb-6 size-32 skeleton rounded-full border border-white/80 shadow-[0_18px_48px_-18px_rgba(74,85,104,0.45)] backdrop-blur-2xl" />
+      <div className="h-7 w-36 skeleton rounded-full" />
+      <div className="mt-3 h-4 w-24 skeleton rounded-full" />
       <ProfileStatsSkeleton />
-      <div className="mt-6 h-12 w-40 animate-pulse rounded-full bg-[#e2e2e5]" />
+      <div className="mt-6 h-12 w-40 skeleton rounded-full" />
     </header>
   );
 }
@@ -277,8 +277,8 @@ function ProfileStatsSkeleton() {
     <div className="mt-6 grid grid-cols-3 gap-8">
       {Array.from({ length: 3 }, (_, index) => (
         <div className="flex min-w-14 flex-col items-center" key={index}>
-          <div className="h-6 w-10 animate-pulse rounded-full bg-[#e2e2e5]" />
-          <div className="mt-1 h-3 w-12 animate-pulse rounded-full bg-[#e2e2e5]" />
+          <div className="h-6 w-10 skeleton rounded-full" />
+          <div className="mt-1 h-3 w-12 skeleton rounded-full" />
         </div>
       ))}
     </div>

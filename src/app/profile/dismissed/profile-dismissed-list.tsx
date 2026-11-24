@@ -136,7 +136,7 @@ export function ProfileDismissedList({
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {Array.from({ length: 6 }, (_, index) => (
             <div
-              className="aspect-[3/4] animate-pulse rounded-xl bg-[#e2e2e5]"
+              className="aspect-[3/4] skeleton rounded-xl"
               key={index}
             />
           ))}

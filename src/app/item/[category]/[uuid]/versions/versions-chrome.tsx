@@ -216,13 +216,13 @@ function VersionsItemsSkeleton() {
           key={index}
         >
           <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-3 sm:grid-cols-[104px_minmax(0,1fr)]">
-            <div className="aspect-[3/4] animate-pulse rounded-lg bg-[#e2e2e5]" />
+            <div className="aspect-[3/4] skeleton rounded-lg" />
             <div className="space-y-3 py-1">
-              <div className="h-5 w-3/4 animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-1/2 animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-6 w-32 animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-full animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-5/6 animate-pulse rounded-full bg-[#e2e2e5]" />
+              <div className="h-5 w-3/4 skeleton rounded-full" />
+              <div className="h-4 w-1/2 skeleton rounded-full" />
+              <div className="h-6 w-32 skeleton rounded-full" />
+              <div className="h-4 w-full skeleton rounded-full" />
+              <div className="h-4 w-5/6 skeleton rounded-full" />
             </div>
           </div>
         </article>

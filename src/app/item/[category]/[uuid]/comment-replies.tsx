@@ -725,7 +725,7 @@ function collectReplySubtreeIds(replies: Reply[], rootReplyId: string) {
 
 function ReplySkeleton() {
   return (
-    <div className="flex animate-pulse gap-3">
+    <div className="flex gap-3">
       <div className="size-8 shrink-0 rounded-full bg-[#dde3eb]" />
       <div className="flex-1 space-y-2 pt-1">
         <div className="h-2.5 w-20 rounded-full bg-[#dde3eb]" />

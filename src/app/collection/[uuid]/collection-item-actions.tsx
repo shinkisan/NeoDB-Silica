@@ -1,5 +1,6 @@
 "use client";
 
+import { COLLECTION_ITEM_REMOVING_EVENT } from "./collection-content-frame";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -44,6 +45,9 @@ export function CollectionItemActions({
       await clearCollectionCache(uuid);
       showToast(t("collection.itemDeleted"));
       setIsDeleteOpen(false);
+      window.dispatchEvent(new CustomEvent(COLLECTION_ITEM_REMOVING_EVENT, {
+        detail: { uuid, itemUuid },
+      }));
       router.refresh();
     } catch (error) {
       showToast(

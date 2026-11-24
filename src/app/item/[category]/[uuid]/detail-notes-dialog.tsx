@@ -7,7 +7,7 @@ import {
   TopBarTitle,
 } from "@/components/floating-top-bar";
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
 import { ActionMenu } from "@/components/action-menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PaginationPill } from "@/components/pagination-pill";
@@ -65,38 +65,20 @@ export function MyNotesDialog({
     "{title}",
     itemTitle,
   );
-  const [isClosing, setIsClosing] = useState(false);
+  const dialog = useDialogMotion(onClose);
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
-
-  function closeDialog() {
-    setIsClosing(true);
-    window.setTimeout(onClose, 160);
-  }
-
-  if (typeof document === "undefined") {
-    return null;
-  }
-
-  return createPortal(
-    <div
-      className={`fixed inset-0 z-[110] overflow-y-auto bg-[var(--background)] text-[var(--foreground)] ${
-        isClosing ? "review-reader-exit" : "review-reader-enter"
-      }`}
+  return (
+    <DialogShell
+      {...dialog}
+      className="fixed inset-0 z-[110] overflow-y-auto bg-[var(--background)] text-[var(--foreground)]"
+      variant="reader"
     >
       <FloatingTopBar className="sticky top-0 z-10 w-screen" rowClassName="max-w-4xl">
         <TopBarIsland>
           <button
             aria-label={t("detail.notes.close")}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon"
-            onClick={closeDialog}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -107,8 +89,7 @@ export function MyNotesDialog({
       </FloatingTopBar>
 
       <NotesContent category={category} itemUuid={itemUuid} />
-    </div>,
-    document.body,
+    </DialogShell>
   );
 }
 
@@ -437,16 +418,16 @@ function NotesSkeleton() {
           key={index}
         >
           <div className="flex items-center justify-between gap-4">
-            <div className="h-5 w-2/3 animate-pulse rounded-full bg-[#dfe0e4]" />
-            <div className="size-7 animate-pulse rounded-full bg-[#dfe0e4]" />
+            <div className="h-5 w-2/3 skeleton rounded-full" />
+            <div className="size-7 skeleton rounded-full" />
           </div>
           <div className="mt-4 space-y-2">
-            <div className="h-4 animate-pulse rounded-full bg-[#dfe0e4]" />
-            <div className="h-4 animate-pulse rounded-full bg-[#dfe0e4]" />
-            <div className="h-4 w-4/5 animate-pulse rounded-full bg-[#dfe0e4]" />
+            <div className="h-4 skeleton rounded-full" />
+            <div className="h-4 skeleton rounded-full" />
+            <div className="h-4 w-4/5 skeleton rounded-full" />
           </div>
           <div className="mt-auto flex h-7 justify-start pt-1">
-            <div className="h-3 w-24 animate-pulse rounded-full bg-[#dfe0e4]" />
+            <div className="h-3 w-24 skeleton rounded-full" />
           </div>
         </div>
       ))}

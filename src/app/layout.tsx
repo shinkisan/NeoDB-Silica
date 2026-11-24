@@ -12,6 +12,8 @@ import { GlassFilterDefs } from "@/components/glass-filter-defs";
 import { LiquidGlassManager } from "@/components/liquid-glass-manager";
 import { NavigationHistory } from "@/components/navigation-history";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { MotionController } from "@/components/motion-controller";
+import { PageMotion } from "@/components/page-motion";
 import { ThemeController } from "@/components/theme-controller";
 import { FeatureFlagsProvider } from "@/components/feature-flags";
 import { isCoverImageProxyEnabled } from "@/lib/cover-image";
@@ -97,7 +99,7 @@ export default async function RootLayout({
         } as React.CSSProperties
       }
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" data-route-motion={process.env.NEXT_PUBLIC_VIEW_TRANSITIONS === "1" || undefined}>
         <I18nProvider locale={locale} messages={messages}>
           <FeatureFlagsProvider value={featureFlags}>
             <HomeTrendingBootstrap
@@ -108,9 +110,10 @@ export default async function RootLayout({
             <GlassFilterDefs />
             <LiquidGlassManager />
             <ThemeController />
+            <MotionController />
             <ServiceWorkerRegister />
             <NavigationHistory />
-            {children}
+            <PageMotion>{children}</PageMotion>
             <Analytics />
             <SpeedInsights />
             <BottomNav isSignedIn={isSignedIn} />

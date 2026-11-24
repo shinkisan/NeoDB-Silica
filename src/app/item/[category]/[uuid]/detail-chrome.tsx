@@ -1,7 +1,8 @@
 "use client";
 
+import { DUR, EASE, prefersReducedMotion } from "@/lib/motion";
 import { useRouter } from "next/navigation";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "@/components/use-t";
 import { useTopBarContextVisibility } from "@/components/use-top-bar-context-visibility";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -151,7 +152,7 @@ export function DetailTopBar({
   }
 
   return (
-    <header
+    <header data-motion-top-bar
       className={`${topBarStyles.bar} px-4 sm:px-5`}
       style={{
         left: 0,
@@ -688,6 +689,26 @@ function MarkMenu({
     }
   }
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const markLabel = status === "saving" ? t("mark.saving") : selectedLabel;
+  const [labels, setLabels] = useState({ current: markLabel, previous: "" });
+  if (labels.current !== markLabel) setLabels({ current: markLabel, previous: labels.current });
+  const previousButton = useRef<{ width: number; animation?: Animation }>({ width: 0 });
+  useLayoutEffect(() => {
+    const button = buttonRef.current;
+    if (!button) return;
+    const previous = previousButton.current;
+    previous.animation?.cancel();
+    const width = button.offsetWidth;
+    previousButton.current = { width };
+    if (previous.width && previous.width !== width && !prefersReducedMotion()) {
+      previousButton.current.animation = button.animate?.(
+        [{ scale: `${previous.width / width} 1` }, { scale: "1 1" }],
+        { duration: DUR.spring, easing: EASE.springSnappy },
+      );
+    }
+  }, [markLabel]);
+
   const isDisabled = status === "saving";
   const markButtonTone = selectedShelfType
     ? getStatusTone(selectedShelfType)
@@ -716,10 +737,12 @@ function MarkMenu({
             event.stopPropagation();
           }
         }}
+        ref={buttonRef}
         type="button"
       >
-        <span>
-          {status === "saving" ? t("mark.saving") : selectedLabel}
+        <span className="motion-mark-label">
+          {labels.previous && <span aria-hidden="true" className="mark-label-old" key={`old-${labels.previous}`}>{labels.previous}</span>}
+          <span className={labels.previous ? "mark-label-new" : undefined} key={markLabel}>{markLabel}</span>
         </span>
         <ChevronDownIcon isOpen={isOpen} />
       </button>
@@ -1758,7 +1781,7 @@ function ChevronDownIcon({ isOpen }: { isOpen: boolean }) {
   return (
     <svg
       aria-hidden="true"
-      className={`size-4 shrink-0 transition ${isOpen ? "rotate-180" : ""}`}
+      className={`size-4 shrink-0 motion-pill transition-transform duration-(--dur-spring) ease-spring-snappy ${isOpen ? "rotate-180" : ""}`}
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"

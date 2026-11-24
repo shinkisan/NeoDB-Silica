@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useInitialListReveal, useListMotion } from "@/components/use-list-motion";
+import { COLLECTION_RESTORE_PREFIX } from "./collection-chrome";
 import { useSearchParams } from "next/navigation";
 
 export const COLLECTION_PAGE_PENDING_EVENT = "app:collection-page-pending";
+
+export const COLLECTION_ITEM_REMOVING_EVENT = "app:collection-item-removing";
 
 type CollectionPagePendingEvent = CustomEvent<{
   page: number;
@@ -81,10 +85,26 @@ export function CollectionIntroFrame({ children }: { children: ReactNode }) {
   return children;
 }
 
-export function CollectionContentFrame({ children }: { children: ReactNode }) {
+export function CollectionContentFrame({ children, page, uuid }: { children: ReactNode; page: number; uuid: string }) {
   const searchParams = useSearchParams();
   const searchKey = searchParams.toString();
   const [isPending, setIsPending] = useState(false);
+
+  const list = useRef<HTMLDivElement>(null);
+  const prepareRemoval = useListMotion(list, children);
+  useInitialListReveal(list, !isPending, () => page > 1 ||
+    window.sessionStorage.getItem(`${COLLECTION_RESTORE_PREFIX}${uuid}`) === "1" ||
+    document.documentElement.dataset.navDir === "back",
+  );
+
+  useEffect(() => {
+    function handleRemoval(event: Event) {
+      const removed = (event as CustomEvent<{ uuid: string; itemUuid: string }>).detail;
+      if (removed.uuid === uuid) prepareRemoval(removed.itemUuid);
+    }
+    window.addEventListener(COLLECTION_ITEM_REMOVING_EVENT, handleRemoval);
+    return () => window.removeEventListener(COLLECTION_ITEM_REMOVING_EVENT, handleRemoval);
+  }, [prepareRemoval, uuid]);
 
   useEffect(() => {
     setIsPending(false);
@@ -106,7 +126,7 @@ export function CollectionContentFrame({ children }: { children: ReactNode }) {
     return <CollectionItemsSkeleton />;
   }
 
-  return children;
+  return <div className="content-reveal [--reveal-distance:0px]" ref={list}>{children}</div>;
 }
 
 function CollectionItemsSkeleton() {
@@ -118,12 +138,12 @@ function CollectionItemsSkeleton() {
           key={index}
         >
           <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 sm:grid-cols-[7rem_minmax(0,1fr)]">
-            <div className="aspect-[3/4] animate-pulse rounded-xl bg-[#e2e2e5]" />
+            <div className="aspect-[3/4] skeleton rounded-xl" />
             <div className="space-y-3 py-1">
-              <div className="h-5 w-3/4 animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-6 w-28 animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-full animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-5/6 animate-pulse rounded-full bg-[#e2e2e5]" />
+              <div className="h-5 w-3/4 skeleton rounded-full" />
+              <div className="h-6 w-28 skeleton rounded-full" />
+              <div className="h-4 w-full skeleton rounded-full" />
+              <div className="h-4 w-5/6 skeleton rounded-full" />
             </div>
           </div>
         </article>

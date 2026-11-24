@@ -1,7 +1,9 @@
 "use client";
 
+import { useListMotion } from "@/components/use-list-motion";
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { showToast } from "@/components/app-toast";
 import { Dropdown } from "@/components/dropdown";
 import { useT } from "@/components/use-t";
@@ -35,10 +37,19 @@ export function DetailHashtags({ tags }: DetailHashtagsProps) {
   const [canExpand, setCanExpand] = useState(false);
   const tagsRef = useRef<HTMLElement>(null);
   const t = useT();
+  const prepareTagChange = useListMotion(tagsRef, currentTags);
 
   useEffect(() => {
-    setCurrentTags(tags);
-  }, [tags]);
+    if (currentTags === tags) return;
+    let stale = false;
+    queueMicrotask(() => {
+      if (stale) return;
+      const next = new Set(tags.map(({ tag }) => tag));
+      prepareTagChange(currentTags.find(({ tag }) => !next.has(tag))?.tag);
+      setCurrentTags(tags);
+    });
+    return () => { stale = true; };
+  }, [currentTags, prepareTagChange, tags]);
 
   useEffect(() => {
     const tagsElement = tagsRef.current;
@@ -81,6 +92,7 @@ export function DetailHashtags({ tags }: DetailHashtagsProps) {
 
           return (
             <SearchMetaLink
+              data-motion-item={tag}
               className="detail-hashtag-link min-w-0 max-w-full break-words text-[var(--detail-hashtag-color)] underline decoration-[var(--detail-hashtag-decoration)] decoration-1 underline-offset-4 transition hover:text-[var(--detail-hashtag-hover)] hover:decoration-[var(--detail-hashtag-hover-decoration)] [overflow-wrap:anywhere]"
               href={href}
               key={tag}
@@ -125,6 +137,7 @@ export function AddTagDialog({
   onAdd?: (tag: string) => void;
   onClose: () => void;
 }) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
   const [myTags, setMyTags] = useState<MyTag[]>([]);
   const [selectedTagId, setSelectedTagId] = useState("__new__");
@@ -139,22 +152,6 @@ export function AddTagDialog({
     ...myTags.map((entry) => ({ id: entry.uuid, label: entry.title })),
   ];
   const isCreatingTag = selectedTagId === "__new__";
-
-  useEffect(() => {
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-    window.setTimeout(() => inputRef.current?.focus(), 80);
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -253,7 +250,7 @@ export function AddTagDialog({
 
       onAdd?.(nextTag);
       showToast(t("detail.hashtags.saved"));
-      onClose();
+      dialog.requestClose();
     } catch (error) {
       showToast(
         error instanceof Error ? error.message : t("detail.hashtags.saveError"),
@@ -263,9 +260,9 @@ export function AddTagDialog({
     }
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e2e2e5]/55 px-5 py-5 backdrop-blur-sm">
-      <section className="review-editor-enter max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
+  return (
+    <DialogShell {...dialog} backdropClassName="bg-[#e2e2e5]/55 backdrop-blur-sm" className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-5">
+      <section className="dialog-panel max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
         <header className="flex items-center justify-between gap-3 pb-2">
           <div className="flex min-w-0 items-center gap-2">
             <h2 className="min-w-0 text-xl font-bold text-[var(--foreground)]">
@@ -284,7 +281,7 @@ export function AddTagDialog({
           <button
             aria-label={t("detail.hashtags.close")}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -328,8 +325,7 @@ export function AddTagDialog({
           </button>
         </form>
       </section>
-    </div>,
-    document.body,
+    </DialogShell>
   );
 }
 

@@ -170,8 +170,8 @@ function SearchSuggestionSkeleton() {
     <>
       {Array.from({ length: 3 }, (_, index) => (
         <div className="flex h-11 items-center justify-between gap-3 px-3" key={index}>
-          <span className="h-4 w-36 animate-pulse rounded-full bg-[#e2e2e5]" />
-          <span className="h-5 w-10 animate-pulse rounded-full bg-[#e2e2e5]" />
+          <span className="h-4 w-36 skeleton rounded-full" />
+          <span className="h-5 w-10 skeleton rounded-full" />
         </div>
       ))}
     </>

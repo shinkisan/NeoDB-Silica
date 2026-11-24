@@ -1,42 +1,55 @@
 "use client";
 
+import { DUR, EASE, prefersReducedMotion } from "@/lib/motion";
+
 const PRESS_SCALE = 1.16;
-const PRESS_EASING = "cubic-bezier(0.2, 0, 0, 1)";
+const MIN_PRESS_MS = 80;
+let press: {
+  element: HTMLElement;
+  pointerId?: number;
+  startedAt: number;
+  release: () => void;
+} | null = null;
+let releaseTimer = 0;
 
-function setPressed(surface: HTMLElement, pressed: boolean) {
-  surface.style.transition = `transform ${pressed ? 150 : 210}ms ${PRESS_EASING}`;
-  surface.style.transform = pressed ? `scale(${PRESS_SCALE})` : "";
+function hold(element: HTMLElement, release: () => void, pointerId?: number) {
+  window.clearTimeout(releaseTimer);
+  press?.release();
+  press = { element, pointerId, release, startedAt: performance.now() };
 }
 
-/** Swells a glass surface while it is held, settling once the press ends.
- *
- * The release is watched on the window rather than the surface: touch
- * implicitly captures the pointer to whatever was pressed, so a finger that
- * slides off never fires pointerleave there and the surface would stay stuck
- * enlarged. Transitions rather than keyframes, so a press interrupted midway
- * carries on from wherever it currently sits. */
+export function startPressFeedback(event: PointerEvent) {
+  if (!isPrimaryPress(event) || prefersReducedMotion()) return;
+  const element = (event.target as Element).closest?.<HTMLElement>(
+    ".press-icon, .press-control, .press-card",
+  );
+  if (!element || element.matches(':disabled, [aria-disabled="true"]')) return;
+  hold(element, () => element.removeAttribute("data-pressed"), event.pointerId);
+  element.setAttribute("data-pressed", "");
+}
+
+export function endPressFeedback(event: PointerEvent) {
+  if (!press || (press.pointerId !== undefined && press.pointerId !== event.pointerId)) return;
+  const active = press;
+  window.clearTimeout(releaseTimer);
+  releaseTimer = window.setTimeout(() => {
+    if (press !== active) return;
+    active.release();
+    press = null;
+  }, Math.max(0, MIN_PRESS_MS - (performance.now() - active.startedAt)));
+}
+
+/** Swells the glass surface while its primary pointer is held. */
 export function beginPress(surface: HTMLElement | null) {
-  if (!surface || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    return;
-  }
-
-  setPressed(surface, true);
-
-  const release = () => {
-    setPressed(surface, false);
-    window.removeEventListener("pointerup", release);
-    window.removeEventListener("pointercancel", release);
-  };
-
-  window.addEventListener("pointerup", release);
-  window.addEventListener("pointercancel", release);
+  if (!surface || prefersReducedMotion()) return;
+  hold(surface, () => {
+    surface.style.transition = `transform ${DUR.spring}ms ${EASE.springSnappy}`;
+    surface.style.transform = "";
+  });
+  surface.style.transition = `transform ${DUR.press}ms ${EASE.standard}`;
+  surface.style.transform = `scale(${PRESS_SCALE})`;
 }
 
-/** True for the press that should drive the feedback — primary pointer, main
- * button — so a right-click or a second finger does not trigger it. */
-export function isPrimaryPress(event: {
-  button: number;
-  isPrimary: boolean;
-}) {
+export function isPrimaryPress(event: { button: number; isPrimary: boolean }) {
   return event.isPrimary && event.button === 0;
 }

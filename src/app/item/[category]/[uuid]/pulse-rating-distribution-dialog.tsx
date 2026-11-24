@@ -1,5 +1,7 @@
 "use client";
 
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
 import { useMemo, useState } from "react";
 import { useT } from "@/components/use-t";
 
@@ -16,6 +18,7 @@ export default function PulseRatingDistributionDialog({
   onClose,
   value,
 }: PulseRatingDistributionDialogProps) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
   const [seed, setSeed] = useState(20260526);
   const data = useMemo(() => normalizePulseDistribution(distribution), [distribution]);
@@ -26,11 +29,9 @@ export default function PulseRatingDistributionDialog({
       : null;
 
   return (
-    <div className="fixed inset-0 z-[120] grid place-items-center bg-[#050608]/45 px-5 backdrop-blur-sm">
+    <DialogShell {...dialog} backdropClassName="bg-[#050608]/45 backdrop-blur-sm" className="fixed inset-0 z-[120] grid place-items-center px-5">
       <section
-        aria-modal="true"
-        className="review-editor-enter relative w-full max-w-[354px] overflow-hidden rounded-[1.7rem] border border-white/10 bg-[#14171b]/95 p-[17px] text-[#f4f7fa] shadow-2xl shadow-black/50 backdrop-blur-2xl"
-        role="dialog"
+        className="dialog-panel relative w-full max-w-[354px] overflow-hidden rounded-[1.7rem] border border-white/10 bg-[#14171b]/95 p-[17px] text-[#f4f7fa] shadow-2xl shadow-black/50 backdrop-blur-2xl"
       >
         <span
           aria-hidden="true"
@@ -54,7 +55,7 @@ export default function PulseRatingDistributionDialog({
             <button
               aria-label={t("detail.ratingDistribution.close")}
               className="-mr-1 -mt-1 grid size-9 cursor-pointer place-items-center rounded-full text-[#f2f5f8]/85 transition hover:bg-white/10 press-icon"
-              onClick={onClose}
+              onClick={dialog.requestClose}
               type="button"
             >
               <CloseIcon />
@@ -105,7 +106,7 @@ export default function PulseRatingDistributionDialog({
           </footer>
         </div>
       </section>
-    </div>
+    </DialogShell>
   );
 }
 

@@ -12,22 +12,22 @@ export default function Loading() {
         <div className="mx-auto max-w-2xl space-y-5 lg:max-w-4xl">
           <section className="rounded-[2rem] border border-white/70 bg-white/60 p-5 shadow-lg shadow-slate-900/5">
             <div className="flex gap-4">
-              <div className="size-20 shrink-0 animate-pulse rounded-full bg-[#dde3eb] shadow-inner" />
+              <div className="size-20 shrink-0 skeleton rounded-full shadow-inner" />
               <div className="min-w-0 flex-1 pt-1">
-                <div className="h-7 w-44 max-w-full animate-pulse rounded-full bg-[#e2e2e5]" />
-                <div className="mt-3 h-4 w-56 max-w-[80%] animate-pulse rounded-full bg-[#e2e2e5]" />
+                <div className="h-7 w-44 max-w-full skeleton rounded-full" />
+                <div className="mt-3 h-4 w-56 max-w-[80%] skeleton rounded-full" />
               </div>
             </div>
             <div className="mt-5 space-y-2">
-              <div className="h-4 w-full animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-full animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-5/6 animate-pulse rounded-full bg-[#e2e2e5]" />
+              <div className="h-4 w-full skeleton rounded-full" />
+              <div className="h-4 w-full skeleton rounded-full" />
+              <div className="h-4 w-5/6 skeleton rounded-full" />
             </div>
           </section>
 
           <div className="flex items-center justify-between gap-4 px-1">
-            <div className="h-4 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
-            <div className="h-4 w-20 animate-pulse rounded-full bg-[#e2e2e5]" />
+            <div className="h-4 w-24 skeleton rounded-full" />
+            <div className="h-4 w-20 skeleton rounded-full" />
           </div>
 
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -38,16 +38,16 @@ export default function Loading() {
               >
                 <div className="p-3 pr-12">
                   <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 sm:grid-cols-[7rem_minmax(0,1fr)]">
-                    <div className="aspect-[3/4] animate-pulse rounded-xl bg-[#e2e2e5]" />
+                    <div className="aspect-[3/4] skeleton rounded-xl" />
                     <div className="min-w-0 space-y-3 py-1">
-                      <div className="h-5 w-3/4 animate-pulse rounded-full bg-[#e2e2e5]" />
-                      <div className="h-5 w-1/2 animate-pulse rounded-full bg-[#e2e2e5]" />
-                      <div className="h-4 w-full animate-pulse rounded-full bg-[#e2e2e5]" />
-                      <div className="h-4 w-5/6 animate-pulse rounded-full bg-[#e2e2e5]" />
+                      <div className="h-5 w-3/4 skeleton rounded-full" />
+                      <div className="h-5 w-1/2 skeleton rounded-full" />
+                      <div className="h-4 w-full skeleton rounded-full" />
+                      <div className="h-4 w-5/6 skeleton rounded-full" />
                     </div>
                   </div>
                 </div>
-                <div className="absolute right-3 top-3 size-9 animate-pulse rounded-full bg-[#e2e2e5]" />
+                <div className="absolute right-3 top-3 size-9 skeleton rounded-full" />
               </article>
             ))}
           </div>

@@ -335,12 +335,12 @@ function ProfileFollowsSkeleton() {
           className="flex items-center gap-3 border-b border-[#c5c6cd]/30 p-4 last:border-0"
           key={index}
         >
-          <div className="size-12 shrink-0 animate-pulse rounded-full bg-[#e2e2e5]" />
+          <div className="size-12 shrink-0 skeleton rounded-full" />
           <div className="min-w-0 flex-1 space-y-2">
-            <div className="h-4 w-32 animate-pulse rounded-full bg-[#e2e2e5]" />
-            <div className="h-3 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
+            <div className="h-4 w-32 skeleton rounded-full" />
+            <div className="h-3 w-24 skeleton rounded-full" />
           </div>
-          <div className="h-9 w-16 animate-pulse rounded-full bg-[#e2e2e5]" />
+          <div className="h-9 w-16 skeleton rounded-full" />
         </div>
       ))}
     </div>

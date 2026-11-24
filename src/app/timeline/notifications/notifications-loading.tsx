@@ -22,11 +22,11 @@ export function NotificationsLoading() {
               className="flex gap-3 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0 sm:p-5"
               key={index}
             >
-              <div className="size-11 shrink-0 animate-pulse rounded-full bg-[#e2e2e5]" />
+              <div className="size-11 shrink-0 skeleton rounded-full" />
               <div className="min-w-0 flex-1 space-y-3">
-                <div className="h-4 w-3/5 animate-pulse rounded-full bg-[#e2e2e5]" />
-                <div className="h-3 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
-                <div className="h-14 animate-pulse rounded-xl bg-[#e2e2e5]" />
+                <div className="h-4 w-3/5 skeleton rounded-full" />
+                <div className="h-3 w-24 skeleton rounded-full" />
+                <div className="h-14 skeleton rounded-xl" />
               </div>
             </div>
           ))}

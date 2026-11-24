@@ -16,7 +16,7 @@ export function FloatingTopBar({
   rowClassName?: string;
 }) {
   return (
-    <header className={`${styles.bar} ${className} px-4 sm:px-5`}>
+    <header data-motion-top-bar={className.includes("fixed") || undefined} className={`${styles.bar} ${className} px-4 sm:px-5`}>
       <div aria-hidden="true" className={styles.backdrop} />
       <div
         className={`relative z-10 mx-auto flex h-16 items-center gap-3 ${rowClassName}`}

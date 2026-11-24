@@ -1,5 +1,7 @@
 "use client";
 
+import { DUR } from "@/lib/motion";
+
 import {
   type ReactNode,
   useCallback,
@@ -97,9 +99,6 @@ export function Dropdown({
     if (!isOpen || isClosing) return;
 
     setIsClosing(true);
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
 
     closeTimerRef.current = window.setTimeout(
       () => {
@@ -109,7 +108,7 @@ export function Dropdown({
         setMenuPosition(null);
         closeTimerRef.current = null;
       },
-      prefersReducedMotion ? 0 : 130,
+      DUR.exit,
     );
   }
 
@@ -186,6 +185,13 @@ export function Dropdown({
             closeMenu();
           } else {
             openMenu();
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && isOpen && !isClosing) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeMenu();
           }
         }}
         ref={buttonRef}
@@ -284,7 +290,7 @@ function ChevronDownIcon({ isOpen }: { isOpen: boolean }) {
   return (
     <svg
       aria-hidden="true"
-      className={`size-4 shrink-0 transition ${isOpen ? "rotate-180" : ""}`}
+      className={`size-4 shrink-0 motion-pill transition-transform duration-(--dur-spring) ease-spring-snappy ${isOpen ? "rotate-180" : ""}`}
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"

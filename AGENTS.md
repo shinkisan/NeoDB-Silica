@@ -139,6 +139,9 @@ inventing a separate visual system.
 - **Theme and glass**: keep `ThemeController` and `GlassFilterDefs` mounted at
   the app level. New glassy surfaces should rely on existing backdrop utilities
   instead of injecting new SVG filters.
+- **Motion**: use `DialogShell` for modal presence, scroll locking, and focus
+  return, `FadeImage` for covers, and `useSwipePager` for horizontal page
+  gestures. Pages own their scroll, selection, and request timing.
 - **Feature-local shared pieces**: before building list cards, skeletons,
   pagination wrappers, top bars, or scroll restorers, check existing modules in
   `src/app/search`, `src/app/marked`, `src/app/collection/[uuid]`, and
@@ -166,9 +169,15 @@ inventing a separate visual system.
 - Use skeletons when loading page-level content or changing pages. Pagination
   controls themselves should generally remain visible while list content
   skeletons update.
-- Motion should be short and purposeful: page/detail scale transitions around
-  180-220ms, dialogs around 160-180ms, and active-tab/pagination pill movement
-  around 300ms. Avoid long ornamental animation.
+- Use the motion tokens in `src/app/motion.css`. Page and dialog springs
+  settle perceptually in about 180–220ms and 160–180ms respectively. Their
+  longer total durations include a short settling tail. Use `--dur-exit`
+  for dismissal and the shared spring for active-tab and pagination pills.
+- Respect reduced motion by removing spatial changes and preserving short
+  fades. Keep animation off the critical path for navigation and data requests.
+- Experimental route snapshots default on for the `preview` deployment.
+  Other builds can opt in with `NEXT_PUBLIC_VIEW_TRANSITIONS=1`.
+  The baseline route entrance uses CSS and works without the browser API.
 - For uncertain external operations, prefer honest indeterminate waiting states
   over fake progress bars that imply false certainty.
 

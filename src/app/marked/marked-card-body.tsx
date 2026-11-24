@@ -39,7 +39,7 @@ export function MarkedCardBody({
     window.sessionStorage.setItem(MARKED_RESTORE_KEY, "1");
     requestDetailScrollTopForHref(href);
     pushNavigationFrame("detail", href);
-    router.push(href);
+    router.push(href, { transitionTypes: ["nav-forward"] });
   }
 
   return (

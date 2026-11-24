@@ -64,7 +64,7 @@ function Skeleton({ className }: { className: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`block animate-pulse bg-[#e2e2e5]/80 ${className}`}
+      className={`block skeleton ${className}`}
     />
   );
 }

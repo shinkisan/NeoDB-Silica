@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./motion-tokens.css";
+@import "./motion.css";
 
 :root {
   --background: #f9f9fc;
@@ -59,29 +61,6 @@ body {
 button:disabled,
 select:disabled {
   cursor: default !important;
-}
-
-/* Semantic press feedback. Keep the direction tied to the control's material:
-   glass surfaces use the held swell helper, while conventional controls push
-   inward according to their visual footprint. */
-.press-icon:active {
-  scale: 0.95;
-}
-
-.press-control:active {
-  scale: 0.98;
-}
-
-.press-card:active {
-  scale: 0.99;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .press-icon:active,
-  .press-control:active,
-  .press-card:active {
-    scale: 1;
-  }
 }
 
 .surface-glow {
@@ -189,78 +168,7 @@ select:disabled {
   box-shadow: -12px 0 18px -18px rgba(15, 23, 42, 0.55);
 }
 
-.home-swipe-exit-left {
-  animation: home-swipe-exit-left 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
 
-.home-swipe-exit-right {
-  animation: home-swipe-exit-right 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.home-swipe-enter-left {
-  animation: home-swipe-enter-left 210ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.home-swipe-enter-right {
-  animation: home-swipe-enter-right 210ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes home-swipe-exit-left {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(-1.35rem);
-  }
-}
-
-@keyframes home-swipe-exit-right {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(1.35rem);
-  }
-}
-
-@keyframes home-swipe-enter-left {
-  from {
-    opacity: 0;
-    transform: translateX(-1.1rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes home-swipe-enter-right {
-  from {
-    opacity: 0;
-    transform: translateX(1.1rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-swipe-exit-left,
-  .home-swipe-exit-right,
-  .home-swipe-enter-left,
-  .home-swipe-enter-right {
-    animation: none;
-  }
-}
 
 .rating-badge-dot {
   background-color: #333e50;
@@ -760,11 +668,6 @@ select:disabled {
   }
 }
 
-.detail-page-enter,
-.search-page-enter {
-  animation: page-fade-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
 .home-dismiss-enter {
   animation: home-dismiss-in 160ms ease-out both;
 }
@@ -790,28 +693,8 @@ select:disabled {
   mask-image: linear-gradient(to bottom, transparent 36%, #000 64%, #000 100%);
 }
 
-.review-editor-enter {
-  animation: review-editor-pop-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  transform-origin: center 80%;
-}
-
-.review-reader-enter {
-  animation: review-reader-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  transform-origin: center 70%;
-}
-
-.review-reader-exit {
-  animation: review-reader-out 160ms cubic-bezier(0.4, 0, 1, 1) both;
-  pointer-events: none;
-  transform-origin: center 70%;
-}
-
 .image-viewer-enter {
   animation: viewer-fade-in 180ms ease-out both;
-}
-
-.image-viewer-exit {
-  animation: viewer-fade-out 180ms ease-in both;
 }
 
 /* The heading a top bar takes over from. It fades rather than sliding under a
@@ -831,24 +714,6 @@ select:disabled {
   }
 }
 
-/* The first still belongs to the viewer opening, not to either navigation
-   direction. Later stills enter from the side the swipe came from. */
-.gallery-image-initial {
-  animation: gallery-image-initial 160ms ease-out both;
-}
-
-.gallery-slide-next {
-  animation: gallery-slide-next 220ms cubic-bezier(0.2, 0, 0, 1) both;
-}
-
-.gallery-slide-prev {
-  animation: gallery-slide-prev 220ms cubic-bezier(0.2, 0, 0, 1) both;
-}
-
-.action-menu-popover {
-  will-change: opacity, transform;
-}
-
 .action-menu-popover[data-placement="bottom"] {
   --action-menu-enter-y: -8px;
   --action-menu-exit-y: -3px;
@@ -866,11 +731,17 @@ select:disabled {
 }
 
 .action-menu-popover-enter {
-  animation: action-menu-popover-in 210ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  opacity: 1;
+  transition: opacity var(--dur-spring) var(--ease-spring-snappy),
+    scale var(--dur-spring) var(--ease-spring-snappy),
+    translate var(--dur-spring) var(--ease-spring-snappy);
 }
 
 .action-menu-popover-exit {
-  animation: action-menu-popover-out 130ms cubic-bezier(0.4, 0, 1, 1) both;
+  opacity: 0;
+  translate: 0 calc(var(--action-menu-exit-y, 0px) * var(--motion-distance));
+  scale: calc(1 - 0.03 * var(--motion-scale));
+  transition: opacity var(--dur-exit) var(--ease-exit), scale var(--dur-exit) var(--ease-exit), translate var(--dur-exit) var(--ease-exit);
   pointer-events: none;
 }
 
@@ -880,16 +751,6 @@ select:disabled {
 
 .detail-title-marquee {
   animation: detail-title-marquee 14s linear infinite;
-}
-
-@keyframes page-fade-in {
-  from {
-    opacity: 0.82;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 @keyframes home-dismiss-in {
@@ -902,42 +763,6 @@ select:disabled {
   }
 }
 
-@keyframes review-editor-pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.985);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes review-reader-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.985);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes review-reader-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(8px) scale(0.99);
-  }
-}
-
 @keyframes viewer-fade-in {
   from {
     opacity: 0;
@@ -945,79 +770,6 @@ select:disabled {
 
   to {
     opacity: 1;
-  }
-}
-
-@keyframes gallery-image-initial {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes gallery-slide-next {
-  from {
-    opacity: 0;
-    transform: translateX(7%) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes gallery-slide-prev {
-  from {
-    opacity: 0;
-    transform: translateX(-7%) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes viewer-fade-out {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes action-menu-popover-in {
-  0% {
-    opacity: 0;
-    transform: translateY(var(--action-menu-enter-y)) scale(0.9);
-  }
-
-  72% {
-    opacity: 1;
-    transform: translateY(0) scale(1.01);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes action-menu-popover-out {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(var(--action-menu-exit-y)) scale(0.97);
   }
 }
 
@@ -1032,19 +784,6 @@ select:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .detail-page-enter,
-  .search-page-enter,
-  .home-dismiss-enter,
-  .review-editor-enter,
-  .review-reader-enter,
-  .review-reader-exit,
-  .image-viewer-enter,
-  .image-viewer-exit,
-  .gallery-image-initial,
-  .gallery-slide-next,
-  .gallery-slide-prev,
-  .action-menu-popover-enter,
-  .action-menu-popover-exit,
   .detail-title-marquee {
     animation: none;
   }

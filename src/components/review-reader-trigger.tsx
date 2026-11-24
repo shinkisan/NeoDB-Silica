@@ -63,7 +63,7 @@ export function ReviewReaderTrigger({
 }: ReviewReaderTriggerProps) {
   const t = useT();
   const [isOpen, setIsOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [review, setReview] = useState<ReviewPayload>({
     body: body || "",
@@ -93,7 +93,7 @@ export function ReviewReaderTrigger({
   }, [isOpen]);
 
   async function openReader() {
-    setIsClosing(false);
+
     setIsOpen(true);
     setReview({
       body: body || review.body || "",
@@ -143,12 +143,7 @@ export function ReviewReaderTrigger({
   }
 
   function closeReader() {
-    setIsClosing(true);
-
-    window.setTimeout(() => {
-      setIsOpen(false);
-      setIsClosing(false);
-    }, 160);
+    setIsOpen(false);
   }
 
   return (
@@ -164,7 +159,7 @@ export function ReviewReaderTrigger({
                 disabled={disabled}
                 favourited={liveFavourited}
                 favouritesCount={liveFavouritesCount}
-                isClosing={isClosing}
+
                 isLoading={isLoading}
                 isOwn={isOwn}
                 neodbInstance={neodbInstance}
@@ -200,10 +195,10 @@ function ReviewReaderFallback() {
     <div className="fixed inset-0 z-[110] overflow-y-auto bg-[var(--background)] text-[var(--foreground)]">
       <div className="mx-auto max-w-3xl px-5 pb-16 pt-24">
         <div className="space-y-3">
-          <div className="h-5 w-2/3 animate-pulse rounded-full bg-[#e2e2e5]" />
-          <div className="h-4 animate-pulse rounded-full bg-[#e2e2e5]" />
-          <div className="h-4 animate-pulse rounded-full bg-[#e2e2e5]" />
-          <div className="h-4 w-5/6 animate-pulse rounded-full bg-[#e2e2e5]" />
+          <div className="h-5 w-2/3 skeleton rounded-full" />
+          <div className="h-4 skeleton rounded-full" />
+          <div className="h-4 skeleton rounded-full" />
+          <div className="h-4 w-5/6 skeleton rounded-full" />
         </div>
       </div>
     </div>

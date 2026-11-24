@@ -1,12 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
 import { useT } from "@/components/use-t";
+import { prefersReducedMotion, rubberBand } from "@/lib/motion";
 import { MediaLoadingIndicator } from "./media-loading-indicator";
 import { setDetailMediaOverlayState } from "./detail-media-overlay-state";
 
-const SWIPE_THRESHOLD_PX = 48;
+type GalleryGesture = {
+  axis: "x" | "y" | null;
+  id: number;
+  x: number;
+  y: number;
+  lastPosition: number;
+  lastTime: number;
+  velocity: number;
+};
 
 export type GalleryImage = {
   url: string;
@@ -27,99 +36,112 @@ export function DetailImageGallery({
 }: DetailImageGalleryProps) {
   const t = useT();
   const [index, setIndex] = useState(initialIndex);
-  const [direction, setDirection] = useState<-1 | 1 | null>(null);
-  const [loadedIndex, setLoadedIndex] = useState<number | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
-  const isLoading = loadedIndex !== index;
-  const gestureStartRef = useRef<{ id: number; x: number; y: number } | null>(
-    null,
-  );
+  const dialog = useDialogMotion(onClose);
+  const gesture = useRef<GalleryGesture | null>(null);
 
   useEffect(() => {
     setDetailMediaOverlayState(true);
-
-    const previousOverflow = document.body.style.overflow;
-    const previousOverscrollBehavior = document.body.style.overscrollBehavior;
-    const previousRootOverflow = document.documentElement.style.overflow;
-    const previousRootOverscrollBehavior =
-      document.documentElement.style.overscrollBehavior;
-
-    document.body.style.overflow = "hidden";
-    document.body.style.overscrollBehavior = "none";
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.style.overscrollBehavior = "none";
-
-    return () => {
-      setDetailMediaOverlayState(false);
-      document.body.style.overflow = previousOverflow;
-      document.body.style.overscrollBehavior = previousOverscrollBehavior;
-      document.documentElement.style.overflow = previousRootOverflow;
-      document.documentElement.style.overscrollBehavior =
-        previousRootOverscrollBehavior;
-    };
+    return () => setDetailMediaOverlayState(false);
   }, []);
 
-  function closeGallery() {
-    setIsClosing(true);
-    window.setTimeout(onClose, 180);
-  }
-
   function goTo(nextIndex: number) {
-    const clamped = Math.max(0, Math.min(images.length - 1, nextIndex));
-
-    if (clamped === index) {
-      return;
-    }
-
-    setDirection(clamped > index ? 1 : -1);
-    setIndex(clamped);
+    if (dialog.leaving) return;
+    setIndex(Math.max(0, Math.min(images.length - 1, nextIndex)));
   }
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (!event.isPrimary) {
-      return;
-    }
-
-    gestureStartRef.current = {
+    if (dialog.leaving || !event.isPrimary || event.button !== 0 || gesture.current) return;
+    gesture.current = {
+      axis: null,
       id: event.pointerId,
       x: event.clientX,
       y: event.clientY,
+      lastPosition: 0,
+      lastTime: event.timeStamp,
+      velocity: 0,
     };
+    event.currentTarget.setPointerCapture(event.pointerId);
   }
 
-  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
-    const start = gestureStartRef.current;
-
-    if (!start || start.id !== event.pointerId) {
-      return;
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    const drag = gesture.current;
+    if (!drag || drag.id !== event.pointerId || dialog.leaving) return;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    const viewport = event.currentTarget;
+    if (!drag.axis) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
+      drag.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
     }
 
-    gestureStartRef.current = null;
+    const position = drag.axis === "x" ? dx : dy;
+    const elapsed = event.timeStamp - drag.lastTime;
+    if (elapsed > 0) drag.velocity = (position - drag.lastPosition) / elapsed;
+    drag.lastPosition = position;
+    drag.lastTime = event.timeStamp;
 
-    const deltaX = event.clientX - start.x;
-    const deltaY = event.clientY - start.y;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
+    if (prefersReducedMotion()) return;
 
-    if (absX < SWIPE_THRESHOLD_PX || absX < absY * 1.35) {
-      return;
+    viewport.dataset.dragging = "";
+    if (drag.axis === "x") {
+      const width = viewport.clientWidth;
+      const atEdge = dx > 0 ? index === 0 : index === images.length - 1;
+      const offset = atEdge ? rubberBand(dx, width * 0.25) : dx;
+      viewport.style.setProperty("--gallery-drag-x", `${offset}px`);
+    } else {
+      const offset = Math.max(0, dy);
+      viewport.style.setProperty("--gallery-drag-y", `${offset}px`);
+      viewport.style.setProperty("--gallery-shade", String(Math.max(0.25, 1 - offset / (viewport.clientHeight * 0.55))));
     }
-
-    goTo(deltaX < 0 ? index + 1 : index - 1);
   }
 
-  const current = images[index];
+  function finishGesture(event: PointerEvent<HTMLDivElement>, cancelled = false) {
+    const drag = gesture.current;
+    if (!drag || drag.id !== event.pointerId) return;
+    gesture.current = null;
 
-  return createPortal(
-    <div
-      className={`fixed left-0 top-0 z-[100] h-[100dvh] w-screen overflow-hidden bg-black/95 ${
-        isClosing ? "image-viewer-exit" : "image-viewer-enter"
-      }`}
+    const viewport = event.currentTarget;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    const velocity = event.timeStamp - drag.lastTime < 90 ? drag.velocity : 0;
+    const dismiss = !cancelled && !dialog.leaving && drag.axis === "y" &&
+      (dy >= Math.min(140, viewport.clientHeight * 0.2) || (dy > 32 && velocity > 0.55));
+
+    delete viewport.dataset.dragging;
+    viewport.style.removeProperty("--gallery-drag-x");
+    viewport.style.removeProperty("--gallery-shade");
+
+    if (dismiss) {
+      viewport.style.setProperty("--gallery-dismiss-y", `${Math.max(viewport.clientHeight * 0.35, dy + 40)}px`);
+      dialog.requestClose();
+    }
+
+    viewport.style.removeProperty("--gallery-drag-y");
+    if (!cancelled && drag.axis === "x" &&
+      (Math.abs(dx) >= Math.min(120, viewport.clientWidth * 0.24) ||
+        (Math.abs(dx) > 24 && velocity * Math.sign(dx) > 0.55))) {
+      goTo(index + (dx < 0 ? 1 : -1));
+    }
+  }
+
+  return (
+    <DialogShell
+      {...dialog}
+      aria-label={alt}
+      backdropClassName=""
+      className="detail-gallery fixed inset-0 z-[100] overflow-hidden"
+      closeOnBackdrop={false}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          goTo(index + (event.key === "ArrowLeft" ? -1 : 1));
+        }
+      }}
     >
       <button
         aria-label={t("detail.stills.close")}
         className="fixed right-5 top-5 z-[101] grid size-11 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25"
-        onClick={closeGallery}
+        onClick={dialog.requestClose}
         type="button"
       >
         <CloseIcon />
@@ -132,43 +154,33 @@ export function DetailImageGallery({
       ) : null}
 
       <div
-        className="relative flex h-[100dvh] w-screen touch-none select-none items-center justify-center overflow-hidden p-4"
-        onPointerCancel={() => {
-          gestureStartRef.current = null;
-        }}
+        className="gallery-viewport absolute inset-0 touch-none select-none overflow-hidden"
         onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
+        onPointerMove={handlePointerMove}
+        onPointerUp={(event) => finishGesture(event)}
+        onPointerCancel={(event) => finishGesture(event, true)}
+        onLostPointerCapture={(event) => {
+          if (event.target === event.currentTarget) finishGesture(event, true);
+        }}
       >
-        {current ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            alt={alt}
-            className={`max-h-full max-w-full object-contain ${
-              isLoading
-                ? "opacity-0"
-                : direction === null
-                  ? "gallery-image-initial"
-                  : direction === 1
-                    ? "gallery-slide-next"
-                    : "gallery-slide-prev"
-            }`}
-            draggable={false}
-            key={index}
-            onError={() => setLoadedIndex(index)}
-            onLoad={() => setLoadedIndex(index)}
-            // A cached still can finish before React attaches onLoad, which
-            // would otherwise leave the spinner up over a ready image.
-            ref={(element) => {
-              if (element?.complete) {
-                setLoadedIndex(index);
-              }
-            }}
-            src={current.url}
-          />
-        ) : null}
-        {isLoading ? (
-          <MediaLoadingIndicator label={t("detail.stills.loading")} />
-        ) : null}
+        <div aria-hidden="true" className="gallery-backdrop absolute inset-0 bg-black/95" />
+        <div className="gallery-frame absolute inset-0">
+          <div
+            className="gallery-track absolute inset-0"
+            style={{ "--gallery-page": `${-index * 100}%` } as CSSProperties}
+          >
+            {images.map((image, slide) => Math.abs(slide - index) <= 1 && (
+              <GallerySlide
+                active={slide === index}
+                alt={alt}
+                image={image}
+                key={`${slide}:${image.url}`}
+                loadingLabel={t("detail.stills.loading")}
+                position={slide}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       {index > 0 ? (
@@ -192,8 +204,39 @@ export function DetailImageGallery({
           <ChevronIcon direction="right" />
         </button>
       ) : null}
-    </div>,
-    document.body,
+    </DialogShell>
+  );
+}
+
+function GallerySlide({
+  active, alt, image, loadingLabel, position,
+}: {
+  active: boolean;
+  alt: string;
+  image: GalleryImage;
+  loadingLabel: string;
+  position: number;
+}) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <div
+      aria-hidden={!active}
+      className="absolute inset-y-0 flex w-full items-center justify-center p-4"
+      style={{ left: `${position * 100}%` }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        alt={alt}
+        className={`max-h-full max-w-full object-contain ${loaded ? "" : "opacity-0"}`}
+        draggable={false}
+        onError={() => setLoaded(true)}
+        onLoad={() => setLoaded(true)}
+        ref={(element) => { if (element?.complete) setLoaded(true); }}
+        src={image.url}
+      />
+      {active && !loaded ? <MediaLoadingIndicator label={loadingLabel} /> : null}
+    </div>
   );
 }
 

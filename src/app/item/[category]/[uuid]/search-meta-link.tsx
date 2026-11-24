@@ -8,17 +8,21 @@ type SearchMetaLinkProps = {
   children: React.ReactNode;
   className: string;
   href: string;
+  "data-motion-item"?: string;
 };
 
 export function SearchMetaLink({
   children,
   className,
   href,
+  "data-motion-item": motionItem,
 }: SearchMetaLinkProps) {
   return (
     <Link
       className={className}
       href={href}
+      transitionTypes={["nav-forward"]}
+      data-motion-item={motionItem}
       onClick={() => {
         saveCurrentDetailScroll();
         pushNavigationFrame("search", href);

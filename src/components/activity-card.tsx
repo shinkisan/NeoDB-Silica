@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useInitialListReveal, useListMotion } from "@/components/use-list-motion";
+import { STORAGE_PREFIX } from "@/lib/runtime-ids";
 import { memo, useEffect, useRef, useState } from "react";
 import { useT } from "@/components/use-t";
 import { useFeatureFlags } from "@/components/feature-flags";
@@ -44,13 +46,25 @@ export function ActivityCardList({
   statuses: TimelineStatus[];
   updateStatus: UpdateActivityStatus;
 }) {
+  const list = useRef<HTMLDivElement>(null);
+  const prepareRemoval = useListMotion(list, statuses);
+  useInitialListReveal(list, statuses.length > 0, () =>
+    window.sessionStorage.getItem(`${STORAGE_PREFIX}v1:timeline:restore`) === "1" ||
+    document.documentElement.dataset.navDir === "back",
+  );
+
+  function deleteStatus(postId: string) {
+    prepareRemoval(postId);
+    onDelete?.(postId);
+  }
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/70 shadow-lg shadow-slate-900/5">
+    <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/70 shadow-lg shadow-slate-900/5" ref={list}>
       {statuses.map((status) => (
         <ActivityCard
           hideAuthor={hideAuthor}
           key={status.id}
-          onDelete={onDelete}
+          onDelete={onDelete ? deleteStatus : undefined}
           onNavigate={onNavigate}
           status={status}
           updateStatus={updateStatus}
@@ -130,6 +144,7 @@ export const ActivityCard = memo(function ActivityCard({
 
   return (
     <article
+      data-motion-item={status.id}
       className={`flex min-w-0 border-b-2 border-[#c5c6cd]/30 p-4 last:border-0 sm:p-5 ${hideAuthor ? "" : "gap-3 sm:gap-4"}`}
     >
       {hideAuthor ? null : (

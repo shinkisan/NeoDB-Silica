@@ -5,13 +5,13 @@ import { ReviewReader } from "@/components/review-reader";
 
 export function ProfileReaderDialog({
   body,
-  isClosing,
+
   isLoading,
   onClose,
   title,
 }: {
   body: string;
-  isClosing: boolean;
+
   isLoading: boolean;
   onClose: () => void;
   title: string;
@@ -19,7 +19,7 @@ export function ProfileReaderDialog({
   return createPortal(
     <ReviewReader
       body={body}
-      isClosing={isClosing}
+
       isLoading={isLoading}
       onClose={onClose}
       showShare={false}

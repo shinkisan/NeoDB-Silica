@@ -1,6 +1,11 @@
 "use client";
 
-import Image from "next/image";
+import { CoverTransition } from "@/components/cover-transition";
+import { useInitialListReveal, useListMotion } from "@/components/use-list-motion";
+import { useTabSlide } from "@/components/use-tab-slide";
+import { trackCategoryIndicator, useSwipePager, type SwipePagerHandlers } from "@/components/use-swipe-pager";
+
+import { FadeImage } from "@/components/fade-image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { MouseEvent, PointerEvent, ReactNode } from "react";
@@ -88,7 +93,6 @@ const COLLECTION_SCROLL_TOP_PREFIX = `${STORAGE_PREFIX}v1:collection-scroll-top:
 const LAST_NON_SEARCH_PATH_KEY = `${STORAGE_PREFIX}v1:last-non-search-path`;
 const INITIAL_RENDER_COUNT = 18;
 const RENDER_BATCH_SIZE = 12;
-const HOME_SWIPE_EXIT_MS = 160;
 const DISMISS_LONG_PRESS_MS = 420;
 const DISMISS_LONG_PRESS_MOVE_PX = 12;
 
@@ -147,14 +151,13 @@ type HomeCardItem = Pick<
   | "title"
 >;
 
-type SwipeTransition = {
-  direction: "left" | "right";
-  phase: "exit" | "enter";
-};
-
 type MovieSubtab = "trending" | "now_playing" | "upcoming";
 type CollectionSubtab = "trending" | "lists";
 type PersonalSubtab = "forYou" | "friends";
+const personalSubtabs: PersonalSubtab[] = ["forYou", "friends"];
+const movieSubtabs: MovieSubtab[] = ["trending", "now_playing", "upcoming"];
+const collectionSubtabs: CollectionSubtab[] = ["trending", "lists"];
+
 type HomeFeedStatus = "loading" | "ready" | "error" | "guest";
 
 export default function HomeContentRoot({
@@ -228,7 +231,6 @@ function HomeContent({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isTagOrderOpen, setIsTagOrderOpen] = useState(false);
   const [pendingFilter, setPendingFilter] = useState<string | null>(null);
-  const [swipeTransition, setSwipeTransition] = useState<SwipeTransition | null>(null);
   const { tmdb: tmdbEnabled } = useFeatureFlags();
   const [movieSubtab, setMovieSubtab] = useState<MovieSubtab>("trending");
   const [collectionSubtab, setCollectionSubtab] =
@@ -255,17 +257,12 @@ function HomeContent({
   );
   const isRestoringScrollRef = useRef(false);
   const isNormalizingReloadRef = useRef(false);
-  const swipeExitTimerRef = useRef<number | null>(null);
-  const gestureStartRef = useRef<{
-    id: number;
-    x: number;
-    y: number;
-  } | null>(null);
-  const suppressGestureClickRef = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchRootRef = useRef<HTMLFormElement>(null);
   const handledSearchShortcutRef = useRef(false);
   const tagViewportRef = useRef<HTMLDivElement>(null);
+  const feedSlideRef = useRef<HTMLDivElement>(null);
+  const slideFeed = useTabSlide(feedSlideRef);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const shortcutAction = searchParams.get("shortcut");
   const clearShortcutParam = useCallback(() => {
@@ -310,14 +307,6 @@ function HomeContent({
 
     return () => cancelAnimationFrame(frame);
   }, [clearShortcutParam, shortcutAction]);
-
-  useEffect(() => {
-    return () => {
-      if (swipeExitTimerRef.current !== null) {
-        window.clearTimeout(swipeExitTimerRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (!tmdbEnabled) {
@@ -487,7 +476,7 @@ function HomeContent({
         setItems([]);
         setVisibleCount(INITIAL_RENDER_COUNT);
         setStatus("loading");
-        setSwipeTransition(null);
+
         setIsRefreshing(false);
         setRefreshRequest(null);
         setError("");
@@ -510,7 +499,7 @@ function HomeContent({
 
           setFeaturedCollectionSections(response.sections);
           setStatus("ready");
-          setSwipeTransition(null);
+
           setIsRefreshing(false);
           setError("");
 
@@ -526,7 +515,7 @@ function HomeContent({
           }
 
           setStatus("error");
-          setSwipeTransition(null);
+
           setIsRefreshing(false);
           setError(
             requestError instanceof Error
@@ -569,7 +558,7 @@ function HomeContent({
 
         setVisibleCount(INITIAL_RENDER_COUNT);
         setStatus("ready");
-        setSwipeTransition(null);
+
         setIsRefreshing(false);
         setError("");
       });
@@ -648,7 +637,7 @@ function HomeContent({
 
         setVisibleCount(INITIAL_RENDER_COUNT);
         setStatus("ready");
-        setSwipeTransition(null);
+
         setIsRefreshing(false);
 
         if (isCacheable) {
@@ -668,7 +657,7 @@ function HomeContent({
         setItems([]);
         setVisibleCount(INITIAL_RENDER_COUNT);
         setStatus("guest");
-        setSwipeTransition(null);
+
         setIsRefreshing(false);
         setRefreshRequest(null);
         setError("");
@@ -687,7 +676,7 @@ function HomeContent({
 
         setVisibleCount(INITIAL_RENDER_COUNT);
         setStatus("ready");
-        setSwipeTransition(null);
+
         setIsRefreshing(false);
         setRefreshRequest(null);
         setError("");
@@ -695,7 +684,7 @@ function HomeContent({
       }
 
       setStatus("error");
-      setSwipeTransition(null);
+
       setIsRefreshing(false);
       setRefreshRequest(null);
         setError(
@@ -903,7 +892,7 @@ function HomeContent({
     if (neodbDetailPath) {
       requestDetailScrollTopForHref(neodbDetailPath);
       pushNavigationFrame("detail", neodbDetailPath);
-      router.push(neodbDetailPath);
+      router.push(neodbDetailPath, { transitionTypes: ["nav-forward"] });
       return;
     }
 
@@ -939,7 +928,7 @@ function HomeContent({
     setIsSuggestionsOpen(false);
     requestDetailScrollTopForHref(detailPath);
     pushNavigationFrame("detail", detailPath);
-    router.push(detailPath);
+    router.push(detailPath, { transitionTypes: ["nav-forward"] });
   }
 
   async function resolveCatalogLink(targetUrl: string) {
@@ -962,7 +951,7 @@ function HomeContent({
         if (href) {
           requestDetailScrollTopForHref(href);
           pushNavigationFrame("detail", href);
-          router.push(href);
+          router.push(href, { transitionTypes: ["nav-forward"] });
           return true;
         }
       }
@@ -989,7 +978,6 @@ function HomeContent({
     filterId: string,
     options: {
       resetMovieSubtab?: boolean;
-      swipeDirection?: "left" | "right";
     } = {},
   ) {
     if (options.resetMovieSubtab && filterId === "movie") {
@@ -1004,33 +992,6 @@ function HomeContent({
       return;
     }
 
-    if (swipeExitTimerRef.current !== null) {
-      window.clearTimeout(swipeExitTimerRef.current);
-      swipeExitTimerRef.current = null;
-    }
-
-    if (options.swipeDirection) {
-      setSwipeTransition({
-        direction: options.swipeDirection,
-        phase: "exit",
-      });
-
-      swipeExitTimerRef.current = window.setTimeout(() => {
-        swipeExitTimerRef.current = null;
-        beginFilterSelection(filterId, {
-          swipeDirection: options.swipeDirection,
-        });
-      }, HOME_SWIPE_EXIT_MS);
-      return;
-    }
-
-    beginFilterSelection(filterId, options);
-  }
-
-  function beginFilterSelection(
-    filterId: string,
-    options: { swipeDirection?: "left" | "right" } = {},
-  ) {
     setDismissPreviewId(null);
     setPendingFilter(filterId);
     window.sessionStorage.setItem(HOME_CATEGORY_KEY, filterId);
@@ -1040,69 +1001,12 @@ function HomeContent({
     setStatus("loading");
     setError("");
 
-    if (options.swipeDirection) {
-      setSwipeTransition({
-        direction: options.swipeDirection,
-        phase: "enter",
-      });
-    } else {
-      setSwipeTransition(null);
-    }
-
     if (filterId === defaultHomeCategory) {
       router.replace("/");
       return;
     }
 
     router.replace(`/?category=${encodeURIComponent(filterId)}`);
-  }
-
-  function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (!event.isPrimary || event.pointerType === "mouse") {
-      return;
-    }
-
-    gestureStartRef.current = {
-      id: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-    };
-  }
-
-  function handleContentPointerUp(event: PointerEvent<HTMLDivElement>) {
-    const start = gestureStartRef.current;
-
-    if (!start || start.id !== event.pointerId) {
-      return;
-    }
-
-    gestureStartRef.current = null;
-
-    const deltaX = event.clientX - start.x;
-    const deltaY = event.clientY - start.y;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-
-    if (absX < 64 || absX < absY * 1.35) {
-      return;
-    }
-
-    const activeIndex = filters.findIndex((filter) => filter.id === activeFilter);
-    const nextIndex = deltaX < 0 ? activeIndex + 1 : activeIndex - 1;
-    const nextFilter = filters[nextIndex];
-
-    if (!nextFilter) {
-      return;
-    }
-
-    suppressGestureClickRef.current = true;
-    selectFilter(nextFilter.id, {
-      swipeDirection: deltaX < 0 ? "left" : "right",
-    });
-
-    window.setTimeout(() => {
-      suppressGestureClickRef.current = false;
-    }, 0);
   }
 
   /** The cache key the feed on screen reads and writes. */
@@ -1158,6 +1062,7 @@ function HomeContent({
       return false;
     }
 
+    prepareCardRemoval(item.id);
     const nextItems = items.filter((candidate) => candidate.id !== item.id);
     const isPersonalActive = isPersonalHomeTag(activeFilter);
     const activeCacheKey = getActiveFeedCacheKey();
@@ -1193,7 +1098,19 @@ function HomeContent({
     return true;
   }
 
-  const contentAnimationClass = getHomeSwipeClass(swipeTransition);
+  const cardGridRef = useRef<HTMLDivElement>(null);
+  const prepareCardRemoval = useListMotion(cardGridRef, items);
+  useInitialListReveal(cardGridRef, status === "ready", () =>
+    isRestoringScrollRef.current || Boolean(window.sessionStorage.getItem(HOME_RESTORE_KEY)) ||
+    document.documentElement.dataset.navDir === "back",
+  );
+  const activeFilterIndex = filters.findIndex((filter) => filter.id === (pendingFilter || activeFilter));
+  const swipeHandlers = useSwipePager({
+    index: activeFilterIndex,
+    count: filters.length,
+    onSelect: (index) => selectFilter(filters[index].id),
+    onProgress: (fraction) => trackCategoryIndicator(tagViewportRef.current, "[data-home-filter]", fraction),
+  });
   const isPersonalFeed = isPersonalHomeTag(activeFilter);
   const isCollectionListsView =
     activeFilter === "collection" && collectionSubtab === "lists";
@@ -1362,23 +1279,29 @@ function HomeContent({
           >
             <SortIcon />
           </button>
-          {filters.map((filter) => {
+          {filters.map((filter, index) => {
             const isActive = filter.id === (pendingFilter || activeFilter);
 
             return (
               <button
-                className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                aria-pressed={isActive}
+                className={`motion-category relative isolate shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
                   isActive
-                    ? "bg-[#e2e2e5] text-[var(--foreground)]"
+                    ? "text-[var(--foreground)]"
                     : "border border-white/70 bg-white/60 text-[#44474c] shadow-sm backdrop-blur hover:bg-white/80"
                 }`}
                 data-home-filter={filter.id}
                 key={filter.id}
-                onClick={() =>
-                  selectFilter(filter.id, {
+                onClick={() => {
+                  const select = () => selectFilter(filter.id, {
                     resetMovieSubtab: filter.id === "movie",
-                  })
-                }
+                  });
+                  if (filter.id !== (pendingFilter || activeFilter) ||
+                    (filter.id === "movie" && movieSubtab !== "trending") ||
+                    (filter.id === "collection" && collectionSubtab !== "trending")) {
+                    slideFeed(isActive ? -1 : index - activeFilterIndex, select);
+                  }
+                }}
                 type="button"
               >
                 {t(`homeTags.${filter.id}`)}
@@ -1411,7 +1334,7 @@ function HomeContent({
 
         {isPersonalFeed ? (
           <div className="mb-4 flex items-center gap-1">
-            {(["forYou", "friends"] as PersonalSubtab[]).map((subtab) => (
+            {personalSubtabs.map((subtab, index) => (
               <button
                 className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   personalSubtab === subtab
@@ -1419,7 +1342,9 @@ function HomeContent({
                     : "text-[#75777d] hover:bg-[#f3f3f6] hover:text-[#44474c]"
                 }`}
                 key={subtab}
-                onClick={() => selectPersonalSubtab(subtab)}
+                onClick={() => {
+                  if (subtab !== personalSubtab) slideFeed(index - personalSubtabs.indexOf(personalSubtab), () => selectPersonalSubtab(subtab));
+                }}
                 type="button"
               >
                 {t(`home.forYouSubtab.${subtab}`)}
@@ -1431,8 +1356,8 @@ function HomeContent({
         {activeFilter === "movie" && tmdbEnabled ? (
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex min-w-0 gap-1">
-              {(["trending", "now_playing", "upcoming"] as MovieSubtab[]).map(
-                (subtab) => (
+              {movieSubtabs.map(
+                (subtab, index) => (
                   <button
                     className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                       movieSubtab === subtab
@@ -1440,7 +1365,9 @@ function HomeContent({
                         : "text-[#75777d] hover:bg-[#f3f3f6] hover:text-[#44474c]"
                     }`}
                     key={subtab}
-                    onClick={() => selectMovieSubtab(subtab)}
+                    onClick={() => {
+                      if (subtab !== movieSubtab) slideFeed(index - movieSubtabs.indexOf(movieSubtab), () => selectMovieSubtab(subtab));
+                    }}
                     type="button"
                   >
                     {t(
@@ -1481,7 +1408,7 @@ function HomeContent({
         {activeFilter === "collection" && featuredCollectionsEnabled ? (
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex min-w-0 gap-1">
-              {(["trending", "lists"] as CollectionSubtab[]).map((subtab) => (
+              {collectionSubtabs.map((subtab, index) => (
                 <button
                   className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                     collectionSubtab === subtab
@@ -1489,7 +1416,9 @@ function HomeContent({
                       : "text-[#75777d] hover:bg-[#f3f3f6] hover:text-[#44474c]"
                   }`}
                   key={subtab}
-                  onClick={() => selectCollectionSubtab(subtab)}
+                  onClick={() => {
+                    if (subtab !== collectionSubtab) slideFeed(index - collectionSubtabs.indexOf(collectionSubtab), () => selectCollectionSubtab(subtab));
+                  }}
                   type="button"
                 >
                   {t(
@@ -1503,120 +1432,99 @@ function HomeContent({
           </div>
         ) : null}
 
-        {activeFilter === "movie" && tmdbEnabled && movieSubtab !== "trending" ? (
-          <TmdbMovieRail
-            kind={movieSubtab}
-            onBeforeNavigate={() => markHomeLeavingForScrollRestore(activeFilter)}
-            region={tmdbRegion}
-          />
-        ) : isCollectionListsView ? (
-          <CollectionListsGrid
-            contentAnimationClass={contentAnimationClass}
-            error={error}
-            isCoverProxyEnabled={isCoverProxyEnabled}
-            onClickCapture={(event) => {
-              if (!suppressGestureClickRef.current) {
-                return;
-              }
-
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-            onPointerCancel={() => {
-              gestureStartRef.current = null;
-            }}
-            onPointerDown={handleContentPointerDown}
-            onPointerUp={handleContentPointerUp}
-            sections={featuredCollectionSections}
-            status={status}
-          />
-        ) : (
-        <div
-          className={`touch-pan-y motion-safe:will-change-transform ${contentAnimationClass}`}
-          onClickCapture={(event) => {
-            if (!suppressGestureClickRef.current) {
-              return;
-            }
-
-            event.preventDefault();
-            event.stopPropagation();
-          }}
-          onPointerCancel={() => {
-            gestureStartRef.current = null;
-          }}
-          onPointerDown={handleContentPointerDown}
-          onPointerUp={handleContentPointerUp}
-        >
-          {status === "loading" ? <WaterfallSkeleton /> : null}
-
-          {status === "error" ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
-              {isPersonalFeed ? t("home.forYou.error") : error}
-            </div>
-          ) : null}
-
-          {status === "guest" ? (
-            <HomeNotice
-              action={
-                <a
-                  className="mt-5 inline-flex h-11 items-center rounded-full bg-[var(--theme-primary)] px-6 text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)]"
-                  href="/api/auth/neodb/login"
-                >
-                  {t("home.forYou.login")}
-                </a>
-              }
-              description={t("home.forYou.guestDescription")}
-              title={t("home.forYou.guestTitle")}
-            />
-          ) : null}
-
-          {status === "ready" && items.length === 0 ? (
-            isPersonalFeed ? (
-              <HomeNotice
-                description={t("home.forYou.emptyDescription")}
-                title={t("home.forYou.emptyTitle")}
+        <div className="tab-slide" ref={feedSlideRef}>
+          {activeFilter === "movie" && tmdbEnabled && movieSubtab !== "trending" ? (
+            <div className="touch-pan-y" {...swipeHandlers}>
+              <TmdbMovieRail
+                kind={movieSubtab}
+                onBeforeNavigate={() => markHomeLeavingForScrollRestore(activeFilter)}
+                region={tmdbRegion}
               />
-            ) : (
-              <div className="rounded-2xl border border-[#e2e2e5] bg-white/70 p-6 text-center text-sm text-[#44474c]">
-                {t("home.empty")}
-              </div>
-            )
-          ) : null}
+            </div>
+          ) : isCollectionListsView ? (
+            <CollectionListsGrid
+              error={error}
+              isCoverProxyEnabled={isCoverProxyEnabled}
+              swipeHandlers={swipeHandlers}
+              sections={featuredCollectionSections}
+              status={status}
+            />
+          ) : (
+          <div
+            className="touch-pan-y"
+            {...swipeHandlers}
+          >
+            {status === "loading" ? <WaterfallSkeleton /> : null}
 
-          {status === "ready" && items.length > 0 ? (
-            <>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {items.slice(0, visibleCount).map((item, index) => (
-                  <ItemCard
-                    activeFilter={activeFilter}
-                    index={index}
-                    isCoverProxyEnabled={isCoverProxyEnabled}
-                    item={item}
-                    key={`${item.id}-${index}`}
-                    dismissPreviewOpen={dismissPreviewId === item.id}
-                    onDismiss={() => dismissItem(item)}
-                    onDismissPreviewClose={() => {
-                      setDismissPreviewId((current) =>
-                        current === item.id ? null : current,
-                      );
-                    }}
-                    onDismissPreviewOpen={() => setDismissPreviewId(item.id)}
-                    returnCategory={activeFilter}
-                  />
-                ))}
+            {status === "error" ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+                {isPersonalFeed ? t("home.forYou.error") : error}
               </div>
-              {visibleCount < items.length ? (
-                <div aria-hidden="true" className="h-px" ref={loadMoreRef} />
-              ) : null}
-              {visibleCount >= items.length ? (
-                <div className="mt-6 text-center text-xs font-semibold text-[#75777d]">
-                  {t("home.endOfList")}
+            ) : null}
+
+            {status === "guest" ? (
+              <HomeNotice
+                action={
+                  <a
+                    className="mt-5 inline-flex h-11 items-center rounded-full bg-[var(--theme-primary)] px-6 text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)]"
+                    href="/api/auth/neodb/login"
+                  >
+                    {t("home.forYou.login")}
+                  </a>
+                }
+                description={t("home.forYou.guestDescription")}
+                title={t("home.forYou.guestTitle")}
+              />
+            ) : null}
+
+            {status === "ready" && items.length === 0 ? (
+              isPersonalFeed ? (
+                <HomeNotice
+                  description={t("home.forYou.emptyDescription")}
+                  title={t("home.forYou.emptyTitle")}
+                />
+              ) : (
+                <div className="rounded-2xl border border-[#e2e2e5] bg-white/70 p-6 text-center text-sm text-[#44474c]">
+                  {t("home.empty")}
                 </div>
-              ) : null}
-            </>
-          ) : null}
+              )
+            ) : null}
+
+            {status === "ready" && items.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3" ref={cardGridRef}>
+                  {items.slice(0, visibleCount).map((item, index) => (
+                    <ItemCard
+                      activeFilter={activeFilter}
+                      index={index}
+                      isCoverProxyEnabled={isCoverProxyEnabled}
+                      item={item}
+                      key={`${item.category}:${item.id}`}
+                      dismissPreviewOpen={dismissPreviewId === item.id}
+                      onDismiss={() => dismissItem(item)}
+                      onDismissPreviewClose={() => {
+                        setDismissPreviewId((current) =>
+                          current === item.id ? null : current,
+                        );
+                      }}
+                      onDismissPreviewOpen={() => setDismissPreviewId(item.id)}
+                      returnCategory={activeFilter}
+                    />
+                  ))}
+                </div>
+                {visibleCount < items.length ? (
+                  <div aria-hidden="true" className="h-px" ref={loadMoreRef} />
+                ) : null}
+                {visibleCount >= items.length ? (
+                  <div className="mt-6 text-center text-xs font-semibold text-[#75777d]">
+                    {t("home.endOfList")}
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+          )}
         </div>
-        )}
       </section>
     </main>
   );
@@ -1717,6 +1625,7 @@ function GlobeIcon() {
 
 function ItemCard({
   activeFilter,
+  coverScope = activeFilter,
   dismissPreviewOpen = false,
   index,
   isCoverProxyEnabled,
@@ -1727,6 +1636,7 @@ function ItemCard({
   returnCategory,
 }: {
   activeFilter: string;
+  coverScope?: string;
   dismissPreviewOpen?: boolean;
   index: number;
   isCoverProxyEnabled: boolean;
@@ -1833,7 +1743,7 @@ function ItemCard({
     const collectionPath = `/collection/${encodeURIComponent(item.id)}`;
 
     return (
-      <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 press-card">
+      <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition hover:shadow-lg hover:shadow-slate-900/10 press-card">
         <Link
           className="block"
           href={collectionPath}
@@ -1848,6 +1758,7 @@ function ItemCard({
           }}
         >
           <HomeCardVisual
+            coverScope={coverScope}
             index={index}
             isCoverProxyEnabled={isCoverProxyEnabled}
             item={item}
@@ -1864,10 +1775,11 @@ function ItemCard({
 
   return (
     <article
+      data-motion-item={item.id}
       className={`group relative overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 ${
         isDismissOpen
           ? ""
-          : "transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 press-card"
+          : "transition hover:shadow-lg hover:shadow-slate-900/10 press-card"
       } ${canDismiss ? "select-none [-webkit-touch-callout:none]" : ""}`}
       onClickCapture={canDismiss ? handleClickCapture : undefined}
       onContextMenu={
@@ -1885,6 +1797,7 @@ function ItemCard({
       <Link
         className="block"
         href={detailPath}
+        transitionTypes={["nav-forward"]}
         onClick={() => {
           markHomeLeavingForScrollRestore(activeFilter);
           requestDetailScrollTopForHref(detailPath);
@@ -1892,6 +1805,7 @@ function ItemCard({
         }}
       >
         <HomeCardVisual
+          coverScope={coverScope}
           hideTitleCard={isDismissOpen}
           index={index}
           isCoverProxyEnabled={isCoverProxyEnabled}
@@ -1940,7 +1854,7 @@ function DismissPreview({
       {coverSrc ? (
         <>
           <div aria-hidden="true" className="home-dismiss-frost absolute inset-0">
-            <Image
+            <FadeImage
               alt=""
               className="object-cover blur-xl"
               decoding="async"
@@ -1952,7 +1866,7 @@ function DismissPreview({
             />
           </div>
           <div aria-hidden="true" className="home-dismiss-sharp absolute inset-0">
-            <Image
+            <FadeImage
               alt=""
               className="object-cover"
               decoding="async"
@@ -1992,11 +1906,13 @@ function DismissPreview({
 }
 
 function HomeCardVisual({
+  coverScope,
   hideTitleCard = false,
   index,
   isCoverProxyEnabled,
   item,
 }: {
+  coverScope: string;
   hideTitleCard?: boolean;
   index: number;
   isCoverProxyEnabled: boolean;
@@ -2015,22 +1931,24 @@ function HomeCardVisual({
       }`}
     >
       {coverSrc ? (
-        <Image
-          alt={item.title}
-          className={`h-full w-full object-cover ${
-            hideTitleCard
-              ? ""
-              : "transition duration-700 ease-out group-hover:scale-105"
-          }`}
-          decoding="async"
-          fetchPriority={index === 0 ? "high" : "auto"}
-          fill
-          loading={index < 9 ? "eager" : "lazy"}
-          quality={75}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
-          src={coverSrc}
-          unoptimized
-        />
+        <CoverTransition className="absolute inset-0" id={item.id} sourceKey={`home:${coverScope}:${item.category}:${item.id}:${index}`}>
+          <FadeImage
+            alt={item.title}
+            className={`h-full w-full object-cover ${
+              hideTitleCard
+                ? ""
+                : "transition duration-700 ease-out group-hover:scale-105"
+            }`}
+            decoding="async"
+            fetchPriority={index === 0 ? "high" : "auto"}
+            fill
+            loading={index < 9 ? "eager" : "lazy"}
+            quality={75}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
+            src={coverSrc}
+            unoptimized
+          />
+        </CoverTransition>
       ) : (
         <div className="flex h-full items-center justify-center p-6 text-center text-sm font-semibold text-[#75777d]">
           {item.title}
@@ -2060,33 +1978,22 @@ function HomeCardVisual({
 }
 
 function CollectionListsGrid({
-  contentAnimationClass,
   error,
   isCoverProxyEnabled,
-  onClickCapture,
-  onPointerCancel,
-  onPointerDown,
-  onPointerUp,
+  swipeHandlers,
   sections,
   status,
 }: {
-  contentAnimationClass: string;
   error: string;
   isCoverProxyEnabled: boolean;
-  onClickCapture: (event: MouseEvent<HTMLDivElement>) => void;
-  onPointerCancel: () => void;
-  onPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
-  onPointerUp: (event: PointerEvent<HTMLDivElement>) => void;
+  swipeHandlers: SwipePagerHandlers;
   sections: FeaturedCollectionSection[];
   status: HomeFeedStatus;
 }) {
   return (
     <div
-      className={`touch-pan-y space-y-7 pb-4 motion-safe:will-change-transform ${contentAnimationClass}`}
-      onClickCapture={onClickCapture}
-      onPointerCancel={onPointerCancel}
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
+      className="touch-pan-y space-y-7 pb-4"
+      {...swipeHandlers}
     >
       {status === "loading" ? <WaterfallSkeleton /> : null}
 
@@ -2109,6 +2016,7 @@ function CollectionListsGrid({
                 {section.items.slice(0, 10).map((item, index) => (
                   <ItemCard
                     activeFilter="collection"
+                    coverScope={section.id}
                     index={index}
                     isCoverProxyEnabled={isCoverProxyEnabled}
                     item={item}
@@ -2181,6 +2089,7 @@ function CollectionListRail({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative -mx-4 sm:mx-0">
       <div
+        data-swipe-ignore
         className="overflow-x-auto scroll-smooth px-4 pb-2 [scrollbar-width:none] sm:px-0 [&::-webkit-scrollbar]:hidden"
         ref={viewportRef}
       >
@@ -2264,7 +2173,7 @@ function WaterfallSkeleton() {
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
       {Array.from({ length: 9 }, (_, index) => (
         <div
-          className="animate-pulse rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/5"
+          className="skeleton rounded-xl border border-white/80 shadow-md shadow-slate-900/5"
           key={index}
         >
           <div className="aspect-[3/4] rounded-xl bg-[#e2e2e5]" />
@@ -2274,21 +2183,6 @@ function WaterfallSkeleton() {
   );
 }
 
-function getHomeSwipeClass(transition: SwipeTransition | null) {
-  if (!transition) {
-    return "";
-  }
-
-  if (transition.phase === "exit") {
-    return transition.direction === "left"
-      ? "home-swipe-exit-left"
-      : "home-swipe-exit-right";
-  }
-
-  return transition.direction === "left"
-    ? "home-swipe-enter-right"
-    : "home-swipe-enter-left";
-}
 
 function getHomeHref(category: string) {
   if (category === DEFAULT_HOME_CATEGORY) {

@@ -41,7 +41,12 @@ function buildCoverImagePatterns(): ImageRemotePattern[] {
   return patterns;
 }
 
+const viewTransitions = process.env.NEXT_PUBLIC_VIEW_TRANSITIONS ??
+  (process.env.VERCEL_GIT_COMMIT_REF === "preview" ? "1" : "0");
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_VIEW_TRANSITIONS: viewTransitions },
+  experimental: { viewTransition: viewTransitions === "1" },
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",

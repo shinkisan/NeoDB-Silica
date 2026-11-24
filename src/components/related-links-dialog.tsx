@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { createPortal } from "react-dom";
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
 import { useT } from "@/components/use-t";
 
 export type RelatedLink = {
@@ -21,18 +21,18 @@ export function RelatedLinksDialog({
   onClose: () => void;
   title: string;
 }) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
   const resolvedCloseLabel = closeLabel || t("detail.tools.closeRelatedLinks");
 
-  useLockedBodyScroll();
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e2e2e5]/55 px-5 py-5 backdrop-blur-sm"
+  return (
+    <DialogShell {...dialog} backdropClassName="bg-[#e2e2e5]/55 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-5"
       onClick={(event) => event.stopPropagation()}
     >
       <section
-        className="review-editor-enter flex max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl"
+        className="dialog-panel flex max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex items-center justify-between gap-3 pb-2">
@@ -42,7 +42,7 @@ export function RelatedLinksDialog({
           <button
             aria-label={resolvedCloseLabel}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -77,26 +77,8 @@ export function RelatedLinksDialog({
           ))}
         </div>
       </section>
-    </div>,
-    document.body,
+    </DialogShell>
   );
-}
-
-export function useLockedBodyScroll() {
-  useEffect(() => {
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
 }
 
 export function CloseIcon() {

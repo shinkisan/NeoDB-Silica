@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { DUR, EASE, flip, measureLayout, prefersReducedMotion } from "@/lib/motion";
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
+import { useLayoutEffect, useRef, useState } from "react";
 
 export type CategoryOrderItem = {
   id: string;
@@ -28,8 +30,8 @@ type DragState = {
   startClientY: number;
 };
 
-const REORDER_DURATION = 180;
-const REORDER_EASING = "cubic-bezier(0.2, 0, 0, 1)";
+const REORDER_DURATION = DUR.spring;
+const REORDER_EASING = EASE.springSnappy;
 const DRAG_SCALE = 1.01;
 
 export function CategoryOrderDialog({
@@ -43,31 +45,17 @@ export function CategoryOrderDialog({
   storageKey,
   title,
 }: CategoryOrderDialogProps) {
+  const dialog = useDialogMotion(onClose);
   const [orderedItems, setOrderedItems] = useState(() =>
     sortItems(items, readOrder(storageKey)),
   );
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const orderedItemsRef = useRef(orderedItems);
-  const previousPositionsRef = useRef<Map<string, number> | null>(null);
+  const previousPositionsRef = useRef<{ rows: Map<string, DOMRect>; draggedTop?: number } | null>(null);
   const pendingReorderRef = useRef(false);
   const dragStateRef = useRef<DragState | null>(null);
   const rowAnimationsRef = useRef(new Map<string, Animation>());
   const rowElementsRef = useRef(new Map<string, HTMLDivElement>());
-
-  useEffect(() => {
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
 
   useLayoutEffect(() => {
     const previousPositions = previousPositionsRef.current;
@@ -78,47 +66,23 @@ export function CategoryOrderDialog({
       return;
     }
 
+    const rows = new Map(rowElementsRef.current);
     const dragState = dragStateRef.current;
-    const animateRows = !window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const draggedTop = previousPositions.draggedTop;
+    const draggedRow = dragState ? rows.get(dragState.itemId) : undefined;
 
-    for (const item of orderedItems) {
-      const element = rowElementsRef.current.get(item.id);
-      const previousTop = previousPositions.get(item.id);
-
-      if (!element || previousTop === undefined) {
-        continue;
-      }
-
-      // The dragged row stays glued to the pointer, so the layout shift the
-      // reorder just caused is folded into its offset instead of animated.
-      if (dragState?.itemId === item.id) {
-        dragState.correction =
-          previousTop -
-          element.offsetTop -
+    if (dragState && draggedRow) {
+      rows.delete(dragState.itemId);
+      if (draggedTop !== undefined) {
+        // Keep the dragged row under the pointer while the other rows move.
+        dragState.correction = draggedTop - draggedRow.offsetTop -
           (dragState.lastClientY - dragState.startClientY);
         applyDragTransform();
-        continue;
       }
+    }
 
-      rowAnimationsRef.current.get(item.id)?.cancel();
-      const offset = previousTop - element.offsetTop;
-
-      if (!animateRows || Math.abs(offset) < 1) {
-        continue;
-      }
-
-      trackAnimation(
-        item.id,
-        element.animate(
-          [
-            { transform: `translateY(${offset}px)` },
-            { transform: "translateY(0)" },
-          ],
-          { duration: REORDER_DURATION, easing: REORDER_EASING },
-        ),
-      );
+    for (const [id, animation] of flip(rows, previousPositions.rows, (id) => rowAnimationsRef.current.get(id)?.cancel())) {
+      trackAnimation(id, animation);
     }
   }, [orderedItems]);
 
@@ -150,12 +114,12 @@ export function CategoryOrderDialog({
   }
 
   function rememberRowPositions() {
-    previousPositionsRef.current = new Map(
-      Array.from(rowElementsRef.current, ([id, element]) => [
-        id,
-        visualTopOf(element),
-      ]),
-    );
+    const dragging = dragStateRef.current;
+    const draggedRow = dragging ? rowElementsRef.current.get(dragging.itemId) : undefined;
+    previousPositionsRef.current = {
+      rows: measureLayout(rowElementsRef.current),
+      draggedTop: draggedRow ? visualTopOf(draggedRow) : undefined,
+    };
   }
 
   function persistItems(nextItems: CategoryOrderItem[]) {
@@ -305,7 +269,7 @@ export function CategoryOrderDialog({
     element.style.transform = "";
     rowAnimationsRef.current.get(dragState.itemId)?.cancel();
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (prefersReducedMotion()) {
       return;
     }
 
@@ -321,13 +285,13 @@ export function CategoryOrderDialog({
     );
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e2e2e5]/55 px-5 py-5 backdrop-blur-sm"
+  return (
+    <DialogShell {...dialog} backdropClassName="bg-[#e2e2e5]/55 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-5"
       onClick={(event) => event.stopPropagation()}
     >
       <section
-        className="review-editor-enter flex max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl"
+        className="dialog-panel flex max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex items-center justify-between gap-3 pb-2">
@@ -337,7 +301,7 @@ export function CategoryOrderDialog({
           <button
             aria-label={closeLabel}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <IconPath className="size-5" path="M18 6 6 18M6 6l12 12" />
@@ -403,8 +367,7 @@ export function CategoryOrderDialog({
           {resetLabel}
         </button>
       </section>
-    </div>,
-    document.body,
+    </DialogShell>
   );
 }
 

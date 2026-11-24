@@ -19,21 +19,21 @@ export default async function Loading() {
         <div className="mx-auto max-w-2xl space-y-6 lg:max-w-4xl">
           <section className="min-w-0 space-y-3">
             <div
-              className="h-10 w-4/5 max-w-full animate-pulse rounded-full bg-[#e2e2e5]"
+              className="h-10 w-4/5 max-w-full skeleton rounded-full"
               data-collection-loading-context-title
             />
             <div className="flex flex-wrap items-center gap-3">
-              <div className="h-5 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
+              <div className="h-5 w-24 skeleton rounded-full" />
             </div>
             <div className="space-y-2 pt-1">
-              <div className="h-4 w-full animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-11/12 animate-pulse rounded-full bg-[#e2e2e5]" />
-              <div className="h-4 w-2/3 animate-pulse rounded-full bg-[#e2e2e5]" />
+              <div className="h-4 w-full skeleton rounded-full" />
+              <div className="h-4 w-11/12 skeleton rounded-full" />
+              <div className="h-4 w-2/3 skeleton rounded-full" />
             </div>
           </section>
           <div className="flex items-center justify-between gap-4 px-1">
-            <div className="h-4 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
-            <div className="h-4 w-20 shrink-0 animate-pulse rounded-full bg-[#e2e2e5]" />
+            <div className="h-4 w-24 skeleton rounded-full" />
+            <div className="h-4 w-20 shrink-0 skeleton rounded-full" />
           </div>
           <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {Array.from({ length: 5 }, (_, index) => (
@@ -42,12 +42,12 @@ export default async function Loading() {
                 key={index}
               >
                 <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4">
-                  <div className="aspect-[3/4] animate-pulse rounded-xl bg-[#e2e2e5]" />
+                  <div className="aspect-[3/4] skeleton rounded-xl" />
                   <div className="space-y-3 py-1">
-                    <div className="h-5 w-3/4 animate-pulse rounded-full bg-[#e2e2e5]" />
-                    <div className="h-6 w-28 animate-pulse rounded-full bg-[#e2e2e5]" />
-                    <div className="h-4 w-full animate-pulse rounded-full bg-[#e2e2e5]" />
-                    <div className="h-4 w-5/6 animate-pulse rounded-full bg-[#e2e2e5]" />
+                    <div className="h-5 w-3/4 skeleton rounded-full" />
+                    <div className="h-6 w-28 skeleton rounded-full" />
+                    <div className="h-4 w-full skeleton rounded-full" />
+                    <div className="h-4 w-5/6 skeleton rounded-full" />
                   </div>
                 </div>
               </article>

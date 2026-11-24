@@ -11,7 +11,7 @@ export default async function Loading() {
           <div className="size-10 shrink-0 rounded-full bg-[#e2e2e5]" />
         </TopBarIsland>
         <div className="flex min-w-0 flex-1 justify-center">
-          <div className="h-5 w-40 animate-pulse rounded-full bg-[#e2e2e5]" />
+          <div className="h-5 w-40 skeleton rounded-full" />
         </div>
         <div aria-hidden="true" className="size-10 shrink-0" />
       </FloatingTopBar>
@@ -26,16 +26,16 @@ export default async function Loading() {
                 key={index}
               >
                 <div className="flex items-center justify-between gap-4">
-                  <div className="h-5 w-2/3 animate-pulse rounded-full bg-[#dfe0e4]" />
-                  <div className="size-7 animate-pulse rounded-full bg-[#dfe0e4]" />
+                  <div className="h-5 w-2/3 skeleton rounded-full" />
+                  <div className="size-7 skeleton rounded-full" />
                 </div>
                 <div className="mt-4 space-y-2">
-                  <div className="h-4 animate-pulse rounded-full bg-[#dfe0e4]" />
-                  <div className="h-4 animate-pulse rounded-full bg-[#dfe0e4]" />
-                  <div className="h-4 w-4/5 animate-pulse rounded-full bg-[#dfe0e4]" />
+                  <div className="h-4 skeleton rounded-full" />
+                  <div className="h-4 skeleton rounded-full" />
+                  <div className="h-4 w-4/5 skeleton rounded-full" />
                 </div>
                 <div className="mt-2 flex h-7 justify-start pt-1">
-                  <div className="h-3 w-24 animate-pulse rounded-full bg-[#dfe0e4]" />
+                  <div className="h-3 w-24 skeleton rounded-full" />
                 </div>
               </div>
             ))}

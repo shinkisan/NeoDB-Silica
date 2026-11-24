@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { selectTransitionCover } from "@/components/cover-transition";
 import { useEffect } from "react";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { requestDetailScrollTopForHref } from "@/lib/detail-scroll";
@@ -34,7 +35,11 @@ export function SearchResultLink({
     <Link
       className={className}
       href={href}
-      onClick={saveSearchScroll}
+      transitionTypes={["nav-forward"]}
+      onClick={(event) => {
+        selectTransitionCover(event.currentTarget);
+        saveSearchScroll();
+      }}
       onPointerDown={saveSearchScroll}
     >
       {children}

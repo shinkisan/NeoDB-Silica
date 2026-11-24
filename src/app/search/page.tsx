@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { CoverTransition } from "@/components/cover-transition";
+import { FadeImage } from "@/components/fade-image";
 import { getNeodbBaseUrl, normalizeNeodbItem, type HomeItem, type NeodbItem } from "@/lib/neodb";
 import { configureServerFetchProxy, fetchWithTimeout } from "@/lib/server-fetch";
 import { getT } from "@/i18n/server";
@@ -101,7 +102,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
         {result && result.items.length > 0 ? (
           <>
-            <SearchResultsFrame key={`${query}:${category}:${page}`}>
+            <SearchResultsFrame firstPage={page === 1} key={`${query}:${category}:${page}`}>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {result.items.map((item, index) => (
                   <SearchResultCard
@@ -184,21 +185,23 @@ function SearchResultCard({
     item.detailPath || `/item/${item.category}/${encodeURIComponent(item.id)}`;
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/10 press-card">
+    <article data-motion-item={`${item.id}:${index}`} className="group overflow-hidden rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/8 transition hover:shadow-lg hover:shadow-slate-900/10 press-card">
       <SearchResultLink href={detailPath}>
         <div className="relative aspect-[3/4] bg-[#e2e2e5]">
           {item.coverUrl ? (
-            <Image
-              alt={item.title}
-              className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"
-              decoding="async"
-              fill
-              loading={index < 9 ? "eager" : "lazy"}
-              quality={75}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
-              src={item.coverUrl}
-              unoptimized={process.env.NODE_ENV !== "production"}
-            />
+            <CoverTransition className="absolute inset-0" id={item.id} sourceKey={`search:${item.id}:${index}`}>
+              <FadeImage
+                alt={item.title}
+                className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"
+                decoding="async"
+                fill
+                loading={index < 9 ? "eager" : "lazy"}
+                quality={75}
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
+                src={item.coverUrl}
+                unoptimized={process.env.NODE_ENV !== "production"}
+              />
+            </CoverTransition>
           ) : (
             <div className="flex h-full items-center justify-center p-6 text-center text-sm font-semibold text-[#75777d]">
               {item.title}

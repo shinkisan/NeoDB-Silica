@@ -1,3 +1,4 @@
+import { CoverTransition } from "@/components/cover-transition";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -150,21 +151,25 @@ export default async function DetailPage({ params }: DetailPageProps) {
         >
           <div className="mx-auto w-full min-w-0 max-w-4xl space-y-6">
             <section className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-5 [@media(orientation:landscape)]:grid-cols-[minmax(0,46%)_minmax(0,1fr)] [@media(orientation:landscape)]:items-start">
-              <div className="z-10 aspect-[4/5] w-full min-w-0 max-w-full transform-gpu rounded-2xl [backface-visibility:hidden] [@media(orientation:landscape)]:sticky [@media(orientation:landscape)]:top-[84px] [@media(orientation:landscape)]:aspect-[3/4]">
+              <div data-motion-detail-cover className="z-10 aspect-[4/5] w-full min-w-0 max-w-full transform-gpu rounded-2xl [backface-visibility:hidden] [@media(orientation:landscape)]:sticky [@media(orientation:landscape)]:top-[84px] [@media(orientation:landscape)]:aspect-[3/4]">
                 <div className="relative h-full overflow-hidden rounded-2xl bg-[var(--background)] shadow-[0_8px_30px_rgb(74,85,104,0.12)]">
                   {displayCoverUrl ? (
-                    <ImageViewer
-                      alt={item.display_title || item.title || "作品封面"}
-                      key={displayCoverUrl}
-                      showLoadingSkeleton={
-                        item.category === "movie" || item.category === "tv"
-                      }
-                      spotifyAlbumUrl={spotifyAlbumUrl}
-                      src={displayCoverUrl}
-                      steamAppId={steamAppId}
-                      steamLocale={locale}
-                      stills={stills}
-                    />
+                    <CoverTransition className="h-full overflow-hidden rounded-[inherit]" id={item.uuid}>
+                      <ImageViewer
+                        itemUuid={item.uuid}
+                        alt={item.display_title || item.title || "作品封面"}
+                        flipChangedPoster={item.category === "movie"}
+                        key={displayCoverUrl}
+                        showLoadingSkeleton={
+                          item.category === "movie" || item.category === "tv"
+                        }
+                        spotifyAlbumUrl={spotifyAlbumUrl}
+                        src={displayCoverUrl}
+                        steamAppId={steamAppId}
+                        steamLocale={locale}
+                        stills={stills}
+                      />
+                    </CoverTransition>
                   ) : (
                     <div className="flex h-full items-center justify-center p-8 text-center text-lg font-semibold text-[#75777d]">
                       {item.display_title || item.title}

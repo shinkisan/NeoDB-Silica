@@ -41,7 +41,7 @@ export function PaginationPill({
     >
       <span
         aria-hidden="true"
-        className="absolute left-1.5 top-1.5 size-10 rounded-full bg-[var(--theme-primary)] shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+        className="absolute left-1.5 top-1.5 size-10 rounded-full bg-[var(--theme-primary)] shadow-md motion-pill transition-transform duration-(--dur-spring) ease-spring-snappy"
         style={{ transform: `translateX(${indicatorIndex * 2.75}rem)` }}
       />
       <PageControl

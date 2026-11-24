@@ -1,5 +1,6 @@
 "use client";
 
+import { usePendingCoverSrc } from "@/components/cover-transition";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useT } from "@/components/use-t";
 import type { TmdbStillImage } from "@/lib/tmdb";
@@ -24,6 +25,8 @@ const LazySteamTrailerPlayer = lazy(() =>
 
 type ImageViewerProps = {
   alt: string;
+  itemUuid: string;
+  flipChangedPoster?: boolean;
   showLoadingSkeleton?: boolean;
   spotifyAlbumUrl?: string | null;
   src: string;
@@ -32,8 +35,27 @@ type ImageViewerProps = {
   stills?: TmdbStillImage[] | null;
 };
 
+function posterIdentity(src: string, base: string): string {
+  let url: URL;
+  try {
+    url = new URL(src, base);
+  } catch {
+    return src;
+  }
+  if (url.pathname === "/api/image/cover" || url.pathname === "/_next/image") {
+    const original = url.searchParams.get("url");
+    if (original) return posterIdentity(original, base);
+  }
+  if (url.hostname === "image.tmdb.org") {
+    return url.pathname.replace(/^\/t\/p\/[^/]+\//, "/t/p/");
+  }
+  return url.href;
+}
+
 export function ImageViewer({
   alt,
+  itemUuid,
+  flipChangedPoster = false,
   showLoadingSkeleton = false,
   spotifyAlbumUrl,
   src,
@@ -48,6 +70,7 @@ export function ImageViewer({
   const { currentSrc, switchToFallback } = useDetailCover(src);
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const listCover = usePendingCoverSrc(itemUuid);
   const imageRef = useRef<HTMLImageElement>(null);
   const loadState =
     loadedSrc === currentSrc
@@ -55,6 +78,11 @@ export function ImageViewer({
       : failedSrc === currentSrc
         ? "failed"
         : "loading";
+  const isFlippingPoster =
+    flipChangedPoster && loadState === "loaded" && Boolean(
+      listCover && posterIdentity(listCover, listCover) !== posterIdentity(currentSrc, listCover),
+    );
+  const preview = isFlippingPoster || loadState === "loading" ? listCover : undefined;
 
   useEffect(() => {
     return () => {
@@ -102,19 +130,24 @@ export function ImageViewer({
         onClick={() => setOpenIndex(0)}
         type="button"
       >
-        {showLoadingSkeleton && loadState === "loading" ? (
+        {preview && (
           <span
             aria-hidden="true"
-            className="absolute inset-0 animate-pulse bg-[#e2e2e5] motion-reduce:animate-none"
+            className={`absolute inset-0 bg-cover bg-center ${isFlippingPoster ? "poster-flip-out" : ""}`}
+            style={{ backgroundImage: `url(${JSON.stringify(preview)})` }}
+          />
+        )}
+        {showLoadingSkeleton && !preview && loadState === "loading" ? (
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 skeleton motion-reduce:animate-none"
             data-detail-poster-skeleton
           />
         ) : null}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           alt={alt}
-          className={`h-full w-full object-cover transition-opacity duration-150 motion-reduce:transition-none ${
-            loadState === "loaded" ? "opacity-100" : "opacity-0"
-          }`}
+          className={`relative h-full w-full object-cover ${loadState === "loaded" ? "" : "invisible"} ${isFlippingPoster ? "poster-flip-in" : ""}`}
           data-detail-poster-image
           key={currentSrc}
           onError={handleImageError}

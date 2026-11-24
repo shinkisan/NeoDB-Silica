@@ -1,5 +1,7 @@
 "use client";
 
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -171,26 +173,12 @@ function BriefDialog({
   onSave: () => void;
   status: "idle" | "saving";
 }) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
 
-  useEffect(() => {
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e2e2e5]/55 px-5 py-5 backdrop-blur-sm">
-      <section className="review-editor-enter max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
+    <DialogShell {...dialog} portal={false} backdropClassName="bg-[#e2e2e5]/55 backdrop-blur-sm" className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-5">
+      <section className="dialog-panel max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
         <header className="flex items-center justify-between gap-4 pb-2">
           <h2 className="min-w-0 text-xl font-bold text-[var(--foreground)]">
             {t("collection.editBrief")}
@@ -198,7 +186,7 @@ function BriefDialog({
           <button
             aria-label={t("collection.closeBriefEditor")}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -221,7 +209,7 @@ function BriefDialog({
           {status === "saving" ? t("collection.saving") : t("collection.saveBrief")}
         </button>
       </section>
-    </div>
+    </DialogShell>
   );
 }
 

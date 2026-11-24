@@ -1,5 +1,7 @@
 "use client";
 
+import { markMotionBack } from "@/components/motion-controller";
+
 import { useRouter } from "next/navigation";
 import { useT } from "@/components/use-t";
 import { registerLiquidGlass } from "@/components/liquid-glass-manager";
@@ -20,6 +22,7 @@ export function CloseSearchButton({ tabIndex }: { tabIndex?: number }) {
       className="liquid-glass relative grid size-14 shrink-0 place-items-center rounded-full border border-white/70 bg-white/60 text-[#44474c] shadow-lg shadow-slate-900/5 transition hover:bg-white/80 hover:text-[#333e50] disabled:cursor-default"
       onClick={(event) => {
         event.currentTarget.disabled = true;
+        markMotionBack();
         performNavigationClose(resolveSearchCloseAction(), router);
       }}
       onPointerDown={(event) => {

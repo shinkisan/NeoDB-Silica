@@ -72,7 +72,7 @@ export function SearchBar({
     if (neodbDetailPath) {
       requestDetailScrollTopForHref(neodbDetailPath);
       pushNavigationFrame("detail", neodbDetailPath);
-      router.push(neodbDetailPath);
+      router.push(neodbDetailPath, { transitionTypes: ["nav-forward"] });
       return;
     }
 
@@ -93,7 +93,7 @@ export function SearchBar({
     setIsSuggestionsOpen(false);
     requestDetailScrollTopForHref(item.detailPath);
     pushNavigationFrame("detail", item.detailPath);
-    router.push(item.detailPath);
+    router.push(item.detailPath, { transitionTypes: ["nav-forward"] });
   }
 
   return (
@@ -243,7 +243,7 @@ export function SearchBar({
         if (href) {
           requestDetailScrollTopForHref(href);
           pushNavigationFrame("detail", href);
-          router.push(href);
+          router.push(href, { transitionTypes: ["nav-forward"] });
           return true;
         }
       }

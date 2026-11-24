@@ -1,5 +1,7 @@
 "use client";
 
+import { DUR } from "@/lib/motion";
+
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -42,9 +44,6 @@ export function SearchScopeSelect({
     if (!isOpen || isClosing) return;
 
     setIsClosing(true);
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
 
     closeTimerRef.current = window.setTimeout(
       () => {
@@ -53,7 +52,7 @@ export function SearchScopeSelect({
         setMenuRect(null);
         closeTimerRef.current = null;
       },
-      prefersReducedMotion ? 0 : 130,
+      DUR.exit,
     );
   }
 

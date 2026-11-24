@@ -137,7 +137,7 @@ export function MarkedReviewLink({ itemUuid }: { itemUuid: string }) {
 
   if (status === "loading") {
     return (
-      <span className="inline-flex h-6 w-24 cursor-default animate-pulse rounded-full bg-[#e2e2e5]/80" />
+      <span className="inline-flex h-6 w-24 cursor-default skeleton rounded-full" />
     );
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useTagRailBounce } from "@/components/use-tag-rail-bounce";
 import { useT } from "@/components/use-t";
 
 type HorizontalScrollControlsProps = {
@@ -22,6 +23,7 @@ export function HorizontalScrollControls({
 }: HorizontalScrollControlsProps) {
   const t = useT();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const railBounce = useTagRailBounce();
 
   function setScrollRef(element: HTMLDivElement | null) {
     scrollRef.current = element;
@@ -59,6 +61,9 @@ export function HorizontalScrollControls({
         <ChevronIcon direction="left" />
       </button>
       <div
+        {...railBounce}
+        data-swipe-ignore
+        data-tag-rail
         className={`overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${viewportClassName}`}
         ref={setScrollRef}
       >

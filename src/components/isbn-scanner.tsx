@@ -1,7 +1,8 @@
 "use client";
 
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
 import { showToast } from "@/components/app-toast";
 import { useT } from "@/components/use-t";
 import { createIsbnBarcodeDetector } from "@/lib/isbn-barcode-detector";
@@ -56,6 +57,7 @@ function IsbnScannerDialog({
   onClose: () => void;
   onDetected: (isbn: string) => void;
 }) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
   const isHydrated = useSyncExternalStore(
     subscribeToHydration,
@@ -193,9 +195,9 @@ function IsbnScannerDialog({
     return null;
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-[#1a1c1e]/45 px-5 py-5 backdrop-blur-sm">
-      <section className="review-editor-enter flex max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/85 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
+  return (
+    <DialogShell {...dialog} backdropClassName="bg-[#1a1c1e]/45 backdrop-blur-sm" className="fixed inset-0 z-[130] flex items-center justify-center px-5 py-5">
+      <section className="dialog-panel flex max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/85 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
         <header className="flex items-center justify-between gap-3 pb-3">
           <div className="min-w-0">
             <h2 className="text-xl font-bold text-[var(--foreground)]">
@@ -208,7 +210,7 @@ function IsbnScannerDialog({
           <button
             aria-label={t("search.isbnScanner.close")}
             className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -245,8 +247,7 @@ function IsbnScannerDialog({
           ) : null}
         </div>
       </section>
-    </div>,
-    document.body,
+    </DialogShell>
   );
 }
 

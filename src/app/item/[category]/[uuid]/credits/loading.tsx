@@ -8,8 +8,8 @@ export default function Loading() {
       <main className="min-h-dvh bg-[var(--background)] px-5 pb-24 pt-5 text-[var(--foreground)]">
         <div className="mx-auto max-w-2xl space-y-5 lg:max-w-4xl">
           <div className="space-y-2 px-1">
-            <div className="h-8 w-48 animate-pulse rounded-full bg-[#e2e2e5]" />
-            <div className="h-4 w-40 animate-pulse rounded-full bg-[#e2e2e5]" />
+            <div className="h-8 w-48 skeleton rounded-full" />
+            <div className="h-4 w-40 skeleton rounded-full" />
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {Array.from({ length: 12 }, (_, index) => (
@@ -17,9 +17,9 @@ export default function Loading() {
                 className="rounded-2xl border border-white/70 bg-white/60 p-4 shadow-lg shadow-slate-900/5"
                 key={index}
               >
-                <div className="mx-auto size-20 animate-pulse rounded-full bg-[#e2e2e5]" />
-                <div className="mx-auto mt-3 h-4 w-20 animate-pulse rounded-full bg-[#e2e2e5]" />
-                <div className="mx-auto mt-2 h-3 w-16 animate-pulse rounded-full bg-[#e2e2e5]" />
+                <div className="mx-auto size-20 skeleton rounded-full" />
+                <div className="mx-auto mt-3 h-4 w-20 skeleton rounded-full" />
+                <div className="mx-auto mt-2 h-3 w-16 skeleton rounded-full" />
               </div>
             ))}
           </div>

@@ -24,7 +24,7 @@ export function ChangelogButton() {
   const { locale } = useContext(I18nContext);
   const [release, setRelease] = useState<ReleaseData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
+
 
   function open() {
     setIsOpen(true);
@@ -66,11 +66,7 @@ export function ChangelogButton() {
       : "";
 
   function closeReader() {
-    setIsClosing(true);
-    window.setTimeout(() => {
-      setIsClosing(false);
-      setIsOpen(false);
-    }, 160);
+    setIsOpen(false);
   }
 
   return (
@@ -95,7 +91,7 @@ export function ChangelogButton() {
         <Suspense fallback={null}>
           <LazyProfileReaderDialog
             body={body}
-            isClosing={isClosing}
+
             isLoading={!release}
             onClose={closeReader}
             title={title}

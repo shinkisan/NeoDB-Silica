@@ -1,5 +1,6 @@
 "use client";
 
+import { useListMotion } from "@/components/use-list-motion";
 import Link from "next/link";
 import {
   memo,
@@ -198,6 +199,7 @@ export function CommunityList({
   } | null>(null);
   const suppressGestureClickRef = useRef(false);
   const pendingLocalCommentRef = useRef<DetailCommentLocalEvent | null>(null);
+  const cancelScrollRef = useRef<(() => void) | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef(0);
   const reviewsFetchStartedRef = useRef(false);
@@ -207,6 +209,15 @@ export function CommunityList({
   useEffect(() => {
     currentUserRef.current = currentUser;
   }, [currentUser]);
+
+  useEffect(() => {
+    return () => {
+      if (cancelScrollRef.current) {
+        cancelScrollRef.current();
+        cancelScrollRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -521,8 +532,14 @@ export function CommunityList({
     itemUuid,
   ]);
 
+  const entryListRef = useRef<HTMLDivElement>(null);
+  const prepareEntryRemoval = useListMotion(entryListRef,
+    activeTab === "comments" ? commentsState.items : reviewsState.items,
+  );
+
   const handleDeleteComment = useCallback(
     async (postId: string) => {
+      prepareEntryRemoval(postId);
       setOwnEntries((prev) =>
         prev.comment?.postId === postId ? { ...prev, comment: null } : prev,
       );
@@ -547,11 +564,12 @@ export function CommunityList({
         window.dispatchEvent(new Event(DETAIL_COMMENTS_REFRESH_EVENT));
       }
     },
-    [itemUuid, t],
+    [itemUuid, prepareEntryRemoval, t],
   );
 
   const handleDeleteReview = useCallback(
     async (postId: string) => {
+      prepareEntryRemoval(postId);
       setOwnEntries((prev) =>
         prev.review?.postId === postId ? { ...prev, review: null } : prev,
       );
@@ -577,7 +595,7 @@ export function CommunityList({
         window.dispatchEvent(new Event(DETAIL_COMMENTS_REFRESH_EVENT));
       }
     },
-    [itemUuid, t],
+    [itemUuid, prepareEntryRemoval, t],
   );
 
   if (isLoading) {
@@ -601,14 +619,55 @@ export function CommunityList({
         ? "home-swipe-enter-left"
         : "";
 
-  function changeActiveTab(nextTab: CommunityTab) {
-    if (nextTab === activeTab) {
+  function changeActiveTab(
+    nextTab: CommunityTab,
+    direction?: CommunityTabDirection,
+  ) {
+    const root = communityRootRef.current;
+    const topBarOffset = 80;
+    const rootTop = root ? root.getBoundingClientRect().top : 0;
+    const shouldScroll = Boolean(root && rootTop < topBarOffset);
+
+    if (nextTab === activeTab && !shouldScroll) {
       return;
     }
 
-    setTabAnimationDirection(nextTab === "reviews" ? "left" : "right");
-    setActiveTab(nextTab);
-    scrollCommunityToTop(communityRootRef.current);
+    if (cancelScrollRef.current) {
+      cancelScrollRef.current();
+      cancelScrollRef.current = null;
+    }
+
+    const nextDirection = direction ?? (nextTab === "reviews" ? "left" : "right");
+
+    if (shouldScroll && root) {
+      const currentHeight = root.offsetHeight;
+      root.style.minHeight = `${currentHeight}px`;
+
+      const targetTop = Math.max(0, window.scrollY + rootTop - topBarOffset);
+
+      if (nextTab !== activeTab) {
+        setTabAnimationDirection(nextDirection);
+        setActiveTab(nextTab);
+      }
+
+      const diff = Math.abs(targetTop - window.scrollY);
+      const duration = Math.min(
+        300,
+        Math.max(180, Math.round(180 + Math.sqrt(diff) * 3.5)),
+      );
+
+      cancelScrollRef.current = smoothScrollTo(targetTop, duration, () => {
+        cancelScrollRef.current = null;
+        if (root) {
+          root.style.minHeight = "";
+        }
+      });
+    } else {
+      if (nextTab !== activeTab) {
+        setTabAnimationDirection(nextDirection);
+        setActiveTab(nextTab);
+      }
+    }
   }
 
   function handleTabContentPointerDown(
@@ -647,26 +706,47 @@ export function CommunityList({
       return;
     }
 
-    const nextTab =
-      deltaX < 0 && activeTab === "comments"
-        ? "reviews"
-        : deltaX > 0 && activeTab === "reviews"
-          ? "comments"
-          : null;
+    let nextTab: CommunityTab | null = null;
+    const direction: CommunityTabDirection = deltaX < 0 ? "left" : "right";
+
+    if (activeTab === "comments") {
+      if (deltaX < 0 || start.x > 48) {
+        nextTab = "reviews";
+      }
+    } else {
+      // Swiping in either direction on reviews toggles back to comments
+      nextTab = "comments";
+    }
 
     if (!nextTab) {
       return;
     }
 
     suppressGestureClickRef.current = true;
-    changeActiveTab(nextTab);
+    changeActiveTab(nextTab, direction);
     window.setTimeout(() => {
       suppressGestureClickRef.current = false;
     }, 0);
   }
 
   return (
-    <div className="space-y-6" ref={communityRootRef}>
+    <div
+      className="flex min-h-[calc(100dvh-5rem)] flex-col space-y-6 touch-pan-y"
+      ref={communityRootRef}
+      onClickCapture={(event) => {
+        if (!suppressGestureClickRef.current) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+      }}
+      onPointerCancel={() => {
+        tabGestureStartRef.current = null;
+      }}
+      onPointerDown={handleTabContentPointerDown}
+      onPointerUp={handleTabContentPointerUp}
+    >
       <CommunityTabs
         activeTab={activeTab}
         countText={communityCountText}
@@ -674,52 +754,39 @@ export function CommunityList({
         reviewActions={reviewActions}
       />
       <div
-        className={`min-h-24 touch-pan-y motion-safe:will-change-transform ${tabAnimationClass}`}
+        className={`flex flex-1 flex-col min-h-[calc(100dvh-12rem)] motion-safe:will-change-transform ${tabAnimationClass}`}
         onAnimationEnd={(event) => {
           if (event.currentTarget === event.target) {
             setTabAnimationDirection(null);
           }
         }}
-        onClickCapture={(event) => {
-          if (!suppressGestureClickRef.current) {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-        }}
-        onPointerCancel={() => {
-          tabGestureStartRef.current = null;
-        }}
-        onPointerDown={handleTabContentPointerDown}
-        onPointerUp={handleTabContentPointerUp}
       >
         {isInitialTabLoading ? (
           <div className="flex justify-center py-6">
             <CommunityLoopSpinner />
           </div>
         ) : visibleItems.length ? (
-          <div className="space-y-6">
-            {visibleItems.map((comment) =>
-              activeTab === "reviews" ? (
-                <CommunityReview
-                  {...comment}
-                  key={`review-${comment.postId}`}
-                  neodbInstance={neodbInstance}
-                  onDeleteReview={handleDeleteReview}
-                />
-              ) : (
-                <CommunityComment
-                  {...comment}
-                  isbn={isbn}
-                  itemPageCount={itemPageCount}
-                  key={`comment-${comment.postId}`}
-                  onDeleteComment={handleDeleteComment}
-                  onDeleteReview={handleDeleteReview}
-                  progressStorageScope={progressStorageScope}
-                />
-              ),
-            )}
+          <div className="space-y-6" ref={entryListRef}>
+            {visibleItems.map((comment) => (
+              <div data-motion-item={comment.postId} key={`${activeTab}-${comment.postId}`}>
+                {activeTab === "reviews" ? (
+                  <CommunityReview
+                    {...comment}
+                    neodbInstance={neodbInstance}
+                    onDeleteReview={handleDeleteReview}
+                  />
+                ) : (
+                  <CommunityComment
+                    {...comment}
+                    isbn={isbn}
+                    itemPageCount={itemPageCount}
+                    onDeleteComment={handleDeleteComment}
+                    onDeleteReview={handleDeleteReview}
+                    progressStorageScope={progressStorageScope}
+                  />
+                )}
+              </div>
+            ))}
             {activeTabState.hasMore ? (
               <div aria-hidden="true" className="h-px" ref={loadMoreRef} />
             ) : null}
@@ -730,11 +797,14 @@ export function CommunityList({
             ) : null}
           </div>
         ) : (
-          <p className="rounded-2xl border border-[#e2e2e5] bg-white/70 p-4 text-sm text-[#44474c]">
-            {activeTab === "reviews"
-              ? t("community.noReviews")
-              : t("detail.noComments")}
-          </p>
+          <div className="flex flex-1 flex-col">
+            <p className="rounded-2xl border border-[#e2e2e5] bg-white/70 p-4 text-sm text-[#44474c]">
+              {activeTab === "reviews"
+                ? t("community.noReviews")
+                : t("detail.noComments")}
+            </p>
+            <div aria-hidden="true" className="min-h-32 flex-1" />
+          </div>
         )}
       </div>
     </div>
@@ -810,7 +880,7 @@ function CommunityTabButton({
 
 export function CommunityLoadingSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="min-h-[calc(100dvh-5rem)] space-y-6">
       <div className="space-y-3">
         <div className="flex min-h-10 items-center justify-between gap-3">
           <div className="flex h-10 items-center gap-6">
@@ -829,7 +899,7 @@ export function CommunityLoadingSkeleton() {
         </div>
       </div>
       {Array.from({ length: 3 }, (_, index) => (
-        <div className="flex animate-pulse gap-4" key={index}>
+        <div className="flex gap-4" key={index}>
           <div className="size-10 shrink-0 rounded-full bg-[#dde3eb]" />
           <div className="min-w-0 flex-1 space-y-3">
             <div className="h-3 w-28 rounded-full bg-[#dde3eb]" />
@@ -1593,28 +1663,87 @@ function getProfileAccounts(profile: CurrentUserProfile) {
 function isInteractiveGestureTarget(target: EventTarget | null) {
   return (
     target instanceof Element &&
-    Boolean(target.closest("input, select, textarea, [contenteditable='true']"))
+    Boolean(
+      target.closest(
+        "input, select, textarea, button, a, [role='button'], [contenteditable='true']",
+      ),
+    )
   );
 }
 
-function scrollCommunityToTop(root: HTMLElement | null) {
-  if (!root) {
-    return;
+function smoothScrollTo(
+  targetY: number,
+  duration: number,
+  onComplete?: () => void,
+): () => void {
+  if (typeof window === "undefined") {
+    onComplete?.();
+    return () => {};
   }
 
-  const topBarOffset = 80;
-  const rootTop = root.getBoundingClientRect().top;
-
-  if (rootTop >= topBarOffset) {
-    return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    window.scrollTo({ behavior: "instant", top: targetY });
+    onComplete?.();
+    return () => {};
   }
 
-  window.scrollTo({
-    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ? "instant"
-      : "smooth",
-    top: window.scrollY + rootTop - topBarOffset,
-  });
+  const startY = window.scrollY;
+  const diff = targetY - startY;
+
+  if (Math.abs(diff) <= 2) {
+    window.scrollTo({ behavior: "instant", top: targetY });
+    onComplete?.();
+    return () => {};
+  }
+
+  const startTime = performance.now();
+  let frameId = 0;
+  let finished = false;
+
+  const cleanup = () => {
+    if (finished) {
+      return;
+    }
+    finished = true;
+    cancelAnimationFrame(frameId);
+    window.removeEventListener("wheel", handleInterrupt);
+    window.removeEventListener("touchstart", handleInterrupt);
+    onComplete?.();
+  };
+
+  const handleInterrupt = () => {
+    cleanup();
+  };
+
+  window.addEventListener("wheel", handleInterrupt, { passive: true, once: true });
+  window.addEventListener("touchstart", handleInterrupt, { passive: true, once: true });
+
+  const easeOutCubic = (x: number): number => 1 - Math.pow(1 - x, 3);
+
+  function step(currentTime: number) {
+    if (finished) {
+      return;
+    }
+
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    const eased = easeOutCubic(progress);
+
+    window.scrollTo({
+      behavior: "instant",
+      top: Math.round(startY + diff * eased),
+    });
+
+    if (progress < 1) {
+      frameId = requestAnimationFrame(step);
+    } else {
+      cleanup();
+    }
+  }
+
+  frameId = requestAnimationFrame(step);
+
+  return cleanup;
 }
 
 function isCommentByAccount(

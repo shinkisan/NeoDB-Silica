@@ -1,5 +1,7 @@
 "use client";
 
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useT } from "@/components/use-t";
@@ -854,26 +856,12 @@ function BioDialog({
   onSave: () => void;
   status: "idle" | "saving";
 }) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
 
-  useEffect(() => {
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e2e2e5]/55 px-5 py-5 backdrop-blur-sm">
-      <section className="review-editor-enter max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
+    <DialogShell {...dialog} portal={false} backdropClassName="bg-[#e2e2e5]/55 backdrop-blur-sm" className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-5">
+      <section className="dialog-panel max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
         <header className="flex items-center justify-between gap-4 pb-2">
           <h2 className="min-w-0 text-xl font-bold text-[var(--foreground)]">
             {t("userProfile.editBio")}
@@ -881,7 +869,7 @@ function BioDialog({
           <button
             aria-label={t("userProfile.editBioClose")}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -905,16 +893,16 @@ function BioDialog({
           {status === "saving" ? t("userProfile.editBioSaving") : t("userProfile.editBioSave")}
         </button>
       </section>
-    </div>
+    </DialogShell>
   );
 }
 
 function UserProfileHeaderSkeleton() {
   return (
     <header className="flex flex-col items-center text-center">
-      <div className="mb-6 size-32 animate-pulse rounded-full border border-white/80 bg-white/55 shadow-[0_18px_48px_-18px_rgba(74,85,104,0.45)] backdrop-blur-2xl" />
-      <div className="h-7 w-36 animate-pulse rounded-full bg-[#e2e2e5]" />
-      <div className="mt-3 h-4 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
+      <div className="mb-6 size-32 skeleton rounded-full border border-white/80 shadow-[0_18px_48px_-18px_rgba(74,85,104,0.45)] backdrop-blur-2xl" />
+      <div className="h-7 w-36 skeleton rounded-full" />
+      <div className="mt-3 h-4 w-24 skeleton rounded-full" />
     </header>
   );
 }

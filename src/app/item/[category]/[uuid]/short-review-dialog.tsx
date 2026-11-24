@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useId, useRef, useState } from "react";
+import { DialogSheetHandle, DialogShell, useDialogMotion } from "@/components/dialog-shell";
 import { showToast } from "@/components/app-toast";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Dropdown } from "@/components/dropdown";
 import { PublishSwitch } from "@/components/publish-switch";
 import { useT } from "@/components/use-t";
+import { useTagRailBounce } from "@/components/use-tag-rail-bounce";
 import {
   normalizeNeodbVisibility,
   type NeodbVisibility,
@@ -71,10 +72,12 @@ export function ShortReviewDialog({
     "loading",
   );
   const [isVisibilityOpen, setIsVisibilityOpen] = useState(false);
+  const moreOptionsId = useId();
   const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const isKeyboardOpen = useVisualKeyboardOpen();
   const t = useT();
+  const tagRailBounce = useTagRailBounce();
   const tagOptions = [
     { id: "__new__", label: t("detail.hashtags.createTag") },
     ...myTags.map((entry) => ({ id: entry.uuid, label: entry.title })),
@@ -92,20 +95,17 @@ export function ShortReviewDialog({
     draftVisibility !== visibility ||
     !areSameTags(draftTags, tags);
 
-  useEffect(() => {
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
+  const dialog = useDialogMotion(onClose);
+  function requestCloseEditor() {
+    if (draftComment !== comment || draftRating !== rating ||
+      draftPostToFediverse !== defaultPostToFediverse || !areSameTags(draftTags, tags) ||
+      draftVisibility !== visibility) {
+      onClose();
+    } else {
+      dialog.requestClose();
+    }
+  }
+  const tagDialog = useDialogMotion(() => setIsTagDialogOpen(false));
 
   useEffect(() => {
     let cancelled = false;
@@ -178,13 +178,17 @@ export function ShortReviewDialog({
     onDraftTagsChange([...draftTags, ...uniqueTags]);
     setTagInput("");
     setSelectedTagId("__new__");
-    setIsTagDialogOpen(false);
+    tagDialog.requestClose();
     setIsMoreOpen(true);
   }
 
-  return createPortal(
-    <div
-      className={`fixed inset-0 z-[80] flex items-center justify-center bg-[#e2e2e5]/55 px-5 backdrop-blur-sm ${
+  return (
+    <DialogShell
+      {...dialog}
+      closeOnBackdrop={false}
+      requestClose={requestCloseEditor}
+      variant="sheet"
+      className={`fixed inset-0 z-[80] flex items-center justify-center px-5 ${
         isKeyboardOpen
           ? "pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3"
           : "pb-5 pt-5"
@@ -193,18 +197,19 @@ export function ShortReviewDialog({
         if (event.target === event.currentTarget && !isDiscardOpen) {
           event.preventDefault();
           event.stopPropagation();
-          setIsTagDialogOpen(false);
+          tagDialog.requestClose();
           setIsVisibilityOpen(false);
         }
       }}
     >
       <div
-        className={`review-editor-enter w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl ${
+        className={`dialog-panel w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl ${
           isKeyboardOpen
             ? "max-h-[calc(100dvh_-_1rem_-_env(safe-area-inset-bottom))]"
             : "max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] sm:max-h-[calc(100dvh_-_2.5rem)]"
         }`}
       >
+        <DialogSheetHandle leaving={dialog.leaving} requestClose={requestCloseEditor} />
         <header className="flex items-center justify-between gap-4 pb-2">
           <h3 className="min-w-0 text-xl font-bold text-[var(--foreground)]">
             {comment || rating ? t("shortReview.editTitle") : t("shortReview.writeTitle")}
@@ -212,7 +217,7 @@ export function ShortReviewDialog({
           <button
             aria-label={t("shortReview.close")}
             className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={requestCloseEditor}
             type="button"
           >
             <CloseIcon />
@@ -249,7 +254,12 @@ export function ShortReviewDialog({
                     }}
                     type="button"
                   >
-                    <RatingStar fill={fill} />
+                    <span className={fill > 0 && draftRating !== rating ? "motion-confirm" : undefined}
+                      key={fill}
+                      style={{ animationDelay: `calc(${index * 20}ms * var(--motion-distance))` }}
+                    >
+                      <RatingStar fill={fill} />
+                    </span>
                   </button>
                 );
               })}
@@ -267,9 +277,13 @@ export function ShortReviewDialog({
 
         <div className="mt-3 flex items-center justify-between">
           <button
+            aria-controls={moreOptionsId}
             aria-expanded={isMoreOpen}
             className="inline-flex h-8 items-center gap-1 text-sm font-semibold text-[#75777d] transition hover:text-[var(--foreground)] press-control"
-            onClick={() => setIsMoreOpen((value) => !value)}
+            onClick={() => {
+              if (isMoreOpen) setIsVisibilityOpen(false);
+              setIsMoreOpen(!isMoreOpen);
+            }}
             type="button"
           >
             <span
@@ -320,13 +334,22 @@ export function ShortReviewDialog({
           </button>
         </div>
 
-        {isMoreOpen ? (
-          <section className="mt-4">
-            <div>
+        <div
+          className="short-review-options"
+          data-expanded={isMoreOpen}
+          id={moreOptionsId}
+          inert={!isMoreOpen}
+        >
+          <section className="min-h-0 overflow-clip">
+            <div className="pt-4">
               <h4 className="text-sm font-bold text-[var(--foreground)]">
                 {t("shortReview.myTags")}
               </h4>
-              <div className="short-review-tag-scroll -mx-1 mt-1 overflow-x-auto px-1 pb-2 pt-1">
+              <div
+                {...tagRailBounce}
+                className="short-review-tag-scroll -mx-1 mt-1 overflow-x-auto px-1 pb-2 pt-1"
+                data-tag-rail
+              >
                 <div className="flex w-max gap-3">
                   {draftTags.map((tag) => (
                     <button
@@ -392,7 +415,7 @@ export function ShortReviewDialog({
               />
             </div>
           </section>
-        ) : null}
+        </div>
 
         <button
           className="mt-5 grid h-12 w-full place-items-center rounded-full bg-[var(--theme-primary)] text-sm font-bold text-white shadow-md transition hover:bg-[var(--theme-primary-hover)] press-control disabled:cursor-not-allowed disabled:bg-[#c1c7cf]"
@@ -417,8 +440,8 @@ export function ShortReviewDialog({
       ) : null}
 
       {isTagDialogOpen ? (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#e2e2e5]/55 px-5 py-5 backdrop-blur-sm">
-          <section className="review-editor-enter w-full max-w-md rounded-[2rem] border border-white/60 bg-white/85 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
+        <DialogShell {...tagDialog} className="fixed inset-0 z-[90] flex items-center justify-center px-5 py-5">
+          <section className="dialog-panel w-full max-w-md rounded-[2rem] border border-white/60 bg-white/85 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
             <header className="flex items-center justify-between gap-3 pb-2">
               <div className="flex min-w-0 items-center gap-2">
                 <h3 className="min-w-0 text-xl font-bold text-[var(--foreground)]">
@@ -437,7 +460,7 @@ export function ShortReviewDialog({
               <button
                 aria-label={t("detail.hashtags.close")}
                 className="grid size-10 shrink-0 place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-                onClick={() => setIsTagDialogOpen(false)}
+                onClick={tagDialog.requestClose}
                 type="button"
               >
                 <CloseIcon />
@@ -474,10 +497,9 @@ export function ShortReviewDialog({
               </button>
             </div>
           </section>
-        </div>
+        </DialogShell>
       ) : null}
-    </div>,
-    document.body,
+    </DialogShell>
   );
 }
 

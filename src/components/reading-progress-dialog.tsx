@@ -247,6 +247,7 @@ export function ReadingProgressDialog({
 
   return (
     <ConfirmDialog
+      variant="sheet"
       confirmDisabled={
         isConfirmingClear || isConfirmingLocalTotal
           ? isSaving
@@ -316,7 +317,7 @@ export function ReadingProgressDialog({
             <div className="relative grid h-full grid-cols-3">
               <span
                 aria-hidden="true"
-                className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[var(--theme-primary)] shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[var(--theme-primary)] shadow-md motion-pill transition-transform duration-(--dur-spring) ease-spring-snappy"
                 style={{ transform: `translateX(${activeTypeIndex * 100}%)` }}
               />
               {options.map((option) => {

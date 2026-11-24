@@ -1,11 +1,12 @@
 "use client";
 
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { showToast } from "@/components/app-toast";
 import { Dropdown } from "@/components/dropdown";
 import { useT } from "@/components/use-t";
-import { CloseIcon, useLockedBodyScroll } from "@/components/related-links-dialog";
+import { CloseIcon } from "@/components/related-links-dialog";
 import type { HomeItem } from "@/lib/neodb";
 
 export function TrackListDialog({
@@ -17,17 +18,16 @@ export function TrackListDialog({
   title: string;
   tracks: string[];
 }) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
 
-  useLockedBodyScroll();
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e2e2e5]/55 px-5 py-5 backdrop-blur-sm"
+  return (
+    <DialogShell {...dialog} backdropClassName="bg-[#e2e2e5]/55 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-5"
       onClick={(event) => event.stopPropagation()}
     >
       <section
-        className="review-editor-enter flex max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl"
+        className="dialog-panel flex max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl"
         onClick={(event) => event.stopPropagation()}
       >
         <header className="flex items-center justify-between gap-3 pb-2">
@@ -42,7 +42,7 @@ export function TrackListDialog({
           <button
             aria-label={t("detail.tools.closeTrackList")}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -65,8 +65,7 @@ export function TrackListDialog({
           ))}
         </ol>
       </section>
-    </div>,
-    document.body,
+    </DialogShell>
   );
 }
 
@@ -77,6 +76,7 @@ export function AddToCollectionDialog({
   itemUuid: string;
   onClose: () => void;
 }) {
+  const dialog = useDialogMotion(onClose);
   const t = useT();
   const [collections, setCollections] = useState<HomeItem[]>([]);
   const [collectionTitle, setCollectionTitle] = useState("");
@@ -94,8 +94,6 @@ export function AddToCollectionDialog({
     })),
   ];
   const isCreatingCollection = selectedCollectionId === "__new__";
-
-  useLockedBodyScroll();
 
   useEffect(() => {
     let cancelled = false;
@@ -157,7 +155,7 @@ export function AddToCollectionDialog({
       }
 
       showToast(t("detail.tools.collectionAdded"));
-      onClose();
+      dialog.requestClose();
     } catch (error) {
       showToast(
         error instanceof Error
@@ -169,9 +167,9 @@ export function AddToCollectionDialog({
     }
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e2e2e5]/55 px-5 py-5 backdrop-blur-sm">
-      <section className="review-editor-enter max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
+  return (
+    <DialogShell {...dialog} backdropClassName="bg-[#e2e2e5]/55 backdrop-blur-sm" className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-5">
+      <section className="dialog-panel max-h-[calc(100dvh_-_2rem_-_env(safe-area-inset-bottom))] w-full max-w-md overflow-y-auto overscroll-contain rounded-[2rem] border border-white/60 bg-white/80 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-3xl">
         <header className="flex items-center justify-between gap-3 pb-2">
           <div className="flex min-w-0 items-center gap-2">
             <h2 className="min-w-0 text-xl font-bold text-[var(--foreground)]">
@@ -190,7 +188,7 @@ export function AddToCollectionDialog({
           <button
             aria-label={t("detail.tools.closeCollectionDialog")}
             className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full border border-white/60 bg-white/55 text-[#44474c] shadow-sm transition hover:bg-white/85 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -218,7 +216,6 @@ export function AddToCollectionDialog({
           {isSaving ? t("detail.tools.collectionSaving") : t("detail.tools.collectionSave")}
         </button>
       </section>
-    </div>,
-    document.body,
+    </DialogShell>
   );
 }

@@ -24,7 +24,7 @@ export function PublishSwitch({
       type="button"
     >
       <span
-        className={`block size-6 rounded-full shadow-md shadow-slate-900/20 transition-transform ${
+        className={`block size-6 rounded-full shadow-md shadow-slate-900/20 motion-pill transition-transform duration-(--dur-spring) ease-spring-snappy ${
           checked ? "translate-x-5" : "translate-x-0"
         }`}
         style={{ backgroundColor: "#fff" }}

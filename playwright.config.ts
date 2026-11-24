@@ -20,6 +20,7 @@ export default defineConfig({
   use: {
     baseURL: APP_ORIGIN,
     locale: "zh-CN",
+    contextOptions: { reducedMotion: "reduce" },
     trace: "retain-on-failure",
   },
   webServer: [

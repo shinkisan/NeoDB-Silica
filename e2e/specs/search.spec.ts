@@ -25,3 +25,17 @@ test("search finds a catalog item and opens its detail page", async ({ page }) =
     page.getByRole("heading", { level: 1, name: BOOK_TITLE }),
   ).toBeVisible();
 });
+
+test("a closing catalog dialog unmounts even without a transition event", async ({ page }) => {
+  await page.goto("/search?q=motion-test-missing");
+  const trigger = page.getByRole("button", { name: /尝试提交链接/ });
+  await trigger.click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.evaluate((element) => { element.style.transition = "none"; });
+  await page.keyboard.press("Escape");
+
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});

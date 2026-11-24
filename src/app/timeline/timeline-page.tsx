@@ -1,8 +1,12 @@
 "use client";
 
+import { rubberBand } from "@/lib/motion";
+import { useTabSlide } from "@/components/use-tab-slide";
+import { useSwipePager } from "@/components/use-swipe-pager";
+
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { showToast } from "@/components/app-toast";
 import { ActivityCardList } from "@/components/activity-card";
 import { useT } from "@/components/use-t";
@@ -54,13 +58,7 @@ function handleTimelineReload() {
 const PULL_REFRESH_TRIGGER_PX = 68;
 const PULL_REFRESH_MAX_PX = 96;
 const WHEEL_PULL_DISTANCE_FACTOR = 0.2;
-const TIMELINE_SWIPE_EXIT_MS = 160;
 type TimelineLoadState = "idle" | "loading" | "ready" | "guest" | "error";
-type SwipeTransition = {
-  direction: "left" | "right";
-  phase: "enter" | "exit";
-};
-
 export function TimelinePage() {
   const t = useT();
   const searchParams = useSearchParams();
@@ -85,8 +83,6 @@ export function TimelinePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
-  const [swipeTransition, setSwipeTransition] =
-    useState<SwipeTransition | null>(null);
   const mainRef = useRef<HTMLElement>(null);
   const cacheScopeRef = useRef<string | null>(null);
   const publicCacheScopeRef = useRef<string | null>(null);
@@ -95,16 +91,22 @@ export function TimelinePage() {
   const isRefreshingRef = useRef(false);
   const pullDistanceRef = useRef(0);
   const refreshActiveTimelineRef = useRef<() => Promise<void>>(async () => {});
-  const swipeExitTimerRef = useRef<number | null>(null);
-  const swipeGestureRef = useRef<{
-    id: number;
-    x: number;
-    y: number;
-  } | null>(null);
-  const suppressGestureClickRef = useRef(false);
   const canPullRefreshRef = useRef(false);
   const activeIndex = views.indexOf(activeView);
-  const contentAnimationClass = getTimelineSwipeClass(swipeTransition);
+  const viewPillRef = useRef<HTMLSpanElement>(null);
+  const viewSlideRef = useRef<HTMLDivElement>(null);
+  const slideView = useTabSlide(viewSlideRef);
+  const swipeHandlers = useSwipePager({
+    index: activeIndex,
+    count: views.length,
+    onSelect: (index) => selectTimelineView(views[index]),
+    onProgress: (fraction) => {
+      const pill = viewPillRef.current;
+      if (!pill) return;
+      pill.style.transitionProperty = fraction ? "none" : "";
+      pill.style.translate = fraction ? `${fraction * 100}%` : "";
+    },
+  });
   const notificationsHref = `/timeline/notifications?from=${encodeURIComponent(
     getTimelineViewHref(activeView),
   )}`;
@@ -119,14 +121,6 @@ export function TimelinePage() {
     return () => {
       document.documentElement.style.overscrollBehaviorY = documentOverscroll;
       document.body.style.overscrollBehaviorY = bodyOverscroll;
-    };
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (swipeExitTimerRef.current !== null) {
-        window.clearTimeout(swipeExitTimerRef.current);
-      }
     };
   }, []);
 
@@ -233,7 +227,7 @@ export function TimelinePage() {
       }
 
       event.preventDefault();
-      const distance = Math.min(PULL_REFRESH_MAX_PX, deltaY * 0.55);
+      const distance = rubberBand(deltaY, PULL_REFRESH_MAX_PX * 2);
       pullDistanceRef.current = distance;
       setPullDistance(distance);
     }
@@ -737,74 +731,12 @@ export function TimelinePage() {
     }
   }
 
-  function selectTimelineView(
-    view: TimelineView,
-    options: { swipeDirection?: "left" | "right" } = {},
-  ) {
+  function selectTimelineView(view: TimelineView) {
     if (view === activeView) return;
-
-    if (swipeExitTimerRef.current !== null) {
-      window.clearTimeout(swipeExitTimerRef.current);
-      swipeExitTimerRef.current = null;
-    }
-
-    if (options.swipeDirection) {
-      setSwipeTransition({
-        direction: options.swipeDirection,
-        phase: "exit",
-      });
-      swipeExitTimerRef.current = window.setTimeout(() => {
-        swipeExitTimerRef.current = null;
-        window.scrollTo({ top: 0, behavior: "instant" });
-        setActiveView(view);
-        updateTimelineViewUrl(view);
-        setSwipeTransition({
-          direction: options.swipeDirection!,
-          phase: "enter",
-        });
-      }, TIMELINE_SWIPE_EXIT_MS);
-      return;
-    }
-
     window.scrollTo({ top: 0, behavior: "instant" });
-    setSwipeTransition(null);
+
     setActiveView(view);
     updateTimelineViewUrl(view);
-  }
-
-  function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (!event.isPrimary || event.pointerType === "mouse") return;
-
-    swipeGestureRef.current = {
-      id: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-    };
-  }
-
-  function handleContentPointerUp(event: PointerEvent<HTMLDivElement>) {
-    const start = swipeGestureRef.current;
-    if (!start || start.id !== event.pointerId) return;
-
-    swipeGestureRef.current = null;
-    const deltaX = event.clientX - start.x;
-    const deltaY = event.clientY - start.y;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-
-    if (absX < 64 || absX < absY * 1.35) return;
-
-    const nextIndex = deltaX < 0 ? activeIndex + 1 : activeIndex - 1;
-    const nextView = views[nextIndex];
-    if (!nextView) return;
-
-    suppressGestureClickRef.current = true;
-    selectTimelineView(nextView, {
-      swipeDirection: deltaX < 0 ? "left" : "right",
-    });
-    window.setTimeout(() => {
-      suppressGestureClickRef.current = false;
-    }, 0);
   }
 
   return (
@@ -818,10 +750,11 @@ export function TimelinePage() {
             <div className="relative grid h-9 grid-cols-3">
               <span
                 aria-hidden="true"
-                className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[var(--theme-primary)] shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[var(--theme-primary)] shadow-md motion-pill transition-transform duration-(--dur-spring) ease-spring-snappy"
+                ref={viewPillRef}
                 style={{ transform: `translateX(${activeIndex * 100}%)` }}
               />
-              {views.map((view) => (
+              {views.map((view, index) => (
                 <button
                   aria-current={activeView === view ? "page" : undefined}
                   className={`relative z-10 grid h-9 place-items-center rounded-full text-xs font-bold transition-colors duration-300 ${
@@ -829,7 +762,7 @@ export function TimelinePage() {
                   }`}
                   key={view}
                   onClick={() => {
-                    selectTimelineView(view);
+                    if (view !== activeView) slideView(index - activeIndex, () => selectTimelineView(view));
                   }}
                   type="button"
                 >
@@ -853,26 +786,17 @@ export function TimelinePage() {
           </Link>
         </div>
 
-        <div className="relative min-h-[55dvh]">
+        <div className="tab-slide relative min-h-[55dvh]" ref={viewSlideRef}>
           <PullRefreshIndicator
             distance={pullDistance}
             isRefreshing={isRefreshing}
           />
           <div
-            className={`touch-pan-y motion-safe:will-change-transform ${contentAnimationClass}`}
-            onClickCapture={(event) => {
-              if (!suppressGestureClickRef.current) return;
-              event.preventDefault();
-              event.stopPropagation();
-            }}
-            onPointerCancel={() => {
-              swipeGestureRef.current = null;
-            }}
-            onPointerDown={handleContentPointerDown}
-            onPointerUp={handleContentPointerUp}
+            className="touch-pan-y"
+            {...swipeHandlers}
             style={{
-              transform: `translateY(${pullDistance}px)`,
-              transition: isPulling ? "none" : "transform 180ms ease-out",
+              transform: `translateY(calc(${pullDistance}px * var(--motion-distance)))`,
+              transition: isPulling ? "none" : "transform var(--dur-spring) var(--ease-spring-snappy)",
             }}
           >
             {activeView === "public" ? (
@@ -928,12 +852,12 @@ function PullRefreshIndicator({
       role={isRefreshing ? "status" : undefined}
       style={{
         opacity: isRefreshing ? 1 : progress,
-        top: `${(distance - 60) / 2}px`,
-        transform: `translateX(-50%) scale(${0.75 + progress * 0.25})`,
+        top: 0,
+        transform: `translate(-50%, ${(distance - 60) / 2}px) scale(calc(1 - ${(1 - progress) * 0.25} * var(--motion-scale)))`,
       }}
     >
       <RefreshIcon
-        className={isRefreshing ? "animate-spin" : ""}
+        className={isRefreshing ? "animate-spin motion-reduce:animate-none" : progress === 1 ? "motion-confirm" : ""}
         rotation={progress * 180}
       />
     </div>
@@ -1225,19 +1149,6 @@ function getTimelineViewHref(view: TimelineView) {
   return view === "public" ? "/timeline" : `/timeline?view=${view}`;
 }
 
-function getTimelineSwipeClass(transition: SwipeTransition | null) {
-  if (!transition) return "";
-
-  if (transition.phase === "exit") {
-    return transition.direction === "left"
-      ? "home-swipe-exit-left"
-      : "home-swipe-exit-right";
-  }
-
-  return transition.direction === "left"
-    ? "home-swipe-enter-right"
-    : "home-swipe-enter-left";
-}
 
 function applyTimelinePayload(
   payload: TimelineResponse,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
 import { useRouter } from "next/navigation";
 import { pushNavigationFrame } from "@/components/navigation-history";
 import { useT } from "@/components/use-t";
@@ -107,15 +107,10 @@ export function CatalogFetchDialog({
   const startedAtRef = useRef(0);
   const timerRef = useRef<number | null>(null);
   const closedRef = useRef(false);
+  const dialog = useDialogMotion(onClose);
 
   useEffect(() => {
     closedRef.current = false;
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
     return () => {
       closedRef.current = true;
 
@@ -123,10 +118,6 @@ export function CatalogFetchDialog({
         window.clearTimeout(timerRef.current);
       }
 
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
     };
   }, []);
 
@@ -150,7 +141,7 @@ export function CatalogFetchDialog({
       window.clearTimeout(timerRef.current);
     }
 
-    onClose();
+    dialog.requestClose();
   }
 
   async function startFetch() {
@@ -262,7 +253,7 @@ export function CatalogFetchDialog({
     onResolved?.(href);
     requestDetailScrollTopForHref(href);
     pushNavigationFrame("detail", href);
-    router.push(href);
+    router.push(href, { transitionTypes: ["nav-forward"] });
     onClose();
   }
 
@@ -300,12 +291,10 @@ export function CatalogFetchDialog({
     return null;
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-[110] grid place-items-center bg-[#1a1c1e]/25 px-5 backdrop-blur-sm">
+  return (
+    <DialogShell {...dialog} requestClose={closeDialog} closeOnBackdrop={false} backdropClassName="bg-[#1a1c1e]/25 backdrop-blur-sm" className="fixed inset-0 z-[110] grid place-items-center px-5">
       <div
-        className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-2xl"
-        role="dialog"
-        aria-modal="true"
+        className="dialog-panel w-full max-w-md rounded-[2rem] border border-white/70 bg-white/90 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur-2xl"
       >
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-[var(--foreground)]">
@@ -420,8 +409,7 @@ export function CatalogFetchDialog({
           </div>
         )}
       </div>
-    </div>,
-    document.body,
+    </DialogShell>
   );
 }
 

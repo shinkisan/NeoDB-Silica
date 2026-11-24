@@ -23,6 +23,7 @@ export function CollectionItemLink({
     <Link
       className="block"
       href={href}
+      transitionTypes={["nav-forward"]}
       onClick={() => {
         window.sessionStorage.setItem(
           `${COLLECTION_SCROLL_PREFIX}${uuid}:${page}`,

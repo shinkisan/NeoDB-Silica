@@ -1,5 +1,7 @@
 "use client";
 
+import { markMotionBack } from "@/components/motion-controller";
+
 import { useRouter } from "next/navigation";
 import {
   performNavigationClose,
@@ -27,6 +29,7 @@ export function CloseDetailButton({
 
         button.disabled = true;
         onBeforeClose?.();
+        markMotionBack();
         performNavigationClose(resolveDetailCloseAction(), router);
       }}
       onPointerDown={(event) => {

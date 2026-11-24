@@ -433,7 +433,7 @@ function TmdbRailSkeleton() {
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
       {Array.from({ length: 9 }, (_, index) => (
         <div
-          className="animate-pulse rounded-xl border border-white/80 bg-white shadow-md shadow-slate-900/5"
+          className="skeleton rounded-xl border border-white/80 shadow-md shadow-slate-900/5"
           key={index}
         >
           <div className="aspect-[3/4] rounded-xl bg-[#e2e2e5]" />

@@ -1,5 +1,7 @@
 "use client";
 
+import { DialogShell, useDialogMotion } from "@/components/dialog-shell";
+
 import { useEffect, useRef, useState } from "react";
 import { FloatingTopBar, TopBarIsland } from "@/components/floating-top-bar";
 import ReactMarkdown from "react-markdown";
@@ -19,7 +21,6 @@ export function ReviewReader({
   disabled,
   favourited,
   favouritesCount,
-  isClosing,
   isLoading,
   isOwn,
   neodbInstance,
@@ -38,7 +39,6 @@ export function ReviewReader({
   disabled?: boolean;
   favourited?: boolean;
   favouritesCount?: number;
-  isClosing: boolean;
   isLoading: boolean;
   isOwn?: boolean;
   neodbInstance?: string;
@@ -58,20 +58,7 @@ export function ReviewReader({
   const titleRef = useRef<HTMLSpanElement>(null);
   const [isTitleOverflowing, setIsTitleOverflowing] = useState(false);
 
-  useEffect(() => {
-    const scrollY = window.scrollY;
-
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
+  const dialog = useDialogMotion(onClose);
 
   useEffect(() => {
     function measureTitle() {
@@ -99,18 +86,18 @@ export function ReviewReader({
   }, [title]);
 
   return (
-    <div
-      className={`fixed inset-0 z-[110] overflow-y-auto bg-[var(--background)] text-[var(--foreground)] ${
-        isClosing ? "review-reader-exit" : "review-reader-enter"
-      }`}
-      onClick={(event) => event.stopPropagation()}
+    <DialogShell
+      {...dialog}
+      className="fixed inset-0 z-[110] overflow-y-auto bg-[var(--background)] text-[var(--foreground)]"
+      portal={false}
+      variant="reader"
     >
       <FloatingTopBar className="sticky top-0 z-10 w-screen" rowClassName="max-w-4xl">
         <TopBarIsland>
           <button
             aria-label={t("reviewReader.close")}
             className="grid size-10 shrink-0 place-items-center rounded-full text-[#44474c] transition hover:bg-white/70 press-icon"
-            onClick={onClose}
+            onClick={dialog.requestClose}
             type="button"
           >
             <CloseIcon />
@@ -170,10 +157,10 @@ export function ReviewReader({
       <main className="mx-auto max-w-3xl px-5 pb-16 pt-8">
         {isLoading ? (
           <div className="space-y-3">
-            <div className="h-5 w-2/3 animate-pulse rounded-full bg-[#e2e2e5]" />
-            <div className="h-4 animate-pulse rounded-full bg-[#e2e2e5]" />
-            <div className="h-4 animate-pulse rounded-full bg-[#e2e2e5]" />
-            <div className="h-4 w-5/6 animate-pulse rounded-full bg-[#e2e2e5]" />
+            <div className="h-5 w-2/3 skeleton rounded-full" />
+            <div className="h-4 skeleton rounded-full" />
+            <div className="h-4 skeleton rounded-full" />
+            <div className="h-4 w-5/6 skeleton rounded-full" />
           </div>
         ) : (
           <>
@@ -208,7 +195,7 @@ export function ReviewReader({
           </>
         )}
       </main>
-    </div>
+    </DialogShell>
   );
 }
 

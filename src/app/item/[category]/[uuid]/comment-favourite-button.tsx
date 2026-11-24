@@ -1,5 +1,7 @@
 "use client";
 
+import { AnimatedCount } from "@/components/animated-count";
+
 import { useEffect, useState } from "react";
 import { showToast } from "@/components/app-toast";
 import { useT } from "@/components/use-t";
@@ -108,8 +110,8 @@ export function CommentFavouriteButton({
       title={disabled ? t("favourite.loginToLike") : isFavourited ? t("favourite.unlike") : t("favourite.like")}
       type="button"
     >
-      <HeartIcon filled={isFavourited} />
-      {hideZeroCount && currentCount === 0 ? null : currentCount}
+      <span className={isFavourited ? "motion-confirm" : undefined}><HeartIcon filled={isFavourited} /></span>
+      {hideZeroCount && currentCount === 0 ? null : <AnimatedCount count={currentCount} />}
     </button>
   );
 }

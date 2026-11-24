@@ -1,7 +1,11 @@
 "use client";
 
+import { useInitialListReveal } from "@/components/use-list-motion";
+import { useTabSlide } from "@/components/use-tab-slide";
+import { trackCategoryIndicator, useSwipePager } from "@/components/use-swipe-pager";
+
 import { useRouter, useSearchParams } from "next/navigation";
-import type { PointerEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { lazy, Suspense, useEffect, useRef, useState, useTransition } from "react";
 import type { ShelfType } from "@/components/mark-badges";
 import { HorizontalScrollControls } from "@/components/horizontal-scroll-controls";
@@ -38,13 +42,7 @@ const MARKED_LEAVING_KEY = `${STORAGE_PREFIX}v1:marked:leaving`;
 const MARKED_SCROLL_PREFIX = `${STORAGE_PREFIX}v1:marked:scroll:`;
 export const MARKED_CATEGORY_ORDER_EVENT = "app:marked-category-order";
 export const MARKED_CATEGORY_ORDER_KEY = `${STORAGE_PREFIX}v1:marked-category-order`;
-const MARKED_SWIPE_EXIT_MS = 160;
 export const MARKED_LIST_PENDING_EVENT = "app:marked-list-pending";
-
-type SwipeTransition = {
-  direction: "left" | "right";
-  phase: "exit" | "enter";
-};
 
 export function MarkedFrame({
   categories,
@@ -67,20 +65,12 @@ export function MarkedFrame({
   const searchParams = useSearchParams();
   const isRestoringScrollRef = useRef(false);
   const categoryViewportRef = useRef<HTMLDivElement>(null);
-  const swipeExitTimerRef = useRef<number | null>(null);
-  const gestureStartRef = useRef<{
-    id: number;
-    x: number;
-    y: number;
-  } | null>(null);
-  const suppressGestureClickRef = useRef(false);
   const [pendingTarget, setPendingTarget] = useState<{
     category: string;
     shelf: ShelfFilter;
   } | null>(null);
   const [isExternalPending, setIsExternalPending] = useState(false);
   const [isCategoryOrderOpen, setIsCategoryOrderOpen] = useState(false);
-  const [swipeTransition, setSwipeTransition] = useState<SwipeTransition | null>(null);
   const [isPending, startTransition] = useTransition();
   const isWaitingForRoute =
     pendingTarget !== null &&
@@ -94,15 +84,21 @@ export function MarkedFrame({
   const currentSearch = searchParams.toString();
   const showSkeleton =
     isDataLoading || isPending || isWaitingForRoute || isExternalPending;
-  const contentAnimationClass = getMarkedSwipeClass(swipeTransition);
-
-  useEffect(() => {
-    return () => {
-      if (swipeExitTimerRef.current !== null) {
-        window.clearTimeout(swipeExitTimerRef.current);
-      }
-    };
-  }, []);
+  const list = useRef<HTMLDivElement>(null);
+  const categorySlideRef = useRef<HTMLDivElement>(null);
+  const slideCategory = useTabSlide(categorySlideRef);
+  useInitialListReveal(list, !showSkeleton, () =>
+    Number(searchParams.get("page") || 1) > 1 ||
+    isRestoringScrollRef.current || Boolean(window.sessionStorage.getItem(MARKED_RESTORE_KEY)) ||
+    document.documentElement.dataset.navDir === "back",
+  );
+  const activeCategoryIndex = orderedCategories.findIndex((entry) => entry.id === activeCategory);
+  const swipeHandlers = useSwipePager({
+    index: activeCategoryIndex,
+    count: orderedCategories.length,
+    onSelect: (index) => goToCategory(orderedCategories[index].id),
+    onProgress: (fraction) => trackCategoryIndicator(categoryViewportRef.current, "[data-marked-category]", fraction),
+  });
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -131,7 +127,7 @@ export function MarkedFrame({
     ) {
       queueMicrotask(() => {
         setPendingTarget(null);
-        setSwipeTransition(null);
+
       });
     }
   }, [category, pendingTarget, shelf]);
@@ -139,7 +135,7 @@ export function MarkedFrame({
   useEffect(() => {
     function showPendingSkeleton() {
       setIsExternalPending(true);
-      setSwipeTransition(null);
+
     }
 
     window.addEventListener(MARKED_LIST_PENDING_EVENT, showPendingSkeleton);
@@ -224,39 +220,8 @@ export function MarkedFrame({
     };
   }, [currentSearch, showSkeleton]);
 
-  function goToCategory(
-    nextCategory: string,
-    options: { swipeDirection?: "left" | "right" } = {},
-  ) {
-    if (nextCategory === category) {
-      return;
-    }
-
-    if (swipeExitTimerRef.current !== null) {
-      window.clearTimeout(swipeExitTimerRef.current);
-      swipeExitTimerRef.current = null;
-    }
-
-    if (options.swipeDirection) {
-      setSwipeTransition({
-        direction: options.swipeDirection,
-        phase: "exit",
-      });
-
-      swipeExitTimerRef.current = window.setTimeout(() => {
-        swipeExitTimerRef.current = null;
-        beginCategoryNavigation(nextCategory, options);
-      }, MARKED_SWIPE_EXIT_MS);
-      return;
-    }
-
-    beginCategoryNavigation(nextCategory, options);
-  }
-
-  function beginCategoryNavigation(
-    nextCategory: string,
-    options: { swipeDirection?: "left" | "right" } = {},
-  ) {
+  function goToCategory(nextCategory: string) {
+    if (nextCategory === activeCategory) return;
     const href = getMarkedHref({ category: nextCategory, shelf: activeShelf });
 
     window.sessionStorage.removeItem(MARKED_RESTORE_KEY);
@@ -267,65 +232,10 @@ export function MarkedFrame({
     );
 
     setPendingTarget({ category: nextCategory, shelf: activeShelf });
-    setSwipeTransition(
-      options.swipeDirection
-        ? { direction: options.swipeDirection, phase: "enter" }
-        : null,
-    );
 
     startTransition(() => {
       router.push(href);
     });
-  }
-
-  function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (!event.isPrimary || event.pointerType === "mouse") {
-      return;
-    }
-
-    gestureStartRef.current = {
-      id: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-    };
-  }
-
-  function handleContentPointerUp(event: PointerEvent<HTMLDivElement>) {
-    const start = gestureStartRef.current;
-
-    if (!start || start.id !== event.pointerId) {
-      return;
-    }
-
-    gestureStartRef.current = null;
-
-    const deltaX = event.clientX - start.x;
-    const deltaY = event.clientY - start.y;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-
-    if (absX < 64 || absX < absY * 1.35) {
-      return;
-    }
-
-    const activeCategoryIndex = orderedCategories.findIndex(
-      (entry) => entry.id === activeCategory,
-    );
-    const nextIndex = deltaX < 0 ? activeCategoryIndex + 1 : activeCategoryIndex - 1;
-    const nextCategory = orderedCategories[nextIndex];
-
-    if (!nextCategory) {
-      return;
-    }
-
-    suppressGestureClickRef.current = true;
-    goToCategory(nextCategory.id, {
-      swipeDirection: deltaX < 0 ? "left" : "right",
-    });
-
-    window.setTimeout(() => {
-      suppressGestureClickRef.current = false;
-    }, 0);
   }
 
   useEffect(() => {
@@ -364,10 +274,10 @@ export function MarkedFrame({
         <div className="relative grid h-9 grid-cols-4">
           <span
             aria-hidden="true"
-            className="absolute inset-y-0 left-0 w-1/4 rounded-full bg-[var(--theme-primary)] shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            className="absolute inset-y-0 left-0 w-1/4 rounded-full bg-[var(--theme-primary)] shadow-md motion-pill transition-transform duration-(--dur-spring) ease-spring-snappy"
             style={{ transform: `translateX(${activeIndex * 100}%)` }}
           />
-          {shelfTabs.map((entry) => {
+          {shelfTabs.map((entry, index) => {
             const isActive = entry.id === activeShelf;
 
             return (
@@ -377,7 +287,7 @@ export function MarkedFrame({
                 }`}
                 key={entry.id}
                 onClick={() => {
-                  if (entry.id === shelf) {
+                  if (entry.id === activeShelf) {
                     return;
                   }
 
@@ -391,12 +301,14 @@ export function MarkedFrame({
                     getMarkedScrollKey(new URL(href, window.location.origin).search.replace(/^\?/, "")),
                     "0",
                   );
-                  setPendingTarget({
-                    category: activeCategory,
-                    shelf: entry.id,
-                  });
-                  startTransition(() => {
-                    router.push(href);
+                  slideCategory(index - activeIndex, () => {
+                    setPendingTarget({
+                      category: activeCategory,
+                      shelf: entry.id,
+                    });
+                    startTransition(() => {
+                      router.push(href);
+                    });
                   });
                 }}
                 type="button"
@@ -433,17 +345,18 @@ export function MarkedFrame({
         >
           <SortIcon />
         </button>
-        {orderedCategories.map((entry) => (
+        {orderedCategories.map((entry, index) => (
           <button
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+            aria-pressed={entry.id === activeCategory}
+            className={`motion-category relative isolate shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
               entry.id === activeCategory
-                ? "bg-[#e2e2e5] text-[var(--foreground)]"
+                ? "text-[var(--foreground)]"
                 : "border border-white/70 bg-white/60 text-[#44474c] shadow-sm hover:bg-white/80"
             }`}
             data-marked-category={entry.id}
             key={entry.id}
             onClick={() => {
-              goToCategory(entry.id);
+              if (entry.id !== activeCategory) slideCategory(index - activeCategoryIndex, () => goToCategory(entry.id));
             }}
             type="button"
           >
@@ -466,23 +379,14 @@ export function MarkedFrame({
           />
         </Suspense>
       ) : null}
-      <div
-        className={`min-h-[50dvh] touch-pan-y motion-safe:will-change-transform ${contentAnimationClass}`}
-        onClickCapture={(event) => {
-          if (!suppressGestureClickRef.current) {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-        }}
-        onPointerCancel={() => {
-          gestureStartRef.current = null;
-        }}
-        onPointerDown={handleContentPointerDown}
-        onPointerUp={handleContentPointerUp}
-      >
-        {showSkeleton ? <MarkedCardsSkeleton /> : children}
+      <div className="tab-slide" ref={categorySlideRef}>
+        <div
+          className="min-h-[50dvh] touch-pan-y"
+          ref={list}
+          {...swipeHandlers}
+        >
+          {showSkeleton ? <MarkedCardsSkeleton /> : children}
+        </div>
       </div>
     </>
   );
@@ -495,21 +399,6 @@ function centerTagInViewport(viewport: HTMLElement, tag: HTMLElement) {
   });
 }
 
-function getMarkedSwipeClass(transition: SwipeTransition | null) {
-  if (!transition) {
-    return "";
-  }
-
-  if (transition.phase === "exit") {
-    return transition.direction === "left"
-      ? "home-swipe-exit-left"
-      : "home-swipe-exit-right";
-  }
-
-  return transition.direction === "left"
-    ? "home-swipe-enter-right"
-    : "home-swipe-enter-left";
-}
 
 function RefreshIcon() {
   return (

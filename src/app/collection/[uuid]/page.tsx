@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { CoverTransition } from "@/components/cover-transition";
+import { FadeImage } from "@/components/fade-image";
 import { cookies } from "next/headers";
 import {
   CollectionScrollRestorer,
@@ -163,7 +164,7 @@ export default async function CollectionPage({
             )}
           />
 
-          <CollectionContentFrame key={`${uuid}:${page}`}>
+          <CollectionContentFrame key={`${uuid}:${page}`} page={page} uuid={uuid}>
             <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               {items.data.map((entry, index) => {
                 const item = normalizeNeodbItem(entry.item, baseUrl);
@@ -173,6 +174,7 @@ export default async function CollectionPage({
                 return (
                   <article
                     className="relative rounded-2xl border border-white/70 bg-white/60 p-3 shadow-lg shadow-slate-900/5 transition hover:bg-white/75 press-card"
+                    data-motion-item={item.id}
                     key={`${item.id}-${index}`}
                   >
                     {canEditCollection ? (
@@ -186,16 +188,18 @@ export default async function CollectionPage({
                       <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-4 pr-8 sm:grid-cols-[7rem_minmax(0,1fr)]">
                         <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[#e2e2e5]">
                           {item.coverUrl ? (
-                            <Image
-                              alt={item.title}
-                              className="h-full w-full object-cover"
-                              fill
-                              loading={index < 8 ? "eager" : "lazy"}
-                              quality={75}
-                              sizes="(max-width: 640px) 96px, 112px"
-                              src={item.coverUrl}
-                              unoptimized={process.env.NODE_ENV !== "production"}
-                            />
+                            <CoverTransition className="absolute inset-0" id={item.id} sourceKey={`collection:${uuid}:${page}:${item.id}:${index}`}>
+                              <FadeImage
+                                alt={item.title}
+                                className="h-full w-full object-cover"
+                                fill
+                                loading={index < 8 ? "eager" : "lazy"}
+                                quality={75}
+                                sizes="(max-width: 640px) 96px, 112px"
+                                src={item.coverUrl}
+                                unoptimized={process.env.NODE_ENV !== "production"}
+                              />
+                            </CoverTransition>
                           ) : (
                             <div className="flex h-full items-center justify-center p-3 text-center text-xs font-semibold text-[#75777d]">
                               {item.title}

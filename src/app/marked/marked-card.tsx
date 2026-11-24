@@ -1,5 +1,7 @@
 "use client";
 
+import { CoverTransition } from "@/components/cover-transition";
+import { FadeNativeImage } from "@/components/fade-image";
 import { Suspense, useEffect, useState } from "react";
 import { showToast } from "@/components/app-toast";
 import { LazyReadingProgressDialog } from "@/components/lazy-reading-progress-dialog";
@@ -270,22 +272,23 @@ export function MarkedCard({
   }
 
   return (
-    <article className="surface-glow relative rounded-xl border border-white/70 bg-white/55 p-3 shadow-lg shadow-slate-900/5">
+    <article data-motion-item={itemUuid} className="surface-glow relative rounded-xl border border-white/70 bg-white/55 p-3 shadow-lg shadow-slate-900/5">
       <MarkedCardBody
         className="grid w-full cursor-pointer grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-4 rounded-xl text-left transition press-card sm:grid-cols-[7.5rem_minmax(0,1fr)]"
         href={item.detailPath}
         itemUuid={itemUuid}
       >
-        <div className="aspect-[3/4] overflow-hidden rounded-xl bg-[#e2e2e5]">
+        <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[#e2e2e5]">
           {item.coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              alt={item.title}
-              className="h-full w-full object-cover transition duration-500 hover:scale-105"
-              decoding="async"
-              loading="lazy"
-              src={item.coverUrl}
-            />
+            <CoverTransition className="absolute inset-0" id={itemUuid} sourceKey={`marked:${itemUuid}`}>
+              <FadeNativeImage
+                alt={item.title}
+                className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                decoding="async"
+                loading="lazy"
+                src={item.coverUrl}
+              />
+            </CoverTransition>
           ) : (
             <div className="flex h-full items-center justify-center p-3 text-center text-xs font-semibold text-[#75777d]">
               {item.title}

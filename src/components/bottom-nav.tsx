@@ -220,6 +220,7 @@ export function BottomNav({ isSignedIn }: { isSignedIn: boolean }) {
       <DesktopLogo />
       <nav
         aria-label={t("bottomNav.label")}
+        data-motion-bottom-bar
         className="pointer-events-none fixed inset-x-0 bottom-6 z-40 px-4 lg:inset-x-auto lg:bottom-auto lg:left-6 lg:top-1/2 lg:-translate-y-1/2 lg:px-0"
       >
       <div
@@ -235,7 +236,7 @@ export function BottomNav({ isSignedIn }: { isSignedIn: boolean }) {
         >
           <span
             aria-hidden="true"
-            className="absolute inset-y-0 left-0 w-1/4 rounded-[1.65rem] bg-[var(--theme-primary)] shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] [transform:translateX(calc(var(--active-index)*100%))] lg:inset-x-0 lg:inset-y-auto lg:top-0 lg:h-1/4 lg:w-full lg:[transform:translateY(calc(var(--active-index)*100%))]"
+            className="absolute inset-y-0 left-0 w-1/4 rounded-[1.65rem] bg-[var(--theme-primary)] shadow-md motion-pill transition-transform duration-(--dur-spring) ease-spring-snappy [transform:translateX(calc(var(--active-index)*100%))] lg:inset-x-0 lg:inset-y-auto lg:top-0 lg:h-1/4 lg:w-full lg:[transform:translateY(calc(var(--active-index)*100%))]"
           />
           {tabs.map((tab, index) => {
             const isActive = index === activeIndex;
@@ -287,16 +288,17 @@ export function BottomNav({ isSignedIn }: { isSignedIn: boolean }) {
                     }
 
                     setPendingIndex(index);
+                    const transitionTypes = [index > activeIndex ? "tab-right" : "tab-left"];
                     startTransition(() => {
                       resetNavigationStackRoot(stackRootHref);
 
                       if (href === "/") {
                         window.sessionStorage.setItem(HOME_RESTORE_KEY, "1");
-                        router.push(targetHref, { scroll: false });
+                        router.push(targetHref, { scroll: false, transitionTypes });
                         return;
                       }
 
-                      router.push(targetHref);
+                      router.push(targetHref, { transitionTypes });
                     });
                   }}
                 >
@@ -421,6 +423,7 @@ function DesktopLogo() {
     return (
       <div
         aria-label={label}
+        data-motion-desktop-logo
         className="pointer-events-none fixed left-6 top-7 z-40 hidden text-2xl font-semibold leading-none tracking-tight text-[#1a1c1e] lg:block"
         style={{ fontFamily: "serif" }}
       >
@@ -432,6 +435,7 @@ function DesktopLogo() {
   return (
     <div
       aria-label={label}
+      data-motion-desktop-logo
       className="pointer-events-none fixed left-[60px] top-7 z-40 hidden -translate-x-1/2 text-[2.25rem] font-semibold leading-none tracking-normal text-[#1a1c1e] lg:block"
       style={{
         fontFamily: "serif",

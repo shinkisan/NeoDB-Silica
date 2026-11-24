@@ -15,7 +15,7 @@ export default function Loading() {
           </div>
         </TopBarIsland>
         <div className="flex min-w-0 flex-1 justify-center">
-          <div className="h-5 w-24 animate-pulse rounded-full bg-[#e2e2e5]" />
+          <div className="h-5 w-24 skeleton rounded-full" />
         </div>
         <div aria-hidden="true" className="size-10 shrink-0" />
       </FloatingTopBar>
@@ -23,7 +23,7 @@ export default function Loading() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {Array.from({ length: 6 }, (_, index) => (
             <div
-              className="aspect-[3/4] animate-pulse rounded-xl bg-[#e2e2e5]"
+              className="aspect-[3/4] skeleton rounded-xl"
               key={index}
             />
           ))}
