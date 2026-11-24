@@ -8,7 +8,7 @@ export function PendingDetailCover() {
   const src = usePendingCoverSrc(uuid);
   const className = "h-full overflow-hidden rounded-2xl shadow-[0_8px_30px_rgb(74,85,104,0.12)]";
 
-  if (!uuid || process.env.NEXT_PUBLIC_VIEW_TRANSITIONS !== "1") {
+  if (!uuid) {
     return <div className={`skeleton ${className}`} />;
   }
 

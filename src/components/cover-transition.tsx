@@ -14,7 +14,7 @@ function subscribe(listener: () => void) {
 }
 
 export function selectTransitionCover(target: EventTarget | null) {
-  if (process.env.NEXT_PUBLIC_VIEW_TRANSITIONS !== "1" || !(target instanceof Element)) return;
+  if (!(target instanceof Element)) return;
   const link = target.closest("a[href], [role=link]");
   const cover = link?.querySelector<HTMLElement>("[data-motion-cover-source]");
   const key = cover?.dataset.motionCoverSource;
@@ -37,15 +37,22 @@ export function CoverTransition({
   sourceKey?: string;
   className: string;
 }) {
-  if (process.env.NEXT_PUBLIC_VIEW_TRANSITIONS !== "1") {
-    return <div className={className}>{children}</div>;
-  }
-  return <ActiveCover id={id} sourceKey={sourceKey} className={className}>{children}</ActiveCover>;
+  const box = (
+    <div className={className} data-motion-cover-source={sourceKey} data-motion-cover-id={id}>
+      {children}
+    </div>
+  );
+  if (process.env.NEXT_PUBLIC_VIEW_TRANSITIONS !== "1") return box;
+  return <ActiveCover id={id} sourceKey={sourceKey}>{box}</ActiveCover>;
 }
 
 function ActiveCover({
-  children, id, sourceKey, className,
-}: Parameters<typeof CoverTransition>[0]) {
+  children, id, sourceKey,
+}: {
+  children: ReactNode;
+  id: string;
+  sourceKey?: string;
+}) {
   const active = useSyncExternalStore(subscribe, () => selected?.key === sourceKey, () => false);
   const shared = !sourceKey || active;
   return (
@@ -54,7 +61,7 @@ function ActiveCover({
       name={shared ? `cover-${id.replace(/[^a-zA-Z0-9_-]/g, "_")}` : undefined}
       share={shared ? "cover-morph" : "none"}
     >
-      <div className={className} data-motion-cover-source={sourceKey} data-motion-cover-id={id}>{children}</div>
+      {children}
     </ViewTransition>
   );
 }

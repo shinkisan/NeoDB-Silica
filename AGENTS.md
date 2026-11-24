@@ -175,9 +175,9 @@ inventing a separate visual system.
   for dismissal and the shared spring for active-tab and pagination pills.
 - Respect reduced motion by removing spatial changes and preserving short
   fades. Keep animation off the critical path for navigation and data requests.
-- Experimental route snapshots default on for the `preview` deployment.
-  Other builds can opt in with `NEXT_PUBLIC_VIEW_TRANSITIONS=1`.
-  The baseline route entrance uses CSS and works without the browser API.
+- Experimental route snapshots default on (`NEXT_PUBLIC_VIEW_TRANSITIONS=1`,
+  opt out with `0`). The baseline route entrance uses CSS and works without
+  the browser API.
 - For uncertain external operations, prefer honest indeterminate waiting states
   over fake progress bars that imply false certainty.
 
