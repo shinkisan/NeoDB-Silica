@@ -67,6 +67,7 @@ export function LanguageSelect() {
     { id: "zh-Hant", label: "正體中文" },
     { id: "zh-Hans", label: "简体中文" },
     { id: "en", label: "English" },
+    { id: "fr", label: "Français" },
   ];
 
   return (

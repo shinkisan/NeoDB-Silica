@@ -111,6 +111,7 @@ export async function fetchTmdbJson<T>(
 export function getTmdbLanguage(locale: Locale) {
   const languageMap: Record<Locale, string> = {
     en: "en-US",
+    fr: "fr-FR",
     "zh-Hans": "zh-CN",
     "zh-Hant": "zh-TW",
   };

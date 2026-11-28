@@ -60,13 +60,22 @@ export async function GET(request: Request) {
         : await resolveRequestLocale();
     const params = new URLSearchParams({
       appids: appId,
-      cc: locale === "zh-Hant" ? "TW" : locale === "zh-Hans" ? "CN" : "US",
+      cc:
+        locale === "zh-Hant"
+          ? "TW"
+          : locale === "zh-Hans"
+            ? "CN"
+            : locale === "fr"
+              ? "FR"
+              : "US",
       l:
         locale === "zh-Hant"
           ? "tchinese"
           : locale === "zh-Hans"
             ? "schinese"
-            : "english",
+            : locale === "fr"
+              ? "french"
+              : "english",
     });
     const response = await fetchWithTimeout(
       `https://store.steampowered.com/api/appdetails?${params.toString()}`,

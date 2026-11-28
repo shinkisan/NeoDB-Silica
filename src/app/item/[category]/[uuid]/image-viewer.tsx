@@ -31,7 +31,7 @@ type ImageViewerProps = {
   spotifyAlbumUrl?: string | null;
   src: string;
   steamAppId?: string | null;
-  steamLocale?: "en" | "zh-Hans" | "zh-Hant";
+  steamLocale?: "en" | "fr" | "zh-Hans" | "zh-Hant";
   stills?: TmdbStillImage[] | null;
 };
 

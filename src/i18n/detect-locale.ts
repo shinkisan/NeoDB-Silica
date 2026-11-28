@@ -32,6 +32,10 @@ function matchLocale(tag: string): Locale | null {
   const lower = tag.toLowerCase();
 
   if (!lower.startsWith("zh")) {
+    if (lower === "fr" || lower.startsWith("fr-")) {
+      return "fr";
+    }
+
     return lower.startsWith("en") ? "en" : null;
   }
 

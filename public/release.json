@@ -12,5 +12,9 @@
   "en": {
     "title": "What's New",
     "body": "No changelog entries yet."
+  },
+  "fr": {
+    "title": "Nouveautés",
+    "body": "Aucune entrée dans le journal des modifications pour l'instant."
   }
 }
