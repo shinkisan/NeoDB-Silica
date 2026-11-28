@@ -16,6 +16,7 @@ export const BOOK_UUID = "e2ebook00000000000000001";
 export const BOOK_TITLE = "测试之书";
 export const MOVIE_UUID = "e2emovie0000000000000001";
 export const MOVIE_TITLE = "测试电影";
+export const TV_UUID = "e2etv000000000000000001";
 export const OWN_COMMENT_TEXT = "这是自己的测试短评";
 export const OTHER_COMMENT_TEXT = "这是别人的测试短评";
 export const MY_DISPLAY_NAME = "测试用户";

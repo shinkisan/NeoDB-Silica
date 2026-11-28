@@ -111,6 +111,13 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     const item = items[trending[1]];
+    if (item === items.tv) {
+      json(res, [{
+        ...item,
+        cover_image_url: `${MOCK_ORIGIN}/m/covers/${item.uuid}-trending.png`,
+      }]);
+      return;
+    }
     json(res, item ? [item] : []);
     return;
   }

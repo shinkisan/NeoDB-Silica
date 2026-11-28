@@ -4,6 +4,7 @@ import {
   BOOK_UUID,
   MOVIE_UUID,
   OTHER_COMMENT_TEXT,
+  TV_UUID,
 } from "../helpers/env";
 
 test("item detail renders metadata and community comments", async ({ page }) => {
@@ -42,6 +43,21 @@ test("movie poster shows a skeleton until the image loads", async ({ page }) => 
     /opacity-100/,
   );
   await expect(page.locator("[data-detail-poster-skeleton]")).toHaveCount(0);
+});
+
+test("TV poster flips when the detail cover differs from the listing cover", async ({ page }) => {
+  await page.goto("/?category=tv");
+
+  const card = page.locator(`a[href^="/item/tv/${TV_UUID}"]`);
+  const cover = card.locator("img");
+  await expect.poll(() =>
+    cover.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0),
+  ).toBe(true);
+
+  await card.click();
+
+  await expect(page.locator("[data-detail-poster-image]")).toHaveClass(/poster-flip-in/);
+  await expect(page.locator(".poster-flip-out")).toHaveCount(1);
 });
 
 test("scrolled detail header centers the cover and returns to the top", async ({ page }) => {

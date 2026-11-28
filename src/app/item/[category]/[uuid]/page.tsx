@@ -104,6 +104,7 @@ export default async function DetailPage({ params }: DetailPageProps) {
 
   if (itemResult.status === "found") {
     const item = itemResult.item;
+    const isMovieOrTv = item.category === "movie" || item.category === "tv";
     const meta = getDetailMeta(item, t);
     const description = item.description || item.brief || t("detail.noDescription");
     const spotifyAlbumUrl =
@@ -158,11 +159,9 @@ export default async function DetailPage({ params }: DetailPageProps) {
                       <ImageViewer
                         itemUuid={item.uuid}
                         alt={item.display_title || item.title || "作品封面"}
-                        flipChangedPoster={item.category === "movie"}
+                        flipChangedPoster={isMovieOrTv}
                         key={displayCoverUrl}
-                        showLoadingSkeleton={
-                          item.category === "movie" || item.category === "tv"
-                        }
+                        showLoadingSkeleton={isMovieOrTv}
                         spotifyAlbumUrl={spotifyAlbumUrl}
                         src={displayCoverUrl}
                         steamAppId={steamAppId}
