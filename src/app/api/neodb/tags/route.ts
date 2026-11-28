@@ -31,13 +31,17 @@ export async function GET(request: Request) {
   configureServerFetchProxy();
 
   try {
-    const title = new URL(request.url).searchParams.get("title")?.trim();
+    const { searchParams } = new URL(request.url);
+    const title = searchParams.get("title")?.trim();
     const url = new URL(`${session.instance}/api/me/tag/`);
     url.searchParams.set("page", "1");
     url.searchParams.set("page_size", title ? "1" : String(TAG_PAGE_SIZE));
 
     if (title) {
       url.searchParams.set("title", title);
+    }
+    if (searchParams.get("sort") === "recent") {
+      url.searchParams.set("sort", "recent");
     }
 
     const response = await fetchWithTimeout(

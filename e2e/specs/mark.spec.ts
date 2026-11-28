@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { MOVIE_TITLE, MOVIE_UUID } from "../helpers/env";
+import { BOOK_UUID, MOVIE_TITLE, MOVIE_UUID } from "../helpers/env";
 import { signIn } from "../helpers/session";
 
 test("marking an item as wishlist succeeds", async ({ context, page }) => {
@@ -14,6 +14,22 @@ test("marking an item as wishlist succeeds", async ({ context, page }) => {
   await page.getByRole("option", { name: "想看", exact: true }).click();
 
   await expect(page.getByText("已标记").first()).toBeVisible();
+});
+
+test("the tag picker lists recently used tags first", async ({ context, page }) => {
+  await signIn(context);
+  await page.goto(`/item/book/${BOOK_UUID}`);
+
+  await page.getByRole("button", { name: "修改短评", exact: true }).click();
+  await page.getByRole("button", { name: "更多选项", exact: true }).click();
+  await page.getByRole("button", { name: "+新标签", exact: true }).click();
+  await page.getByRole("button", { name: "新建", exact: true }).click();
+
+  await expect(page.getByRole("listbox").getByRole("option")).toHaveText([
+    "新建",
+    "近期收藏",
+    "待读清单",
+  ]);
 });
 
 test("submitting a rating and a short comment succeeds", async ({

@@ -196,6 +196,12 @@ export const otherCommentStatus = status({
   createdAt: "2026-06-30T09:00:00.000Z",
 });
 
+// Default API order. The second tag was used more recently.
+export const personalTags = [
+  { title: "待读清单", uuid: "e2etag000000000000000001" },
+  { title: "近期收藏", uuid: "e2etag000000000000000002" },
+];
+
 // Initial shelf marks, keyed by item uuid. post_id is kept as a string here
 // and un-quoted at serialization time in server.mjs.
 export const initialShelfMarks = {

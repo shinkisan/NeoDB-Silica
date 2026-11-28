@@ -17,6 +17,7 @@ import {
   otherAccount,
   otherCommentStatus,
   ownCommentStatus,
+  personalTags,
   timelineStatuses,
   TINY_PNG,
 } from "./fixtures.mjs";
@@ -207,6 +208,21 @@ const server = http.createServer(async (req, res) => {
   // --- Current user ---
   if (path === "/api/me" && method === "GET") {
     json(res, me);
+    return;
+  }
+  if (path === "/api/me/tag" && method === "GET") {
+    const title = url.searchParams.get("title");
+    const page = Number(url.searchParams.get("page") || "1");
+    const pageSize = Number(url.searchParams.get("page_size") || "20");
+    const tags = personalTags.filter((tag) => !title || tag.title === title);
+    if (url.searchParams.get("sort") === "recent") {
+      tags.reverse();
+    }
+    json(res, {
+      count: tags.length,
+      data: tags.slice((page - 1) * pageSize, page * pageSize),
+      pages: Math.max(1, Math.ceil(tags.length / pageSize)),
+    });
     return;
   }
   if (path === "/api/v1/accounts/verify_credentials" && method === "GET") {

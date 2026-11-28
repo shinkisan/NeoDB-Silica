@@ -110,7 +110,7 @@ export function ShortReviewDialog({
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/neodb/tags", { cache: "no-store" })
+    fetch("/api/neodb/tags?sort=recent", { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) {
           const payload = (await response.json().catch(() => null)) as
