@@ -65,9 +65,11 @@ export default async function ProfilePage() {
   const aboutHref =
     locale === "en"
       ? "/en/about?from=profile"
-      : locale === "zh-Hant"
-        ? "/zh-Hant/about?from=profile"
-        : "/about?from=profile";
+      : locale === "fr"
+        ? "/fr/about?from=profile"
+        : locale === "zh-Hant"
+          ? "/zh-Hant/about?from=profile"
+          : "/about?from=profile";
   const session = await getSession();
   const hasSession = Boolean(session?.accessToken);
   const initialUser = session ? await fetchCurrentUser(session) : null;

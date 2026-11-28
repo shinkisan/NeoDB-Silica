@@ -5,7 +5,7 @@ import { NEODB_GITHUB_URL, SILICA_GITHUB_URL } from "@/lib/attribution-links";
 import { SITE_PUBLIC_ORIGIN, getIndexableRobots } from "@/lib/seo";
 import { siteConfig } from "@/site.config";
 
-export type AboutLocale = "en" | "zh-Hans" | "zh-Hant";
+export type AboutLocale = "en" | "fr" | "zh-Hans" | "zh-Hant";
 
 /**
  * This page is intentionally minimal: a deliberate, deployer-owned template
@@ -31,12 +31,14 @@ type AboutContent = {
 
 const paths: Record<AboutLocale, string> = {
   en: "/en/about",
+  fr: "/fr/about",
   "zh-Hans": "/about",
   "zh-Hant": "/zh-Hant/about",
 };
 
 const languageNames: Record<AboutLocale, string> = {
   en: "English",
+  fr: "Français",
   "zh-Hans": "简体中文",
   "zh-Hant": "正體中文",
 };
@@ -55,6 +57,7 @@ export function getAboutMetadata(locale: AboutLocale): Metadata {
       canonical: path,
       languages: {
         en: paths.en,
+        fr: paths.fr,
         "x-default": paths["zh-Hans"],
         "zh-Hans": paths["zh-Hans"],
         "zh-Hant": paths["zh-Hant"],
@@ -171,7 +174,7 @@ export function AboutPage({
             aria-label={content.languageLabel}
             className="mt-12 flex flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-[#44474c]"
           >
-            {(["zh-Hans", "zh-Hant", "en"] as const).map((targetLocale) => (
+            {(["zh-Hans", "zh-Hant", "en", "fr"] as const).map((targetLocale) => (
               <Link
                 aria-current={targetLocale === locale ? "page" : undefined}
                 className={
@@ -208,6 +211,22 @@ function getContent(locale: AboutLocale): AboutContent {
       metadataTitle: name,
       openSourceDescription: `${name} is built with open-source software including React, Next.js, and hls.js. View project and license information.`,
       openSourceTitle: "Third-party open-source software",
+      siteName: name,
+    };
+  }
+
+  if (locale === "fr") {
+    return {
+      appAction: "Ouvrir l'app",
+      closeLabel: "Fermer la page À propos",
+      creditMiddle: " et ",
+      creditPrefix: `${name} est construit sur `,
+      creditSuffix: ".",
+      languageLabel: "Versions linguistiques",
+      metadataDescription: `${name} est construit sur NeoDB et NeoDB Silica.`,
+      metadataTitle: name,
+      openSourceDescription: `${name} s'appuie sur des logiciels open source comme React, Next.js et hls.js. Consultez les projets et leurs licences.`,
+      openSourceTitle: "Logiciels open source tiers",
       siteName: name,
     };
   }
@@ -293,6 +312,10 @@ function OpenSourceIcon() {
 function getOpenGraphLocale(locale: AboutLocale) {
   if (locale === "en") {
     return "en_US";
+  }
+
+  if (locale === "fr") {
+    return "fr_FR";
   }
 
   return locale === "zh-Hant" ? "zh_TW" : "zh_CN";

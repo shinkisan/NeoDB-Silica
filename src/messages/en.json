@@ -890,7 +890,7 @@
     "appearance": {
       "mode": { "system": "System", "light": "Light", "dark": "Dark" },
       "themeColor": { "slate": "Slate", "rose": "Rose", "sage": "Sage", "amber": "Amber", "indigo": "Indigo" },
-      "language": { "system": "System Language", "zhHans": "Simplified Chinese", "zhHant": "Traditional Chinese", "en": "English" },
+      "language": { "system": "System Language", "zhHans": "Simplified Chinese", "zhHant": "Traditional Chinese", "en": "English", "fr": "French" },
       "homeTagOrder": { "button": "Sort", "dialogTitle": "Home Tag Order", "close": "Close", "moveUp": "Move Up", "moveDown": "Move Down", "resetDefault": "Reset Default" },
       "tabOrder": { "button": "Sort", "dialogTitle": "Tab Order", "close": "Close", "moveUp": "Move Up", "moveDown": "Move Down", "resetDefault": "Reset Default" }
     },

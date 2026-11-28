@@ -36,6 +36,10 @@ export function getDefaultTmdbRegion(locale: Locale): TmdbRegion {
     return "US";
   }
 
+  if (locale === "fr") {
+    return "FR";
+  }
+
   return "CN";
 }
 

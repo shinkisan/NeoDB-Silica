@@ -10,7 +10,7 @@ import { MediaLoadingIndicator } from "./media-loading-indicator";
 type SteamTrailerPlayerProps = {
   appId: string;
   gameTitle: string;
-  locale: "en" | "zh-Hans" | "zh-Hant";
+  locale: "en" | "fr" | "zh-Hans" | "zh-Hant";
   onClose: () => void;
 };
 

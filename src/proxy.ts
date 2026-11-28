@@ -9,9 +9,11 @@ export function proxy(request: NextRequest) {
     ABOUT_LOCALE_HEADER,
     request.nextUrl.pathname.startsWith("/en/")
       ? "en"
-      : request.nextUrl.pathname.startsWith("/zh-Hant/")
-        ? "zh-Hant"
-        : "zh-Hans",
+      : request.nextUrl.pathname.startsWith("/fr/")
+        ? "fr"
+        : request.nextUrl.pathname.startsWith("/zh-Hant/")
+          ? "zh-Hant"
+          : "zh-Hans",
   );
 
   return NextResponse.next({
@@ -22,5 +24,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/about", "/en/about", "/zh-Hant/about"],
+  matcher: ["/about", "/en/about", "/fr/about", "/zh-Hant/about"],
 };

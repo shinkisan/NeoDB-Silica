@@ -97,6 +97,7 @@ const libraries: Library[] = [
 
 const paths: Record<AboutLocale, { about: string; licenses: string }> = {
   en: { about: "/en/about", licenses: "/en/licenses" },
+  fr: { about: "/fr/about", licenses: "/fr/licenses" },
   "zh-Hans": { about: "/about", licenses: "/licenses" },
   "zh-Hant": { about: "/zh-Hant/about", licenses: "/zh-Hant/licenses" },
 };
@@ -109,6 +110,7 @@ export function getLicensesMetadata(locale: AboutLocale): Metadata {
       canonical: paths[locale].licenses,
       languages: {
         en: paths.en.licenses,
+        fr: paths.fr.licenses,
         "x-default": paths["zh-Hans"].licenses,
         "zh-Hans": paths["zh-Hans"].licenses,
         "zh-Hant": paths["zh-Hant"].licenses,
@@ -190,6 +192,14 @@ function getContent(locale: AboutLocale) {
       closeLabel: "Close open-source licenses",
       description: `${name} is built with the following open-source projects. Each project remains subject to its own license.`,
       title: "Third-party open-source software",
+    };
+  }
+
+  if (locale === "fr") {
+    return {
+      closeLabel: "Fermer les licences open source",
+      description: `${name} est construit avec les projets open source suivants. Chaque projet reste soumis à sa propre licence.`,
+      title: "Logiciels open source tiers",
     };
   }
 

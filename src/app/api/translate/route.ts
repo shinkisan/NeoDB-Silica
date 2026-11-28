@@ -17,7 +17,7 @@ type AzureTranslationResponse = Array<{
 
 const MAX_TEXT_LENGTH = 5_000;
 const MAX_TRANSLATION_SEGMENTS = 100;
-const TARGET_LANGUAGES = new Set(["en", "zh-Hans", "zh-Hant"]);
+const TARGET_LANGUAGES = new Set(["en", "fr", "zh-Hans", "zh-Hant"]);
 
 export async function POST(request: Request) {
   // Each request costs money against the operator's Azure Translator quota,

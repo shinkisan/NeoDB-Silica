@@ -82,6 +82,7 @@ export function localeToNeoDBAcceptLanguage(locale: string): string | undefined 
     "zh-Hans": "zh-hans, zh;q=0.9, en;q=0.5",
     "zh-Hant": "zh-hant, zh;q=0.9, en;q=0.5",
     en: "en;q=0.9, zh-hans;q=0.5",
+    fr: "fr, en;q=0.9, zh-hans;q=0.5",
   };
 
   return langMap[locale];

@@ -10,6 +10,7 @@ type ReleaseData = {
   "zh-Hans"?: { body: string; title: string };
   "zh-Hant"?: { body: string; title: string };
   en?: { body: string; title: string };
+  fr?: { body: string; title: string };
 };
 
 const DEFAULT_LOCALE = "zh-Hans";
@@ -54,6 +55,7 @@ export function ChangelogButton() {
   const title =
     release
       ? (release as unknown as Record<string, { title: string }>)[locale]?.title ||
+        (locale === "fr" ? release.en?.title : undefined) ||
         release[DEFAULT_LOCALE]?.title ||
         ""
       : t("profile.changelog");
@@ -61,6 +63,7 @@ export function ChangelogButton() {
   const body =
     release
       ? (release as unknown as Record<string, { body: string }>)[locale]?.body ||
+        (locale === "fr" ? release.en?.body : undefined) ||
         release[DEFAULT_LOCALE]?.body ||
         ""
       : "";

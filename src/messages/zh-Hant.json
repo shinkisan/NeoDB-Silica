@@ -889,7 +889,7 @@
     "appearance": {
       "mode": { "system": "跟隨系統", "light": "白天模式", "dark": "夜間模式" },
       "themeColor": { "slate": "石墨", "rose": "薔薇", "sage": "鼠尾草", "amber": "琥珀", "indigo": "靛藍" },
-      "language": { "system": "系統語言", "zhHans": "簡體中文", "zhHant": "繁體中文", "en": "English" },
+      "language": { "system": "系統語言", "zhHans": "簡體中文", "zhHant": "繁體中文", "en": "English", "fr": "Français" },
       "homeTagOrder": { "button": "排序", "dialogTitle": "首頁標籤排序", "close": "關閉", "moveUp": "上移", "moveDown": "下移", "resetDefault": "恢復預設" },
       "tabOrder": { "button": "排序", "dialogTitle": "底欄順序", "close": "關閉", "moveUp": "上移", "moveDown": "下移", "resetDefault": "恢復預設" }
     },
